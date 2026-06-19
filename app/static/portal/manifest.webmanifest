@@ -1,0 +1,19 @@
+{
+  "name": "OfferCare.ai Clinician Portal",
+  "short_name": "OfferCare",
+  "description": "Mid-Atlantic shift alerts, open shifts, and placement tracking for clinicians.",
+  "start_url": "/portal/",
+  "scope": "/portal/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a1020",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/portal/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="OfferCare.ai">
+  <rect width="512" height="512" rx="112" fill="#0a1020"/>
+  <rect x="48" y="48" width="416" height="416" rx="88" fill="#111827" stroke="#2563eb" stroke-width="12"/>
+  <path d="M256 128v96M208 176h96" stroke="#60a5fa" stroke-width="28" stroke-linecap="round"/>
+  <path d="M144 300h224" stroke="#2563eb" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="176" cy="356" r="20" fill="#4ade80"/>
+  <circle cx="256" cy="356" r="20" fill="#60a5fa"/>
+  <circle cx="336" cy="356" r="20" fill="#4ade80"/>
+</svg>

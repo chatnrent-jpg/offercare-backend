@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OfferCare.ai — Admin</title>
+  <link rel="stylesheet" href="/admin/styles.css" />
+</head>
+<body>
+  <div id="gate" class="gate">
+    <div class="gate-card">
+      <p class="eyebrow">Maryland State Wide Grid</p>
+      <h1>OfferCare.ai Admin</h1>
+      <p class="muted">Enter your admin API key to manage clinicians, shifts, and VMS placements.</p>
+      <label for="api-key-input">Admin API key</label>
+      <input id="api-key-input" type="password" placeholder="X-Admin-Key value from .env" autocomplete="off" />
+      <button id="connect-btn" class="btn primary">Connect</button>
+      <p id="gate-error" class="error hidden"></p>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">OfferCare.ai Core Engine</p>
+        <h1>Operations Console</h1>
+      </div>
+      <div class="topbar-actions">
+        <button id="refresh-btn" class="btn ghost">Refresh all</button>
+        <button id="disconnect-btn" class="btn ghost">Disconnect</button>
+      </div>
+    </header>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production ops dashboard</h2>
+        <p class="muted">Unified workers, metrics, launch readiness, live scrapers, and audit signals.</p>
+      </div>
+      <div id="production-ops-summary" class="stats"></div>
+      <div id="production-ops-checks" class="deploy-checklist"></div>
+      <div id="production-ops-scraper-probes" class="integrations-grid"></div>
+      <ol id="production-ops-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="refresh-production-ops-btn" class="btn primary">Refresh all production signals</button>
+        <button id="download-production-ops-dashboard-btn" class="btn ghost">Export ops dashboard (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production perfection</h2>
+        <p class="muted">Final go-live gate — ops dashboard + Maryland launch + end-to-end smoke check.</p>
+      </div>
+      <div id="production-perfection-summary" class="stats"></div>
+      <ol id="production-perfection-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="run-production-perfection-check-btn" class="btn primary">Run production perfection check</button>
+        <button id="copy-production-perfection-env-btn" class="btn ghost">Copy perfection .env</button>
+        <button id="download-production-perfection-capstone-btn" class="btn ghost">Export perfection capstone (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production launch ceremony</h2>
+        <p class="muted">Stakeholder sign-off — perfection check + deploy bundle + ceremony markdown export.</p>
+      </div>
+      <div id="production-launch-ceremony-summary" class="stats"></div>
+      <ol id="production-launch-ceremony-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="run-production-launch-ceremony-btn" class="btn primary">Run launch ceremony</button>
+        <button id="download-production-launch-ceremony-md-btn" class="btn ghost">Download sign-off (.md)</button>
+        <button id="download-production-launch-ceremony-json-btn" class="btn ghost">Export ceremony (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production go-live record</h2>
+        <p class="muted">Immutable launch archive — seal ceremony run + perfection check + health snapshot.</p>
+      </div>
+      <div id="production-go-live-record-summary" class="stats"></div>
+      <ol id="production-go-live-record-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="seal-production-go-live-record-btn" class="btn primary">Seal launch record</button>
+        <button id="download-production-go-live-record-json-btn" class="btn ghost">Export go-live record (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production launch attestation</h2>
+        <p class="muted">Cryptographic attestation — SHA-256 digest of sealed go-live record for compliance sign-off.</p>
+      </div>
+      <div id="production-launch-attestation-summary" class="stats"></div>
+      <ol id="production-launch-attestation-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="attest-production-launch-btn" class="btn primary">Attest launch</button>
+        <button id="download-production-launch-attestation-md-btn" class="btn ghost">Download attestation (.md)</button>
+        <button id="download-production-launch-attestation-json-btn" class="btn ghost">Export attestation (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production launch perfection seal</h2>
+        <p class="muted">Final go-live capstone — one-click ceremony → seal → attest chain for launch perfection.</p>
+      </div>
+      <div id="production-launch-perfection-seal-summary" class="stats"></div>
+      <ol id="production-launch-perfection-seal-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="seal-production-launch-perfection-btn" class="btn primary">Seal launch perfection</button>
+        <button id="download-production-launch-perfection-seal-json-btn" class="btn ghost">Export perfection seal (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production launch archive</h2>
+        <p class="muted">Deploy bundle manifest — SHA-256 checksums for all launch artifacts.</p>
+      </div>
+      <div id="production-launch-archive-summary" class="stats"></div>
+      <ol id="production-launch-archive-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="archive-production-launch-btn" class="btn primary">Archive launch</button>
+        <button id="download-production-launch-archive-json-btn" class="btn ghost">Export launch archive (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production launch perfection finale</h2>
+        <p class="muted">One-click capstone — chains perfection seal and archive for go-live perfection.</p>
+      </div>
+      <div id="production-launch-finale-summary" class="stats"></div>
+      <ol id="production-launch-finale-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="run-production-launch-finale-btn" class="btn primary">Run launch finale</button>
+        <button id="download-production-launch-finale-json-btn" class="btn ghost">Export launch finale (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Production launch perfection manifest</h2>
+        <p class="muted">Bundle integrity — verify all deploy artifacts against archived SHA-256 checksums.</p>
+      </div>
+      <div id="production-launch-bundle-verification-summary" class="stats"></div>
+      <ol id="production-launch-bundle-verification-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="verify-production-launch-bundle-btn" class="btn primary">Verify launch bundle</button>
+        <button id="download-production-launch-perfection-manifest-json-btn" class="btn ghost">Export perfection manifest (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Ops metrics</h2>
+        <p class="muted">Grid-wide counts and SMS lock rate.</p>
+      </div>
+      <div id="ops-metrics" class="stats"></div>
+      <p id="cascade-worker-status" class="muted"></p>
+      <p id="staffing-scheduler-status" class="muted"></p>
+      <p id="compliance-scheduler-status" class="muted"></p>
+      <div class="actions-row">
+        <button id="cascade-worker-tick-btn" class="btn ghost">Run cascade tick</button>
+        <button id="staffing-vms-tick-btn" class="btn ghost">Run VMS poll tick</button>
+        <button id="staffing-job-board-tick-btn" class="btn ghost">Run job board tick</button>
+        <button id="compliance-scheduler-tick-btn" class="btn ghost">Run compliance tick</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Audit log</h2>
+        <p class="muted">Recent notify, cascade, lock, verify, and VMS events.</p>
+      </div>
+      <div id="audit-table" class="table-wrap"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Deploy walkthrough</h2>
+        <p class="muted">Docker compose, migrations, and live Twilio webhook checklist.</p>
+      </div>
+      <div id="deploy-summary" class="stats"></div>
+      <ol id="deploy-twilio-steps" class="deploy-steps"></ol>
+      <ol id="deploy-demo-steps" class="deploy-steps"></ol>
+      <div class="panel-head">
+        <h3>Maryland platform</h3>
+        <p class="muted">Worker inflow, COMAR compliance, crisis intel, VMS ingest, and Shift Sniper dispatch.</p>
+      </div>
+      <ol id="deploy-maryland-steps" class="deploy-steps"></ol>
+      <div class="panel-head">
+        <h3>Maryland production launch</h3>
+        <p class="muted">Production readiness after live scraper go-live — gateway, HTTPS, schedulers, and launch URLs.</p>
+      </div>
+      <div id="deploy-maryland-production-summary" class="stats"></div>
+      <ol id="deploy-maryland-production-steps" class="deploy-steps"></ol>
+      <div id="deploy-checklist" class="deploy-checklist"></div>
+      <div id="deploy-demo-gates" class="deploy-demo-gates hidden"></div>
+      <ol id="deploy-export-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="refresh-deploy-btn" class="btn ghost">Refresh checklist</button>
+        <button id="download-deploy-checklist-json-btn" class="btn ghost">Export checklist (.json)</button>
+        <button id="download-deploy-checklist-csv-btn" class="btn ghost">Export checklist (.csv)</button>
+        <button id="copy-deploy-gates-btn" class="btn ghost">Copy active gates</button>
+        <button id="download-deploy-gates-json-btn" class="btn ghost">Export gates (.json)</button>
+        <button id="download-deploy-gates-txt-btn" class="btn ghost">Download gates (.txt)</button>
+        <button id="download-deploy-bundle-btn" class="btn ghost">Download deploy bundle (.zip)</button>
+        <button id="copy-maryland-production-env-btn" class="btn ghost">Copy production .env</button>
+        <button id="download-maryland-production-runbook-btn" class="btn ghost">Export MD production runbook (.json)</button>
+      </div>
+      <div class="panel-head">
+        <h3>Live SMS production launch</h3>
+        <p class="muted">Twilio outbound alerts, inbound YES webhook, and lock reply smoke test.</p>
+      </div>
+      <ol id="deploy-live-sms-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="copy-deploy-live-sms-env-btn" class="btn ghost">Copy Twilio production .env</button>
+      </div>
+      <div class="panel-head">
+        <h3>Maryland launch capstone</h3>
+        <p class="muted">End-to-end go-live — Maryland production + live SMS + scraper probes + YES lock smoke.</p>
+      </div>
+      <div id="deploy-maryland-launch-summary" class="stats"></div>
+      <ol id="deploy-maryland-launch-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="run-maryland-launch-smoke-btn" class="btn primary">Run launch smoke</button>
+        <button id="copy-maryland-launch-env-btn" class="btn ghost">Copy launch .env</button>
+        <button id="download-maryland-launch-capstone-btn" class="btn ghost">Export launch capstone (.json)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Integrations</h2>
+        <p class="muted">Twilio SMS, email alerts, and VMS outbound readiness.</p>
+      </div>
+      <div id="integrations-grid" class="integrations-grid"></div>
+      <div id="twilio-sms-production-summary" class="stats"></div>
+      <ol id="twilio-sms-production-steps" class="deploy-steps"></ol>
+      <div id="live-scrapers-grid" class="integrations-grid"></div>
+      <div class="actions-row">
+        <button id="test-twilio-sms-btn" class="btn ghost">Test SMS</button>
+        <button id="twilio-lock-reply-smoke-btn" class="btn ghost">Run lock reply smoke</button>
+        <button id="copy-twilio-go-live-env-btn" class="btn ghost">Copy Twilio go-live .env</button>
+        <button id="probe-live-scrapers-btn" class="btn ghost">Probe live scrapers</button>
+        <button id="copy-live-scrapers-env-btn" class="btn ghost">Copy go-live .env</button>
+        <button id="refresh-integrations-btn" class="btn ghost">Refresh status</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Shift Sniper intelligence</h2>
+        <p class="muted">Learned H (response propensity) and T (fatigue) from SMS + lock history.</p>
+      </div>
+      <div class="actions-row">
+        <button id="relearn-scores-btn" class="btn">Relearn all scores</button>
+      </div>
+      <div id="sniper-table" class="table-wrap"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Grid operations</h2>
+        <p class="muted">Scrape hospitals, nursing homes, home health agencies, and auto-create open shifts.</p>
+      </div>
+      <div class="actions-row">
+        <button id="scrape-btn" class="btn">Scrape MD hospitals (25)</button>
+        <button id="scrape-pa-btn" class="btn ghost">Scrape PA hospitals (25)</button>
+        <button id="scrape-de-btn" class="btn ghost">Scrape DE hospitals (25)</button>
+        <button id="scrape-nj-btn" class="btn ghost">Scrape NJ hospitals (25)</button>
+        <button id="scrape-expansion-btn" class="btn ghost">Scrape PA + DE + NJ (25)</button>
+        <button id="scrape-nursing-homes-btn" class="btn ghost">Scrape MD nursing homes (25)</button>
+        <button id="scrape-home-health-btn" class="btn ghost">Scrape MD home health (25)</button>
+        <button id="scrape-post-acute-btn" class="btn ghost">Scrape post-acute Mid-Atlantic (25)</button>
+        <button id="auto-shifts-btn" class="btn">Auto-create shifts (25)</button>
+        <button id="seed-mid-atlantic-demos-btn" class="btn">Seed full demo environment</button>
+        <button id="seed-post-acute-demos-btn" class="btn ghost">Seed all post-acute demos</button>
+        <button id="seed-hospital-demos-btn" class="btn ghost">Seed all hospital demos</button>
+        <button id="seed-demo-btn" class="btn ghost">Seed Saint Jude demo</button>
+        <button id="seed-inova-btn" class="btn ghost">Seed Inova Fairfax (VA)</button>
+        <button id="seed-va-nursing-home-btn" class="btn ghost">Seed VA nursing home</button>
+        <button id="seed-dc-nursing-home-btn" class="btn ghost">Seed DC nursing home</button>
+        <button id="seed-pa-nursing-home-btn" class="btn ghost">Seed PA nursing home</button>
+        <button id="seed-de-nursing-home-btn" class="btn ghost">Seed DE nursing home</button>
+        <button id="seed-nj-nursing-home-btn" class="btn ghost">Seed NJ nursing home</button>
+        <button id="seed-hackensack-btn" class="btn ghost">Seed Hackensack (NJ)</button>
+        <button id="seed-nursing-home-btn" class="btn ghost">Seed nursing home (MD)</button>
+        <button id="seed-home-health-btn" class="btn ghost">Seed home health (MD)</button>
+      </div>
+      <pre id="ops-log" class="log"></pre>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Demo environment</h2>
+        <p class="muted">Review seeded hospital + post-acute shifts, matched clinicians, and push-ready counts.</p>
+      </div>
+      <div id="demo-health-badge" class="demo-health-badge hidden" role="status" aria-live="polite"></div>
+      <div id="demo-demo-gates" class="demo-demo-gates hidden"></div>
+      <div id="demo-summary" class="stats"></div>
+      <div id="demo-offers-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>Demo clinicians</h3>
+        <p class="muted">@offercare.demo accounts created by seed endpoints.</p>
+      </div>
+      <div id="demo-clinicians-table" class="table-wrap"></div>
+      <ol id="demo-next-steps" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <button id="run-demo-setup-btn" class="btn">Run full demo setup</button>
+        <button id="reset-demo-btn" class="btn ghost">Reset demo environment</button>
+        <button id="copy-demo-links-btn" class="btn ghost">Copy demo portal links</button>
+        <button id="copy-demo-walkthrough-btn" class="btn ghost">Copy demo walkthrough</button>
+        <button id="download-demo-walkthrough-btn" class="btn ghost">Download walkthrough (.md)</button>
+        <button id="download-demo-status-json-btn" class="btn ghost">Export status (.json)</button>
+        <button id="download-demo-status-csv-btn" class="btn ghost">Export status (.csv)</button>
+        <button id="download-demo-gates-json-btn" class="btn ghost">Export gates (.json)</button>
+        <button id="download-demo-gates-txt-btn" class="btn ghost">Download gates (.txt)</button>
+        <button id="copy-demo-gates-btn" class="btn ghost">Copy active gates</button>
+        <button id="download-demo-bundle-btn" class="btn ghost">Download demo bundle (.zip)</button>
+        <button id="ensure-demo-portal-btn" class="btn ghost">Ensure demo portal logins</button>
+        <button id="ensure-demo-push-btn" class="btn ghost">Ensure demo push subscriptions</button>
+        <button id="notify-matched-demos-btn" class="btn">Notify matched on all demos</button>
+        <button id="demo-lock-smoke-btn" class="btn ghost">Smoke test demo lock</button>
+        <button id="refresh-demo-status-btn" class="btn ghost">Refresh demo status</button>
+      </div>
+    </section>
+
+    <section class="panel" id="compliance-panel">
+      <div class="panel-head">
+        <h2>Maryland COMAR compliance</h2>
+        <p class="muted">MBON credentialing, OIG LEIE, judiciary screening, document expiration, and crisis signals.</p>
+      </div>
+      <div id="compliance-summary" class="stats"></div>
+      <div id="compliance-flags" class="compliance-flags"></div>
+      <div class="actions-row">
+        <button id="run-compliance-monitor-btn" class="btn">Run expiration monitor</button>
+        <button id="scan-crisis-signals-btn" class="btn ghost">Scan internal crisis</button>
+        <button id="scan-job-boards-btn" class="btn ghost">Scan Indeed / ZipRecruiter</button>
+        <button id="ingest-vms-shifts-btn" class="btn ghost">Poll VMS & create offers</button>
+        <button id="refresh-compliance-btn" class="btn ghost">Refresh compliance</button>
+      </div>
+      <div class="panel-head">
+        <h3>Facility crisis signals</h3>
+        <p class="muted">Nursing homes showing open-shift staffing pressure.</p>
+      </div>
+      <div id="compliance-crisis-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>Job board crisis leads</h3>
+        <p class="muted">CNA/LPN postings open 30+ days on Indeed and ZipRecruiter — outreach targets for DONs.</p>
+      </div>
+      <div id="compliance-job-board-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>VMS ingestion log</h3>
+        <p class="muted">ShiftWise / Fieldglass shifts normalized into open offers.</p>
+      </div>
+      <div id="compliance-vms-ingest-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>Clinician compliance roster</h3>
+        <p class="muted">Screen credentials, download audit packets, and review dispatch eligibility.</p>
+      </div>
+      <div id="compliance-providers-table" class="table-wrap"></div>
+    </section>
+
+    <section class="panel" id="outreach-panel">
+      <div class="panel-head">
+        <h2>B2B outreach pipeline</h2>
+        <p class="muted">Apollo / ZoomInfo DON enrichment and LLM crisis emails for struggling nursing homes.</p>
+      </div>
+      <div class="actions-row">
+        <button id="run-outreach-campaign-btn" class="btn">Draft outreach emails</button>
+        <button id="send-outreach-campaign-btn" class="btn ghost">Send outreach (dry-run SMTP)</button>
+        <button id="refresh-outreach-btn" class="btn ghost">Refresh outreach</button>
+      </div>
+      <div class="panel-head">
+        <h3>Crisis outreach targets</h3>
+      </div>
+      <div id="outreach-targets-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>Outreach email log</h3>
+      </div>
+      <div id="outreach-email-table" class="table-wrap"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Pending clinicians</h2>
+        <p class="muted">Review applications and verify Maryland credentials.</p>
+      </div>
+      <div id="pending-table" class="table-wrap"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Open shifts</h2>
+        <p class="muted">Filter by state, county, care setting, role, and pay. Reply YES via SMS to lock.</p>
+      </div>
+      <div class="actions-row shift-filters">
+        <label>
+          State
+          <select id="shift-state-filter"><option value="">All states</option></select>
+        </label>
+        <label>
+          County
+          <select id="shift-county-filter"><option value="">All counties</option></select>
+        </label>
+        <label>
+          Setting
+          <select id="shift-facility-type-filter"><option value="">All settings</option></select>
+        </label>
+        <label>
+          Role
+          <select id="shift-role-filter"><option value="">All roles</option></select>
+        </label>
+        <label>
+          Min pay ($/hr)
+          <input id="shift-min-pay-filter" type="number" min="0" step="1" placeholder="Any" />
+        </label>
+        <button id="apply-shift-filters-btn" class="btn ghost">Apply filters</button>
+      </div>
+      <div id="shifts-table" class="table-wrap"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Placements & VMS</h2>
+        <p class="muted">Submit locked placements to VMS (dry-run until configured).</p>
+      </div>
+      <div class="actions-row">
+        <button id="submit-pending-vms-btn" class="btn">Submit all pending VMS</button>
+      </div>
+      <div id="placements-table" class="table-wrap"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <dialog id="rank-dialog">
+    <div class="dialog-head">
+      <h3>Shift Sniper rank</h3>
+      <button id="close-rank-dialog" class="btn ghost">Close</button>
+    </div>
+    <pre id="rank-body" class="log"></pre>
+  </dialog>
+
+  <dialog id="schedule-dialog">
+    <div class="dialog-head">
+      <h3>Edit shift schedule</h3>
+      <button id="close-schedule-dialog" class="btn ghost">Cancel</button>
+    </div>
+    <p id="schedule-dialog-meta" class="muted"></p>
+    <form id="schedule-form" class="dialog-form">
+      <label>
+        Shift starts
+        <input id="schedule-start-input" type="datetime-local" required />
+      </label>
+      <label>
+        Shift ends
+        <input id="schedule-end-input" type="datetime-local" required />
+      </label>
+      <div class="dialog-actions">
+        <button type="submit" class="btn">Save schedule</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="compliance-dialog">
+    <div class="dialog-head">
+      <h3>Compliance status</h3>
+      <button id="close-compliance-dialog" class="btn ghost">Close</button>
+    </div>
+    <pre id="compliance-body" class="log"></pre>
+  </dialog>
+
+  <script src="/admin/app.js"></script>
+</body>
+</html>

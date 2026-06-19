@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Maryland CNA and LPN per-diem shifts for nursing homes. W-2 employment, weekly pay, instant MBON verification." />
+  <meta name="theme-color" content="#0d9488" />
+  <title>OfferCare — Maryland CNA & LPN Shifts</title>
+  <link rel="stylesheet" href="/join/styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Maryland nursing homes · W-2 floor staff</p>
+      <h1 id="hero-headline">Loading…</h1>
+      <p id="hero-subheadline" class="lede muted">Loading…</p>
+      <div class="hero-cta">
+        <a href="#apply" class="btn primary">Apply in 2 minutes</a>
+        <a href="/portal" class="btn ghost">Clinician sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="panel value-panel">
+      <h2>Why Maryland aides choose OfferCare</h2>
+      <ul id="value-props" class="value-list"></ul>
+      <p id="comar-note" class="comar-note"></p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Typical nursing home pay</h2>
+        <p class="muted">Per-diem rates across Maryland SNFs — you set your own minimum.</p>
+      </div>
+      <div id="pay-grid" class="pay-grid"></div>
+    </section>
+
+    <section id="apply" class="panel apply-panel">
+      <div class="panel-head">
+        <h2>Apply for local shifts</h2>
+        <p class="muted">We verify your Maryland license instantly via MBON, OIG, and judiciary screening.</p>
+      </div>
+
+      <form id="apply-form" class="apply-form">
+        <div class="form-grid">
+          <label>
+            Full name
+            <input id="apply-name" required autocomplete="name" />
+          </label>
+          <label>
+            Email
+            <input id="apply-email" type="email" required autocomplete="email" />
+          </label>
+          <label>
+            Mobile phone
+            <input id="apply-phone" placeholder="4105551234" required autocomplete="tel" />
+          </label>
+          <label>
+            Credential
+            <select id="apply-credential" required></select>
+          </label>
+          <label id="npi-field" class="hidden">
+            NPI (10 digits)
+            <input id="apply-npi" maxlength="10" inputmode="numeric" />
+          </label>
+          <label>
+            Maryland license / certification #
+            <input id="apply-license" placeholder="CNA-MD-12345" required />
+          </label>
+          <label>
+            Home ZIP (for local dispatch)
+            <input id="apply-zip" placeholder="21201" maxlength="10" />
+          </label>
+          <label>
+            Minimum hourly rate ($)
+            <input id="apply-rate" type="number" min="0" step="0.5" required />
+          </label>
+          <label>
+            Portal password
+            <input id="apply-password" type="password" minlength="8" autocomplete="new-password" required />
+          </label>
+        </div>
+        <p class="fine-print muted">
+          W-2 employee classification. By applying you consent to automated Maryland credential and exclusion screening.
+        </p>
+        <button class="btn primary wide" type="submit">Submit & verify my license</button>
+        <p id="apply-error" class="error hidden"></p>
+      </form>
+
+      <div id="apply-success" class="apply-success hidden" role="status" aria-live="polite">
+        <h3 id="success-title">Application received</h3>
+        <p id="success-message" class="muted"></p>
+        <div id="success-badges" class="badge-row"></div>
+        <div class="success-actions">
+          <a id="portal-link" href="/portal" class="btn primary">Open clinician portal</a>
+          <button id="apply-again-btn" class="btn ghost" type="button">Submit another application</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer muted">
+    <p>OfferCare.ai — emergency staffing for Maryland COMAR-compliant nursing home coverage.</p>
+  </footer>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/join/app.js"></script>
+</body>
+</html>
