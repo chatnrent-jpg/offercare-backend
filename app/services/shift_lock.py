@@ -123,16 +123,65 @@ def lock_shift_from_sms_reply(
     message_body: str,
     reply_keyword: str | None = None,
 ) -> ShiftLockResult:
-    keyword = reply_keyword or settings.TWILIO_REPLY_KEYWORD
-    if not is_lock_keyword(message_body, keyword):
+    from app.services.sms_compliance import (
+        SMS_HELP_MESSAGE,
+        SMS_START_CONFIRMATION,
+        SMS_STOP_CONFIRMATION,
+        classify_inbound_sms,
+        opt_in_provider_sms,
+        opt_out_provider_sms,
+    )
+
+    keyword_action = classify_inbound_sms(message_body)
+    provider = _find_provider_by_phone(db, from_phone)
+
+    if keyword_action == "HELP":
+        return ShiftLockResult(status="help", message=SMS_HELP_MESSAGE)
+
+    if keyword_action == "STOP":
+        if provider is None:
+            return ShiftLockResult(
+                status="unknown_sender",
+                message="Phone not registered with OfferCare.ai.",
+            )
+        opt_out_provider_sms(db, provider)
         return ShiftLockResult(
-            status="ignored",
-            message=f"Reply {keyword} to lock an open shift.",
+            status="opted_out",
+            message=SMS_STOP_CONFIRMATION,
+            provider_id=provider.provider_id,
         )
 
-    provider = _find_provider_by_phone(db, from_phone)
+    if keyword_action == "START":
+        if provider is None:
+            return ShiftLockResult(
+                status="unknown_sender",
+                message="Phone not registered with OfferCare.ai.",
+            )
+        opt_in_provider_sms(db, provider)
+        return ShiftLockResult(
+            status="opted_in",
+            message=SMS_START_CONFIRMATION,
+            provider_id=provider.provider_id,
+        )
+
+    lock_kw = reply_keyword or settings.TWILIO_REPLY_KEYWORD
+    if not is_lock_keyword(message_body, lock_kw):
+        return ShiftLockResult(
+            status="ignored",
+            message=f"Reply {lock_kw} to lock an open shift, HELP for help, or STOP to opt out.",
+        )
+
     if provider is None:
         return ShiftLockResult(status="unknown_sender", message="Phone not registered with OfferCare.ai.")
+
+    from app.services.sms_compliance import provider_is_sms_opted_out
+
+    if provider_is_sms_opted_out(provider):
+        return ShiftLockResult(
+            status="opted_out",
+            message=SMS_STOP_CONFIRMATION,
+            provider_id=provider.provider_id,
+        )
 
     if str(provider.license_status).upper() != "VERIFIED":
         return ShiftLockResult(

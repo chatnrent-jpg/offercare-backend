@@ -16,10 +16,39 @@ const els = {
   successBadges: document.getElementById("success-badges"),
   portalLink: document.getElementById("portal-link"),
   applyAgainBtn: document.getElementById("apply-again-btn"),
+  consentCredential: document.getElementById("consent-credential"),
+  consentSms: document.getElementById("consent-sms"),
+  consentPrivacy: document.getElementById("consent-privacy"),
+  consentTos: document.getElementById("consent-tos"),
+  consentCredentialText: document.getElementById("consent-credential-text"),
+  consentSmsText: document.getElementById("consent-sms-text"),
+  consentPrivacyText: document.getElementById("consent-privacy-text"),
+  consentTosText: document.getElementById("consent-tos-text"),
+  openPrivacyBtn: document.getElementById("open-privacy-btn"),
+  footerPrivacyBtn: document.getElementById("footer-privacy-btn"),
+  privacyOverlay: document.getElementById("privacy-overlay"),
+  privacyModal: document.getElementById("privacy-modal"),
+  privacyTitle: document.getElementById("privacy-title"),
+  privacyMeta: document.getElementById("privacy-meta"),
+  privacyBody: document.getElementById("privacy-body"),
+  closePrivacyBtn: document.getElementById("close-privacy-btn"),
+  closePrivacyFooterBtn: document.getElementById("close-privacy-footer-btn"),
+  openTosBtn: document.getElementById("open-tos-btn"),
+  footerTosBtn: document.getElementById("footer-tos-btn"),
+  tosOverlay: document.getElementById("tos-overlay"),
+  tosModal: document.getElementById("tos-modal"),
+  tosTitle: document.getElementById("tos-title"),
+  tosMeta: document.getElementById("tos-meta"),
+  tosBody: document.getElementById("tos-body"),
+  closeTosBtn: document.getElementById("close-tos-btn"),
+  closeTosFooterBtn: document.getElementById("close-tos-footer-btn"),
   toast: document.getElementById("toast"),
 };
 
 let landingData = null;
+let consentVersion = "";
+let termsOfService = null;
+let privacyPolicy = null;
 
 function showToast(message, isError = false) {
   els.toast.textContent = message;
@@ -55,6 +84,142 @@ async function api(path, options = {}) {
   return data;
 }
 
+function renderLegalDocument(data, { titleEl, metaEl, bodyEl, store }) {
+  store.current = data;
+  if (titleEl) titleEl.textContent = data.title || "Legal document";
+  if (metaEl) {
+    metaEl.textContent = `Version ${data.version || "—"} · Effective ${data.effective_date || "—"}`;
+  }
+  if (bodyEl) {
+    const sections = data.sections || [];
+    if (!sections.length) {
+      bodyEl.innerHTML = `<p class="tos-loading muted">Document temporarily unavailable. Please refresh and try again.</p>`;
+      return;
+    }
+    bodyEl.innerHTML = sections
+      .map(
+        (section) => `
+        <section class="tos-section">
+          <h3>${section.heading}</h3>
+          <p>${section.body}</p>
+        </section>`,
+      )
+      .join("");
+  }
+}
+
+function renderTermsOfService(data) {
+  renderLegalDocument(data, {
+    titleEl: els.tosTitle,
+    metaEl: els.tosMeta,
+    bodyEl: els.tosBody,
+    store: { get current() { return termsOfService; }, set current(v) { termsOfService = v; } },
+  });
+  termsOfService = data;
+}
+
+function renderPrivacyPolicy(data) {
+  renderLegalDocument(data, {
+    titleEl: els.privacyTitle,
+    metaEl: els.privacyMeta,
+    bodyEl: els.privacyBody,
+    store: { get current() { return privacyPolicy; }, set current(v) { privacyPolicy = v; } },
+  });
+  privacyPolicy = data;
+}
+
+async function ensureTermsLoaded() {
+  if (termsOfService) return termsOfService;
+  if (els.tosBody) {
+    els.tosBody.innerHTML = `<p class="tos-loading muted">Loading Terms of Service…</p>`;
+  }
+  if (landingData?.terms_of_service) {
+    renderTermsOfService(landingData.terms_of_service);
+    return termsOfService;
+  }
+  const sources = ["/join/terms.json", "/api/landing/maryland/terms-of-service"];
+  for (const path of sources) {
+    try {
+      const data = await api(path);
+      renderTermsOfService(data);
+      return data;
+    } catch {
+      // try next source
+    }
+  }
+  throw new Error("Terms of Service could not be loaded. Restart the API and hard-refresh this page.");
+}
+
+async function ensurePrivacyLoaded() {
+  if (privacyPolicy) return privacyPolicy;
+  if (els.privacyBody) {
+    els.privacyBody.innerHTML = `<p class="tos-loading muted">Loading Privacy Policy…</p>`;
+  }
+  if (landingData?.privacy_policy) {
+    renderPrivacyPolicy(landingData.privacy_policy);
+    return privacyPolicy;
+  }
+  const sources = ["/join/privacy.json", "/api/landing/maryland/privacy-policy"];
+  for (const path of sources) {
+    try {
+      const data = await api(path);
+      renderPrivacyPolicy(data);
+      return data;
+    } catch {
+      // try next source
+    }
+  }
+  throw new Error("Privacy Policy could not be loaded. Restart the API and hard-refresh this page.");
+}
+
+async function openTermsDialog() {
+  if (!els.tosOverlay) return;
+  try {
+    await ensureTermsLoaded();
+  } catch (error) {
+    showToast(`Could not load Terms of Service: ${error.message}`, true);
+    return;
+  }
+  els.tosOverlay.classList.remove("hidden");
+  document.body.classList.add("tos-open");
+  els.closeTosBtn?.focus();
+}
+
+async function openPrivacyDialog() {
+  if (!els.privacyOverlay) return;
+  try {
+    await ensurePrivacyLoaded();
+  } catch (error) {
+    showToast(`Could not load Privacy Policy: ${error.message}`, true);
+    return;
+  }
+  els.privacyOverlay.classList.remove("hidden");
+  document.body.classList.add("tos-open");
+  els.closePrivacyBtn?.focus();
+}
+
+function closeTermsDialog(markAccepted = false) {
+  if (markAccepted && els.consentTos) {
+    els.consentTos.checked = true;
+  }
+  if (!els.tosOverlay) return;
+  els.tosOverlay.classList.add("hidden");
+  if (!els.privacyOverlay || els.privacyOverlay.classList.contains("hidden")) {
+    document.body.classList.remove("tos-open");
+  }
+}
+
+function closePrivacyDialog(markAccepted = false) {
+  if (markAccepted && els.consentPrivacy) {
+    els.consentPrivacy.checked = true;
+  }
+  if (!els.privacyOverlay) return;
+  els.privacyOverlay.classList.add("hidden");
+  if (!els.tosOverlay || els.tosOverlay.classList.contains("hidden")) {
+    document.body.classList.remove("tos-open");
+  }
+}
+
 function renderLanding(data) {
   landingData = data;
   els.heroHeadline.textContent = data.headline;
@@ -76,6 +241,18 @@ function renderLanding(data) {
     .join("");
   refreshCredentialFields();
   if (els.portalLink) els.portalLink.href = data.portal_url || "/portal";
+  const disclosures = data.consent_disclosures || {};
+  consentVersion = disclosures.version || "";
+  if (els.consentCredentialText) els.consentCredentialText.textContent = disclosures.credential_screening || "";
+  if (els.consentSmsText) els.consentSmsText.textContent = disclosures.sms_dispatch || "";
+  if (els.consentPrivacyText) els.consentPrivacyText.textContent = disclosures.privacy_policy || "";
+  if (els.consentTosText) els.consentTosText.textContent = disclosures.terms_of_service || "";
+  if (data.terms_of_service) {
+    renderTermsOfService(data.terms_of_service);
+  }
+  if (data.privacy_policy) {
+    renderPrivacyPolicy(data.privacy_policy);
+  }
 }
 
 function payBandForCredential(code) {
@@ -117,6 +294,10 @@ function resetApplyForm() {
   els.applyForm.classList.remove("hidden");
   els.applyError.classList.add("hidden");
   els.applyForm.reset();
+  if (els.consentCredential) els.consentCredential.checked = false;
+  if (els.consentSms) els.consentSms.checked = false;
+  if (els.consentPrivacy) els.consentPrivacy.checked = false;
+  if (els.consentTos) els.consentTos.checked = false;
   delete els.applyRate.dataset.touched;
   refreshCredentialFields();
 }
@@ -124,6 +305,22 @@ function resetApplyForm() {
 async function submitApplication(event) {
   event.preventDefault();
   els.applyError.classList.add("hidden");
+  if (
+    !els.consentCredential?.checked ||
+    !els.consentSms?.checked ||
+    !els.consentPrivacy?.checked ||
+    !els.consentTos?.checked
+  ) {
+    els.applyError.textContent = "Please check all required consent boxes, including Privacy Policy and Terms of Service.";
+    els.applyError.classList.remove("hidden");
+    showToast("Privacy Policy, consent, and Terms of Service acceptance are required.", true);
+    return;
+  }
+  if (!consentVersion) {
+    els.applyError.textContent = "Consent disclosures failed to load. Refresh the page and try again.";
+    els.applyError.classList.remove("hidden");
+    return;
+  }
   const credential = els.applyCredential.value;
   const payload = {
     full_name: document.getElementById("apply-name").value.trim(),
@@ -136,6 +333,11 @@ async function submitApplication(event) {
     min_hourly_rate: Number(els.applyRate.value),
     password: document.getElementById("apply-password").value,
     service_lines: "NURSING_HOME",
+    consent_version: consentVersion,
+    consent_credential_screening: true,
+    consent_sms_dispatch: true,
+    consent_privacy_policy: true,
+    consent_terms_of_service: true,
   };
   try {
     const result = await api("/api/landing/maryland/apply", {
@@ -149,6 +351,9 @@ async function submitApplication(event) {
     if (message === "duplicate_application") {
       message = "An application with this email, phone, or license already exists. Sign in at the clinician portal.";
     }
+    if (message === "consent_required" || message === "consent_version_mismatch") {
+      message = "Please refresh the page and accept the current Privacy Policy and Terms of Service before applying.";
+    }
     els.applyError.textContent = message;
     els.applyError.classList.remove("hidden");
     showToast(message, true);
@@ -156,13 +361,31 @@ async function submitApplication(event) {
 }
 
 async function bootstrap() {
-  try {
-    const data = await api("/api/landing/maryland");
-    renderLanding(data);
-  } catch (error) {
+  const [landingResult, termsResult, privacyResult] = await Promise.allSettled([
+    api("/api/landing/maryland"),
+    api("/join/terms.json"),
+    api("/join/privacy.json"),
+  ]);
+
+  if (landingResult.status === "fulfilled") {
+    renderLanding(landingResult.value);
+    if (landingResult.value.terms_of_service) {
+      renderTermsOfService(landingResult.value.terms_of_service);
+    }
+    if (landingResult.value.privacy_policy) {
+      renderPrivacyPolicy(landingResult.value.privacy_policy);
+    }
+  } else {
     els.heroHeadline.textContent = "Maryland CNA & LPN shifts";
     els.heroSubheadline.textContent = "Flexible per-diem nursing home coverage with instant credential verification.";
-    showToast(`Could not load pay bands: ${error.message}`, true);
+    showToast(`Could not load apply page: ${landingResult.reason?.message || "error"}`, true);
+  }
+
+  if (!termsOfService && termsResult.status === "fulfilled") {
+    renderTermsOfService(termsResult.value);
+  }
+  if (!privacyPolicy && privacyResult.status === "fulfilled") {
+    renderPrivacyPolicy(privacyResult.value);
   }
 }
 
@@ -172,5 +395,36 @@ els.applyRate.addEventListener("input", () => {
 });
 els.applyForm.addEventListener("submit", submitApplication);
 els.applyAgainBtn.addEventListener("click", resetApplyForm);
+els.openPrivacyBtn?.addEventListener("click", () => {
+  openPrivacyDialog().catch((error) => showToast(error.message, true));
+});
+els.footerPrivacyBtn?.addEventListener("click", () => {
+  openPrivacyDialog().catch((error) => showToast(error.message, true));
+});
+els.openTosBtn?.addEventListener("click", () => {
+  openTermsDialog().catch((error) => showToast(error.message, true));
+});
+els.footerTosBtn?.addEventListener("click", () => {
+  openTermsDialog().catch((error) => showToast(error.message, true));
+});
+els.closePrivacyBtn?.addEventListener("click", () => closePrivacyDialog(false));
+els.closePrivacyFooterBtn?.addEventListener("click", () => closePrivacyDialog(true));
+els.closeTosBtn?.addEventListener("click", () => closeTermsDialog(false));
+els.closeTosFooterBtn?.addEventListener("click", () => closeTermsDialog(true));
+els.privacyOverlay?.addEventListener("click", (event) => {
+  if (event.target === els.privacyOverlay) closePrivacyDialog(false);
+});
+els.tosOverlay?.addEventListener("click", (event) => {
+  if (event.target === els.tosOverlay) closeTermsDialog(false);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    if (els.privacyOverlay && !els.privacyOverlay.classList.contains("hidden")) {
+      closePrivacyDialog(false);
+    } else if (els.tosOverlay && !els.tosOverlay.classList.contains("hidden")) {
+      closeTermsDialog(false);
+    }
+  }
+});
 
 bootstrap();

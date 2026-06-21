@@ -17,6 +17,9 @@ from app.services.care_taxonomy import (
 )
 from app.services.credentialing_pipeline import run_full_credentialing_screen
 from app.services.license_verification import apply_as_clinician
+from app.services.worker_consent import build_consent_disclosures, record_apply_consents
+from app.services.worker_privacy_policy import build_worker_privacy_policy
+from app.services.worker_terms_of_service import build_worker_terms_of_service
 
 
 MARYLAND_LANDING_CREDENTIALS: tuple[str, ...] = ("CNA", "LPN", "GNA")
@@ -78,10 +81,18 @@ def build_maryland_landing_page() -> dict:
             "service_lines": "NURSING_HOME",
         },
         "portal_url": "/portal",
+        "consent_disclosures": build_consent_disclosures(),
+        "terms_of_service": build_worker_terms_of_service(),
+        "privacy_policy": build_worker_privacy_policy(),
     }
 
 
-def apply_maryland_floor_staff(db: Session, payload: MarylandLandingApplyRequest) -> dict:
+def apply_maryland_floor_staff(
+    db: Session,
+    payload: MarylandLandingApplyRequest,
+    *,
+    client_ip: str | None = None,
+) -> dict:
     credential_type = normalize_credential_type(payload.credential_type)
     if credential_type not in MARYLAND_LANDING_CREDENTIALS:
         raise ValueError("unsupported_credential")
@@ -104,6 +115,13 @@ def apply_maryland_floor_staff(db: Session, payload: MarylandLandingApplyRequest
     if payload.home_zip:
         provider.home_zip = payload.home_zip.strip()
         db.flush()
+
+    record_apply_consents(
+        db,
+        provider.provider_id,
+        consent_version=payload.consent_version,
+        client_ip=client_ip,
+    )
 
     screen = run_full_credentialing_screen(db, provider.provider_id)
     refreshed = db.query(MarylandProvider).filter(MarylandProvider.provider_id == provider.provider_id).one()

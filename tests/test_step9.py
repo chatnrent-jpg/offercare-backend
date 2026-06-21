@@ -107,41 +107,75 @@ def test_reject_provider(db: Session) -> None:
     assert log.event_type == "REJECTED"
 
 
+from app.services.worker_consent import WORKER_CONSENT_VERSION
+
+
+def test_legacy_clinician_apply_returns_410(client: TestClient) -> None:
+    response = client.post(
+        "/api/clinicians/apply",
+        json={
+            "full_name": "Legacy Nurse",
+            "email": "legacy@example.com",
+            "phone_number": "4105559999",
+            "md_license_number": "RN-MD-LEGACY",
+            "min_hourly_rate": 50.0,
+        },
+    )
+    assert response.status_code == 410
+    assert response.json()["detail"] == "use_join_landing"
+    assert response.headers.get("x-apply-url") == "/join"
+
+
 def test_api_apply_and_verify_flow(client: TestClient) -> None:
     token = uuid.uuid4().hex[:6]
     seed = int(token, 16)
     suffix = seed % 10_000_000
     email = f"api.{token}@offercare.demo"
     apply_resp = client.post(
-        "/api/clinicians/apply",
+        "/api/landing/maryland/apply",
         json={
             "full_name": "API Nurse",
             "email": email,
             "phone_number": f"410{suffix:07d}",
-            "npi_number": _make_valid_npi(seed + 1),
             "md_license_number": f"RN-MD-{token.upper()}",
+            "credential_type": "CNA",
             "min_hourly_rate": 100.0,
+            "password": "testpass123",
+            "consent_version": WORKER_CONSENT_VERSION,
+            "consent_credential_screening": True,
+            "consent_sms_dispatch": True,
+            "consent_privacy_policy": True,
+            "consent_terms_of_service": True,
         },
     )
     assert apply_resp.status_code == 200
     body = apply_resp.json()
-    assert body["auto_check_result"] == "STUB_PASS"
-    assert body["provider"]["license_status"] == "UNVERIFIED"
-    provider_id = body["provider"]["provider_id"]
+    assert body["license_status"] in {"UNVERIFIED", "VERIFIED"}
+    provider_id = body["provider_id"]
 
     pending_resp = client.get("/api/clinicians/pending")
     assert pending_resp.status_code == 200
-    assert any(row["provider_id"] == provider_id for row in pending_resp.json())
+    pending_ids = {row["provider_id"] for row in pending_resp.json()}
+    if body["license_status"] == "UNVERIFIED":
+        assert provider_id in pending_ids
+    else:
+        assert provider_id not in pending_ids
 
-    verify_resp = client.post(
-        f"/api/clinicians/{provider_id}/verify",
-        json={"action": "VERIFY", "notes": "Approved in demo", "reviewer": "admin"},
-    )
-    assert verify_resp.status_code == 200
-    assert verify_resp.json()["provider"]["license_status"] == "VERIFIED"
+    if body["license_status"] == "UNVERIFIED":
+        verify_resp = client.post(
+            f"/api/clinicians/{provider_id}/verify",
+            json={"action": "VERIFY", "notes": "Approved in demo", "reviewer": "admin"},
+        )
+        assert verify_resp.status_code == 200
+        assert verify_resp.json()["provider"]["license_status"] == "VERIFIED"
 
     history_resp = client.get(f"/api/clinicians/{provider_id}/verification-history")
     assert history_resp.status_code == 200
     events = [row["event_type"] for row in history_resp.json()]
     assert "APPLIED" in events
-    assert "VERIFIED" in events
+    assert "CONSENT_SMS_DISPATCH" in events
+    assert "CONSENT_PRIVACY_POLICY" in events
+    if body["license_status"] == "UNVERIFIED":
+        assert "VERIFIED" in events
+    else:
+        assert body["license_status"] == "VERIFIED"

@@ -50,6 +50,7 @@ class MarylandProvider(Base):
     longitude = Column(Numeric(9, 6), nullable=True)
     dispatch_status = Column(String(20), nullable=False, default="ACTIVE")  # ACTIVE, SUSPENDED
     license_expires_on = Column(DateTime(timezone=True), nullable=True)
+    sms_opt_out = Column(String(5), nullable=False, default="false")
 
 
 class LicenseVerificationLog(Base):

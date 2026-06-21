@@ -6,7 +6,7 @@
   <meta name="description" content="Maryland CNA and LPN per-diem shifts for nursing homes. W-2 employment, weekly pay, instant MBON verification." />
   <meta name="theme-color" content="#0d9488" />
   <title>OfferCare — Maryland CNA & LPN Shifts</title>
-  <link rel="stylesheet" href="/join/styles.css" />
+  <link rel="stylesheet" href="/join/styles.css?v=5" />
 </head>
 <body>
   <header class="hero">
@@ -81,8 +81,31 @@
             <input id="apply-password" type="password" minlength="8" autocomplete="new-password" required />
           </label>
         </div>
+        <fieldset id="consent-fieldset" class="consent-fieldset">
+          <legend>Required consents</legend>
+          <label class="consent-check">
+            <input id="consent-credential" type="checkbox" required />
+            <span id="consent-credential-text">Loading consent text…</span>
+          </label>
+          <label class="consent-check">
+            <input id="consent-sms" type="checkbox" required />
+            <span id="consent-sms-text">Loading consent text…</span>
+          </label>
+          <label class="consent-check">
+            <input id="consent-privacy" type="checkbox" required />
+            <span id="consent-privacy-text">Loading Privacy Policy…</span>
+          </label>
+          <label class="consent-check">
+            <input id="consent-tos" type="checkbox" required />
+            <span id="consent-tos-text">Loading Terms of Service…</span>
+          </label>
+          <p class="consent-actions">
+            <button id="open-privacy-btn" class="btn ghost small" type="button">Read Privacy Policy</button>
+            <button id="open-tos-btn" class="btn ghost small" type="button">Read full Terms of Service</button>
+          </p>
+        </fieldset>
         <p class="fine-print muted">
-          W-2 employee classification. By applying you consent to automated Maryland credential and exclusion screening.
+          W-2 employee classification. We do not purchase or scrape nurse contact lists — you must apply here to receive shifts.
         </p>
         <button class="btn primary wide" type="submit">Submit & verify my license</button>
         <p id="apply-error" class="error hidden"></p>
@@ -102,9 +125,52 @@
 
   <footer class="footer muted">
     <p>OfferCare.ai — emergency staffing for Maryland COMAR-compliant nursing home coverage.</p>
+    <p>
+      <button id="footer-privacy-btn" class="link-btn" type="button">Privacy Policy</button>
+      ·
+      <button id="footer-tos-btn" class="link-btn" type="button">Terms of Service</button>
+    </p>
   </footer>
 
+  <div id="privacy-overlay" class="tos-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+    <div class="tos-modal" id="privacy-modal">
+      <header class="dialog-head">
+        <div>
+          <p class="tos-eyebrow">Privacy</p>
+          <h2 id="privacy-title">OfferCare.ai Clinician Privacy Policy</h2>
+          <p id="privacy-meta" class="tos-meta muted">Loading version…</p>
+        </div>
+        <button id="close-privacy-btn" class="btn ghost tos-close-btn" type="button" aria-label="Close">Close</button>
+      </header>
+      <div id="privacy-body" class="tos-body">
+        <p class="tos-loading muted">Loading Privacy Policy…</p>
+      </div>
+      <footer class="tos-dialog-footer">
+        <button id="close-privacy-footer-btn" class="btn primary" type="button">I have read this policy</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="tos-overlay" class="tos-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="tos-title">
+    <div class="tos-modal" id="tos-modal">
+      <header class="dialog-head">
+        <div>
+          <p class="tos-eyebrow">Legal agreement</p>
+          <h2 id="tos-title">OfferCare.ai Clinician Terms of Service</h2>
+          <p id="tos-meta" class="tos-meta muted">Loading version…</p>
+        </div>
+        <button id="close-tos-btn" class="btn ghost tos-close-btn" type="button" aria-label="Close">Close</button>
+      </header>
+      <div id="tos-body" class="tos-body">
+        <p class="tos-loading muted">Loading Terms of Service…</p>
+      </div>
+      <footer class="tos-dialog-footer">
+        <button id="close-tos-footer-btn" class="btn primary" type="button">I have read these terms</button>
+      </footer>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
-  <script src="/join/app.js"></script>
+  <script src="/join/app.js?v=6"></script>
 </body>
 </html>

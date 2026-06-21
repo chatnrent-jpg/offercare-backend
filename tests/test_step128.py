@@ -7,6 +7,7 @@ from uuid import uuid4
 from fastapi.testclient import TestClient
 
 from app.services.deploy_walkthrough import _maryland_platform_present
+from app.services.worker_consent import WORKER_CONSENT_VERSION
 
 
 def _seed_maryland_snfs(client: TestClient) -> None:
@@ -51,6 +52,11 @@ def test_maryland_platform_end_to_end_capstone(client: TestClient) -> None:
             "min_hourly_rate": 28.0,
             "password": "testpass123",
             "home_zip": "21201",
+            "consent_version": WORKER_CONSENT_VERSION,
+            "consent_credential_screening": True,
+            "consent_sms_dispatch": True,
+            "consent_privacy_policy": True,
+            "consent_terms_of_service": True,
         },
     ).json()
     assert worker["license_status"] == "VERIFIED"

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OfferCare.ai — Admin</title>
-  <link rel="stylesheet" href="/admin/styles.css" />
+  <link rel="stylesheet" href="/admin/styles.css?v=2" />
 </head>
 <body>
   <div id="gate" class="gate">
@@ -13,8 +13,13 @@
       <h1>OfferCare.ai Admin</h1>
       <p class="muted">Enter your admin API key to manage clinicians, shifts, and VMS placements.</p>
       <label for="api-key-input">Admin API key</label>
-      <input id="api-key-input" type="password" placeholder="X-Admin-Key value from .env" autocomplete="off" />
-      <button id="connect-btn" class="btn primary">Connect</button>
+      <input id="api-key-input" type="password" placeholder="Paste ADMIN_API_KEY from .env" autocomplete="off" />
+      <label class="muted" style="display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;font-size:0.85rem;">
+        <input id="show-key-toggle" type="checkbox" />
+        Show key (dots only mean the field is hidden — not logged in yet)
+      </label>
+      <button id="connect-btn" class="btn primary" type="button">Connect</button>
+      <p class="muted" style="margin-top:0.75rem;font-size:0.85rem;">After pasting, click <strong>Connect</strong> or press Enter.</p>
       <p id="gate-error" class="error hidden"></p>
     </div>
   </div>
@@ -387,6 +392,20 @@
       <div id="outreach-email-table" class="table-wrap"></div>
     </section>
 
+    <section class="panel" id="worker-inflow-panel">
+      <div class="panel-head">
+        <h2>Worker inflow (opt-in)</h2>
+        <p class="muted">Legal nurse acquisition — share /join so clinicians apply voluntarily with recorded SMS and screening consent.</p>
+      </div>
+      <div id="worker-inflow-summary" class="stats"></div>
+      <ol id="worker-inflow-playbook" class="deploy-steps"></ol>
+      <div class="actions-row">
+        <a id="worker-inflow-join-link" class="btn primary" href="/join" target="_blank" rel="noopener">Open /join landing</a>
+        <button id="copy-worker-inflow-link-btn" class="btn ghost" type="button">Copy join URL</button>
+        <button id="refresh-worker-inflow-btn" class="btn ghost" type="button">Refresh inflow stats</button>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="panel-head">
         <h2>Pending clinicians</h2>
@@ -476,6 +495,7 @@
     <pre id="compliance-body" class="log"></pre>
   </dialog>
 
-  <script src="/admin/app.js"></script>
+  <script src="/admin/gate.js?v=1"></script>
+  <script src="/admin/app.js?v=7"></script>
 </body>
 </html>

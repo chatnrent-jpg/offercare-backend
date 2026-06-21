@@ -11,7 +11,6 @@ from app.database import get_db
 from app.models import MarylandProvider
 from app.schemas import (
     ClinicianApplicationStatusResponse,
-    ClinicianApplyRequest,
     ClinicianApplyResponse,
     ClinicianLoginRequest,
     ClinicianLoginResponse,
@@ -31,7 +30,6 @@ from app.schemas import (
 from app.services.clinician_auth import authenticate_clinician, get_clinician_application_status
 from app.services.clinician_preferences import clinician_preferences_snapshot, update_clinician_preferences
 from app.services.license_verification import (
-    apply_as_clinician,
     list_pending_clinicians,
     list_verification_history,
     verify_clinician,
@@ -51,19 +49,12 @@ router = APIRouter(prefix="/api/clinicians", tags=["clinicians"])
 
 
 @router.post("/apply", response_model=ClinicianApplyResponse)
-def clinician_apply(payload: ClinicianApplyRequest, db: Session = Depends(get_db)):
-    try:
-        provider, auto_check = apply_as_clinician(db, payload)
-    except ValueError as exc:
-        if str(exc) == "duplicate_application":
-            raise HTTPException(status_code=409, detail="duplicate_application") from exc
-        if str(exc) == "portal_account_exists":
-            raise HTTPException(status_code=409, detail="portal_account_exists") from exc
-        raise
-    return ClinicianApplyResponse(
-        provider=ProviderRead.model_validate(provider),
-        auto_check_result=auto_check.result,
-        message=auto_check.message,
+def clinician_apply(db: Session = Depends(get_db)):
+    _ = db
+    raise HTTPException(
+        status_code=410,
+        detail="use_join_landing",
+        headers={"X-Apply-Url": "/join"},
     )
 
 

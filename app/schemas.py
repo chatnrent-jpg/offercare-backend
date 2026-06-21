@@ -1721,6 +1721,39 @@ class MarylandLandingCredentialOut(BaseModel):
     suggested_minimum: float
 
 
+class MarylandLandingConsentDisclosures(BaseModel):
+    version: str
+    credential_screening: str
+    sms_dispatch: str
+    terms_of_service: str
+    terms_of_service_version: str
+    terms_of_service_effective_date: str
+    terms_of_service_url: str
+    privacy_policy: str
+    privacy_policy_version: str
+    privacy_policy_effective_date: str
+    privacy_policy_url: str
+
+
+class WorkerTermsSectionOut(BaseModel):
+    heading: str
+    body: str
+
+
+class WorkerTermsOfServiceResponse(BaseModel):
+    title: str
+    version: str
+    effective_date: str
+    sections: list[WorkerTermsSectionOut]
+
+
+class WorkerPrivacyPolicyResponse(BaseModel):
+    title: str
+    version: str
+    effective_date: str
+    sections: list[WorkerTermsSectionOut]
+
+
 class MarylandLandingPageResponse(BaseModel):
     headline: str
     subheadline: str
@@ -1729,6 +1762,9 @@ class MarylandLandingPageResponse(BaseModel):
     credentials: list[MarylandLandingCredentialOut]
     apply_defaults: dict[str, str]
     portal_url: str
+    consent_disclosures: MarylandLandingConsentDisclosures
+    terms_of_service: WorkerTermsOfServiceResponse
+    privacy_policy: WorkerPrivacyPolicyResponse
 
 
 class MarylandLandingApplyRequest(BaseModel):
@@ -1743,18 +1779,49 @@ class MarylandLandingApplyRequest(BaseModel):
     min_hourly_rate: float = Field(ge=0)
     response_propensity: float = Field(ge=0, le=1, default=0.7)
     password: str = Field(min_length=8, max_length=128)
+    consent_version: str = Field(min_length=5, max_length=20)
+    consent_credential_screening: bool
+    consent_sms_dispatch: bool
+    consent_terms_of_service: bool
+    consent_privacy_policy: bool
 
     @model_validator(mode="after")
     def validate_maryland_floor_staff(self) -> "MarylandLandingApplyRequest":
         from app.services.care_taxonomy import normalize_credential_type, requires_npi
         from app.services.maryland_landing import MARYLAND_LANDING_CREDENTIALS
+        from app.services.worker_consent import WORKER_CONSENT_VERSION
 
         self.credential_type = normalize_credential_type(self.credential_type)
         if self.credential_type not in MARYLAND_LANDING_CREDENTIALS:
             raise ValueError("unsupported_credential")
         if requires_npi(self.credential_type) and not str(self.npi_number or "").strip():
             raise ValueError("npi_required_for_credential")
+        if self.consent_version != WORKER_CONSENT_VERSION:
+            raise ValueError("consent_version_mismatch")
+        if not (
+            self.consent_credential_screening
+            and self.consent_sms_dispatch
+            and self.consent_terms_of_service
+            and self.consent_privacy_policy
+        ):
+            raise ValueError("consent_required")
         return self
+
+
+class WorkerInflowSummaryResponse(BaseModel):
+    join_url: str
+    consent_version: str
+    terms_of_service_version: str
+    privacy_policy_version: str
+    opt_in_applicants: int
+    pending_review: int
+    verified_workers: int
+    sms_consent_recorded: int
+    terms_accepted: int
+    privacy_accepted: int
+    sms_opt_out_count: int
+    legal_model: str
+    playbook: list[str]
 
 
 class MarylandLandingApplyResponse(BaseModel):

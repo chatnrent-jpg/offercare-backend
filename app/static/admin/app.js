@@ -182,13 +182,25 @@ const els = {
   runOutreachCampaignBtn: document.getElementById("run-outreach-campaign-btn"),
   sendOutreachCampaignBtn: document.getElementById("send-outreach-campaign-btn"),
   refreshOutreachBtn: document.getElementById("refresh-outreach-btn"),
+  workerInflowSummary: document.getElementById("worker-inflow-summary"),
+  workerInflowPlaybook: document.getElementById("worker-inflow-playbook"),
+  workerInflowJoinLink: document.getElementById("worker-inflow-join-link"),
+  copyWorkerInflowLinkBtn: document.getElementById("copy-worker-inflow-link-btn"),
+  refreshWorkerInflowBtn: document.getElementById("refresh-worker-inflow-btn"),
 };
 
 function getKey() {
+  if (typeof window.offercareAdminGetKey === "function") {
+    return window.offercareAdminGetKey();
+  }
   return localStorage.getItem(STORAGE_KEY) || "";
 }
 
 function setKey(value) {
+  if (typeof window.offercareAdminSetKey === "function") {
+    window.offercareAdminSetKey(value);
+    return;
+  }
   if (value) localStorage.setItem(STORAGE_KEY, value);
   else localStorage.removeItem(STORAGE_KEY);
 }
@@ -571,6 +583,44 @@ async function loadOutreachDashboard() {
   ]);
   renderOutreachTargets(targets);
   renderOutreachEmails(emails);
+}
+
+function renderWorkerInflowSummary(data) {
+  if (!els.workerInflowSummary) return;
+  const joinUrl = data.join_url || "/join";
+  const absoluteJoin = joinUrl.startsWith("http") ? joinUrl : `${window.location.origin}${joinUrl}`;
+  if (els.workerInflowJoinLink) els.workerInflowJoinLink.href = absoluteJoin;
+  els.workerInflowSummary.innerHTML = `
+    <div class="stat-card"><span class="muted">Opt-in applicants</span><strong>${data.opt_in_applicants ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Pending review</span><strong>${data.pending_review ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Verified workers</span><strong>${data.verified_workers ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">SMS consent recorded</span><strong>${data.sms_consent_recorded ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Terms accepted</span><strong>${data.terms_accepted ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Privacy accepted</span><strong>${data.privacy_accepted ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">SMS opt-outs</span><strong>${data.sms_opt_out_count ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Consent / ToS version</span><strong>${data.consent_version || "—"}</strong></div>`;
+  if (els.workerInflowPlaybook) {
+    els.workerInflowPlaybook.innerHTML = (data.playbook || [])
+      .map((step) => `<li>${step}</li>`)
+      .join("");
+  }
+  els.workerInflowSummary.dataset.joinUrl = absoluteJoin;
+}
+
+async function loadWorkerInflowDashboard() {
+  const data = await api("/api/landing/maryland/inflow-summary");
+  renderWorkerInflowSummary(data);
+  return data;
+}
+
+async function copyWorkerInflowLink() {
+  const url = els.workerInflowSummary?.dataset.joinUrl || `${window.location.origin}/join`;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast("Join URL copied — share with Maryland CNAs/LPNs");
+  } catch {
+    showToast("Could not copy join URL", true);
+  }
 }
 
 function renderOutreachTargets(rows) {
@@ -2018,7 +2068,7 @@ function renderDemoStatus(data) {
     </div>
     <div class="stat-card">
       <span class="label">Admin actions</span>
-      <strong>${data.demo_admin_action_count ?? data.health?.demo_admin_action_count ?? (data.demo_admin_actions || []).length || "—"}</strong>
+      <strong>${(data.demo_admin_action_count ?? data.health?.demo_admin_action_count ?? (data.demo_admin_actions || []).length) || "n/a"}</strong>
     </div>`;
 
   const offers = data.offers || [];
@@ -2350,15 +2400,14 @@ async function submitPlacement(placementId) {
 }
 
 async function refreshAll() {
-  const [pending, shiftFilters, shifts, placements, integrations, liveScrapers, deployChecklist, demoStatus, sniperScores, productionOps, opsMetrics, auditEvents, cascadeWorker, staffingScheduler, complianceScheduler] =
-    await Promise.all([
+  const requests = await Promise.allSettled([
     api("/api/clinicians/pending"),
     api("/api/shifts/filters"),
     loadShifts(),
     api("/api/vms/placements?limit=50"),
     api("/api/integrations/status"),
     api("/api/integrations/live-scrapers"),
-    api("/api/deploy/checklist"),
+    api("/api/deploy/checklist?lite=true"),
     api("/api/seed/demo-status"),
     api("/shift-sniper/scores"),
     api("/api/ops/production-dashboard"),
@@ -2368,6 +2417,40 @@ async function refreshAll() {
     api("/api/ops/staffing-scheduler/status"),
     api("/api/ops/compliance-scheduler/status"),
   ]);
+
+  const pick = (index, fallback = null) =>
+    requests[index]?.status === "fulfilled" ? requests[index].value : fallback;
+
+  const pending = pick(0, []);
+  const shiftFilters = pick(1, {
+    states: [],
+    counties: [],
+    facility_types: [],
+    shift_roles: [],
+  });
+  const shifts = pick(2, []);
+  const placements = pick(3, []);
+  const integrations = pick(4, null);
+  const liveScrapers = pick(5, null);
+  const deployChecklist = pick(6, null);
+  const demoStatus = pick(7, null);
+  const sniperScores = pick(8, []);
+  const productionOps = pick(9, null);
+  const opsMetrics = pick(10, null);
+  const auditEvents = pick(11, []);
+  const cascadeWorker = pick(12, null);
+  const staffingScheduler = pick(13, null);
+  const complianceScheduler = pick(14, null);
+
+  requests.forEach((result, index) => {
+    if (result.status === "rejected") {
+      console.warn("Admin refresh partial failure", index, result.reason);
+    }
+  });
+  if (requests[6]?.status === "rejected") {
+    logOps(`Deploy checklist unavailable — ${requests[6].reason?.message || "error"}`);
+  }
+
   populateShiftFilters(shiftFilters);
   renderStats(pending, shifts, placements, productionOps?.metrics || opsMetrics);
   renderProductionOpsDashboard(productionOps);
@@ -2377,7 +2460,9 @@ async function refreshAll() {
     renderComplianceScheduler(complianceScheduler);
     renderAuditLog(auditEvents);
   }
-  renderDeployChecklist(deployChecklist);
+  if (deployChecklist) {
+    renderDeployChecklist(deployChecklist);
+  }
   renderDemoStatus(demoStatus);
   renderIntegrations(integrations);
   renderLiveScrapers(liveScrapers);
@@ -2388,9 +2473,14 @@ async function refreshAll() {
   renderPlacements(placements);
   await loadComplianceDashboard();
   await loadOutreachDashboard();
+  await loadWorkerInflowDashboard();
 }
 
 async function connect() {
+  if (typeof window.offercareAdminConnect === "function") {
+    await window.offercareAdminConnect();
+    return;
+  }
   const key = els.apiKeyInput.value.trim();
   if (!key) {
     els.gateError.textContent = "Admin API key is required.";
@@ -2398,21 +2488,43 @@ async function connect() {
     return;
   }
   setKey(key);
+  const connectLabel = els.connectBtn.textContent;
+  els.connectBtn.disabled = true;
+  els.connectBtn.textContent = "Connecting…";
+  els.gateError.classList.add("hidden");
+  let opened = false;
   try {
     await api("/api/clinicians/pending");
     els.gate.classList.add("hidden");
     els.app.classList.remove("hidden");
-    els.gateError.classList.add("hidden");
+    opened = true;
     await refreshAll();
     showToast("Connected to OfferCare.ai admin API");
   } catch (error) {
     setKey("");
-    els.gateError.textContent = `Connection failed: ${error.message}`;
+    if (opened) {
+      els.app.classList.add("hidden");
+      els.gate.classList.remove("hidden");
+    }
+    const detail = String(error?.message || error || "unknown error");
+    if (detail.includes("admin_unauthorized")) {
+      els.gateError.textContent =
+        "Connection failed: admin key rejected. Copy ADMIN_API_KEY from .env exactly, restart start-api.bat, then try again.";
+    } else {
+      els.gateError.textContent = `Connection failed: ${detail}`;
+    }
     els.gateError.classList.remove("hidden");
+  } finally {
+    els.connectBtn.disabled = false;
+    els.connectBtn.textContent = connectLabel;
   }
 }
 
 function disconnect() {
+  if (typeof window.offercareAdminDisconnect === "function") {
+    window.offercareAdminDisconnect();
+    return;
+  }
   setKey("");
   els.app.classList.add("hidden");
   els.gate.classList.remove("hidden");
@@ -2424,9 +2536,8 @@ function logOps(message) {
   els.opsLog.textContent = `[${stamp}] ${message}\n` + els.opsLog.textContent;
 }
 
-els.connectBtn.addEventListener("click", connect);
-els.disconnectBtn.addEventListener("click", disconnect);
-els.refreshBtn.addEventListener("click", () => refreshAll().catch((e) => showToast(e.message, true)));
+els.disconnectBtn?.addEventListener("click", disconnect);
+els.refreshBtn?.addEventListener("click", () => refreshAll().catch((e) => showToast(e.message, true)));
 els.cascadeWorkerTickBtn?.addEventListener("click", () => runCascadeWorkerTick().catch((e) => showToast(e.message, true)));
 els.refreshProductionOpsBtn?.addEventListener("click", () => refreshProductionOpsDashboard().catch((e) => showToast(e.message, true)));
 els.runProductionPerfectionCheckBtn?.addEventListener("click", () => runProductionPerfectionCheck().catch((e) => showToast(e.message, true)));
@@ -2579,7 +2690,7 @@ els.applyShiftFiltersBtn?.addEventListener("click", async () => {
     showToast(error.message, true);
   }
 });
-els.closeRankDialog.addEventListener("click", () => els.rankDialog.close());
+els.closeRankDialog?.addEventListener("click", () => els.rankDialog.close());
 els.closeComplianceDialog?.addEventListener("click", () => els.complianceDialog.close());
 els.runComplianceMonitorBtn?.addEventListener("click", () => runComplianceMonitor().catch((e) => showToast(e.message, true)));
 els.scanCrisisSignalsBtn?.addEventListener("click", () => scanCrisisSignals().catch((e) => showToast(e.message, true)));
@@ -2589,15 +2700,17 @@ els.refreshComplianceBtn?.addEventListener("click", () => loadComplianceDashboar
 els.runOutreachCampaignBtn?.addEventListener("click", () => runOutreachCampaign(false).catch((e) => showToast(e.message, true)));
 els.sendOutreachCampaignBtn?.addEventListener("click", () => runOutreachCampaign(true).catch((e) => showToast(e.message, true)));
 els.refreshOutreachBtn?.addEventListener("click", () => loadOutreachDashboard().then(() => showToast("Outreach dashboard refreshed")).catch((e) => showToast(e.message, true)));
-els.closeScheduleDialog.addEventListener("click", () => {
+els.refreshWorkerInflowBtn?.addEventListener("click", () => loadWorkerInflowDashboard().then(() => showToast("Worker inflow stats refreshed")).catch((e) => showToast(e.message, true)));
+els.copyWorkerInflowLinkBtn?.addEventListener("click", () => copyWorkerInflowLink().catch((e) => showToast(e.message, true)));
+els.closeScheduleDialog?.addEventListener("click", () => {
   scheduleEditOfferId = null;
-  els.scheduleDialog.close();
+  els.scheduleDialog?.close();
 });
-els.scheduleForm.addEventListener("submit", (event) => {
+els.scheduleForm?.addEventListener("submit", (event) => {
   saveScheduleEdit(event).catch((error) => showToast(error.message, true));
 });
 
-els.scrapeBtn.addEventListener("click", async () => {
+els.scrapeBtn?.addEventListener("click", async () => {
   try {
     const data = await api("/api/scrape/maryland-hospitals", {
       method: "POST",
@@ -2715,7 +2828,7 @@ els.scrapePostAcuteBtn?.addEventListener("click", async () => {
   }
 });
 
-els.autoShiftsBtn.addEventListener("click", async () => {
+els.autoShiftsBtn?.addEventListener("click", async () => {
   try {
     const data = await api("/api/shifts/auto-create", {
       method: "POST",
@@ -2766,7 +2879,7 @@ els.seedHospitalDemosBtn?.addEventListener("click", async () => {
   }
 });
 
-els.seedDemoBtn.addEventListener("click", async () => {
+els.seedDemoBtn?.addEventListener("click", async () => {
   try {
     const data = await api("/api/seed/saint-judes", { method: "POST" });
     logOps(`Saint Jude demo seeded — offer ${data.offer_id}`);
@@ -2876,7 +2989,7 @@ els.seedHomeHealthBtn?.addEventListener("click", async () => {
   }
 });
 
-els.refreshIntegrationsBtn.addEventListener("click", async () => {
+els.refreshIntegrationsBtn?.addEventListener("click", async () => {
   try {
     const [integrations, liveScrapers] = await Promise.all([
       api("/api/integrations/status"),
@@ -3257,7 +3370,7 @@ els.demoLockSmokeBtn?.addEventListener("click", async () => {
   }
 });
 
-els.relearnScoresBtn.addEventListener("click", async () => {
+els.relearnScoresBtn?.addEventListener("click", async () => {
   try {
     const data = await api("/shift-sniper/relearn-scores", { method: "POST" });
     showToast(`Relearned scores for ${data.updated} clinicians`);
@@ -3267,7 +3380,7 @@ els.relearnScoresBtn.addEventListener("click", async () => {
   }
 });
 
-els.submitPendingVmsBtn.addEventListener("click", async () => {
+els.submitPendingVmsBtn?.addEventListener("click", async () => {
   try {
     const data = await api("/api/vms/placements/submit-pending?limit=25", { method: "POST" });
     logOps(`VMS batch — submitted ${data.submitted}`);
@@ -3278,8 +3391,231 @@ els.submitPendingVmsBtn.addEventListener("click", async () => {
   }
 });
 
-const saved = getKey();
-if (saved) {
-  els.apiKeyInput.value = saved;
-  connect();
+function slugifyPocketTitle(title) {
+  return String(title || "section")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+const POCKET_NAV_GROUPS = [
+  {
+    key: "launch",
+    label: "Launch & go-live",
+    hint: "Production readiness chain",
+    titles: [
+      "Production ops dashboard",
+      "Production perfection",
+      "Production launch ceremony",
+      "Production go-live record",
+      "Production launch attestation",
+      "Production launch perfection seal",
+      "Production launch archive",
+      "Production launch perfection finale",
+      "Production launch perfection manifest",
+    ],
+  },
+  {
+    key: "platform",
+    label: "Platform ops",
+    hint: "Workers, deploy, integrations",
+    titles: [
+      "Ops metrics",
+      "Audit log",
+      "Deploy walkthrough",
+      "Integrations",
+      "Shift Sniper intelligence",
+    ],
+  },
+  {
+    key: "grid",
+    label: "Grid & staffing",
+    hint: "Scrape, shifts, placements",
+    titles: [
+      "Grid operations",
+      "Demo environment",
+      "Worker inflow (opt-in)",
+      "Pending clinicians",
+      "Open shifts",
+      "Placements & VMS",
+    ],
+  },
+  {
+    key: "compliance",
+    label: "Compliance & outreach",
+    hint: "COMAR, crisis, B2B pipeline",
+    titles: ["Maryland COMAR compliance", "B2B outreach pipeline"],
+  },
+];
+
+function pocketNavGroupKey(title) {
+  for (const group of POCKET_NAV_GROUPS) {
+    if (group.titles.includes(title)) return group.key;
+  }
+  return "platform";
+}
+
+const POCKET_DEFAULT_OPEN = new Set([
+  "Open shifts",
+  "Grid operations",
+  "Worker inflow (opt-in)",
+  "Pending clinicians",
+  "Demo environment",
+]);
+
+
+function mountAdminPockets() {
+  const app = document.getElementById("app");
+  if (!app || app.dataset.pocketsMounted === "1") return;
+
+  const pockets = [];
+  app.querySelectorAll(":scope > section.panel").forEach((section) => {
+    const head = section.querySelector(":scope > .panel-head");
+    if (!head) return;
+
+    const title = head.querySelector("h2")?.textContent?.trim() || "Section";
+    const pocketId = `pocket-${slugifyPocketTitle(title)}`;
+    const groupKey = pocketNavGroupKey(title);
+    section.id = pocketId;
+    section.classList.add(`admin-pocket-shell--${groupKey}`);
+
+    const details = document.createElement("details");
+    details.className = `admin-pocket admin-pocket--${groupKey}`;
+    details.open = POCKET_DEFAULT_OPEN.has(title);
+
+    const summary = document.createElement("summary");
+    summary.className = "admin-pocket__summary";
+    summary.appendChild(head);
+
+    const chevron = document.createElement("span");
+    chevron.className = "admin-pocket__chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.textContent = "▸";
+    summary.appendChild(chevron);
+
+    const body = document.createElement("div");
+    body.className = "admin-pocket__body";
+    [...section.children].forEach((child) => {
+      if (child !== head) body.appendChild(child);
+    });
+
+    details.appendChild(summary);
+    details.appendChild(body);
+    section.appendChild(details);
+
+    details.addEventListener("toggle", () => {
+      document.querySelectorAll(".admin-pocket-nav__link").forEach((link) => {
+        link.classList.toggle("is-active", link.dataset.pocketTarget === pocketId && details.open);
+      });
+    });
+
+    pockets.push({ id: pocketId, title, details, groupKey });
+  });
+
+  if (pockets.length) {
+    const nav = document.createElement("nav");
+    nav.className = "admin-pocket-nav";
+    nav.innerHTML = `
+      <div class="admin-pocket-nav__hero">
+        <div class="admin-pocket-nav__intro">
+          <p class="admin-pocket-nav__eyebrow">Maryland State Wide Grid</p>
+          <h2 class="admin-pocket-nav__title">Console sections</h2>
+          <p class="admin-pocket-nav__subtitle">Jump to launch, platform, grid, or compliance modules.</p>
+        </div>
+        <div class="admin-pocket-nav__actions">
+          <button type="button" class="admin-pocket-nav__action admin-pocket-nav__action--expand" data-pocket-expand-all>Expand all</button>
+          <button type="button" class="admin-pocket-nav__action admin-pocket-nav__action--collapse" data-pocket-collapse-all>Collapse all</button>
+        </div>
+      </div>
+    `;
+
+    const groupsWrap = document.createElement("div");
+    groupsWrap.className = "admin-pocket-nav__groups";
+
+    POCKET_NAV_GROUPS.forEach((group) => {
+      const groupPockets = pockets.filter((pocket) => pocket.groupKey === group.key);
+      if (!groupPockets.length) return;
+
+      const groupEl = document.createElement("section");
+      groupEl.className = `admin-pocket-nav__group admin-pocket-nav__group--${group.key}`;
+      groupEl.innerHTML = `
+        <header class="admin-pocket-nav__group-head">
+          <span class="admin-pocket-nav__group-dot" aria-hidden="true"></span>
+          <div>
+            <h3 class="admin-pocket-nav__group-label">${group.label}</h3>
+            <p class="admin-pocket-nav__group-hint">${group.hint}</p>
+          </div>
+        </header>
+      `;
+
+      const list = document.createElement("div");
+      list.className = "admin-pocket-nav__list";
+      groupPockets.forEach(({ id, title, details }) => {
+        const link = document.createElement("button");
+        link.type = "button";
+        link.className = `admin-pocket-nav__link admin-pocket-nav__link--${group.key}`;
+        link.dataset.pocketTarget = id;
+        link.innerHTML = `<span class="admin-pocket-nav__link-text">${title}</span>`;
+        if (details.open) link.classList.add("is-active");
+        link.addEventListener("click", () => {
+          details.open = true;
+          document.querySelectorAll(".admin-pocket-nav__link").forEach((node) => {
+            node.classList.toggle("is-active", node === link);
+          });
+          sectionScroll(id);
+        });
+        list.appendChild(link);
+      });
+
+      groupEl.appendChild(list);
+      groupsWrap.appendChild(groupEl);
+    });
+
+    nav.appendChild(groupsWrap);
+    nav.querySelector("[data-pocket-expand-all]")?.addEventListener("click", () => {
+      pockets.forEach(({ details }) => {
+        details.open = true;
+      });
+      document.querySelectorAll(".admin-pocket-nav__link").forEach((link) => {
+        link.classList.toggle("is-active", true);
+      });
+    });
+    nav.querySelector("[data-pocket-collapse-all]")?.addEventListener("click", () => {
+      pockets.forEach(({ details }) => {
+        details.open = false;
+      });
+      document.querySelectorAll(".admin-pocket-nav__link").forEach((link) => {
+        link.classList.remove("is-active");
+      });
+    });
+
+    const stats = document.getElementById("stats");
+    if (stats?.nextSibling) {
+      stats.parentNode?.insertBefore(nav, stats.nextSibling);
+    } else {
+      app.insertBefore(nav, app.querySelector("section.panel"));
+    }
+  }
+
+  app.dataset.pocketsMounted = "1";
+}
+
+function sectionScroll(pocketId) {
+  const section = document.getElementById(pocketId);
+  if (!section) return;
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+window.addEventListener("offercare-admin-connected", () => {
+  mountAdminPockets();
+  loadShiftFilters().catch((error) => {
+    logOps(`Shift filters unavailable — ${error.message}`);
+    showToast(error.message, true);
+  });
+  refreshAll().catch((error) => showToast(error.message, true));
+});
+
+if (!els.app?.classList.contains("hidden")) {
+  mountAdminPockets();
+  refreshAll().catch((error) => showToast(error.message, true));
 }

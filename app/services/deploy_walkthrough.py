@@ -97,9 +97,63 @@ def _migrations_at_head(engine: Engine) -> tuple[bool, str]:
     return False, f"Revision {current or 'none'} — upgrade to {head}"
 
 
+def _lite_production_capstone_payload(
+    items: list[DeployCheckItem],
+    *,
+    live_sms: bool,
+) -> dict:
+    empty = {"ready": 0, "warnings": 0, "blocked": 0}
+    md_prod_summary = {**empty, "live_scrapers_all_live": False}
+    ops_summary = {**empty, "workers_running_count": 0}
+    items.append(
+        DeployCheckItem(
+            id="production_capstones",
+            title="Production capstones (lite checklist)",
+            status="pending",
+            detail=(
+                "Maryland production, launch, ops, and ceremony runbooks skipped for fast admin refresh. "
+                "Append ?lite=false to /api/deploy/checklist for the full go-live walkthrough."
+            ),
+            action="Use full deploy checklist before production launch",
+        )
+    )
+    return {
+        "md_production": {"production_ready": False, "summary": md_prod_summary, "steps": []},
+        "md_prod_summary": md_prod_summary,
+        "sms_production": {
+            "production_ready": False,
+            "live_sms_ready": live_sms,
+            "summary": empty.copy(),
+            "steps": [],
+        },
+        "sms_summary": empty.copy(),
+        "launch_capstone": {"launch_ready": False, "summary": empty.copy(), "steps": []},
+        "launch_summary": empty.copy(),
+        "ops_dashboard": {"production_ops_ready": False, "summary": ops_summary, "steps": []},
+        "ops_summary": ops_summary,
+        "perfection_capstone": {"production_perfection_ready": False, "summary": empty.copy(), "steps": []},
+        "perfection_summary": empty.copy(),
+        "launch_ceremony": {"launch_ceremony_ready": False, "summary": empty.copy(), "steps": []},
+        "ceremony_summary": empty.copy(),
+        "go_live_record": {"production_go_live_record_ready": False, "summary": empty.copy(), "steps": []},
+        "go_live_summary": empty.copy(),
+        "launch_attestation": {"production_launch_attestation_ready": False, "summary": empty.copy(), "steps": []},
+        "attestation_summary": empty.copy(),
+        "perfection_seal": {"production_launch_perfection_ready": False, "summary": empty.copy(), "steps": []},
+        "perfection_seal_summary": empty.copy(),
+        "launch_archive": None,
+        "launch_archive_summary": None,
+        "launch_finale": None,
+        "launch_finale_summary": None,
+        "launch_bundle_verification": None,
+        "launch_bundle_verification_summary": None,
+    }
+
+
 def build_deploy_checklist(
     db: Session,
     *,
+    lite: bool = False,
     include_launch_archive: bool = True,
     include_launch_finale: bool = True,
     include_launch_bundle_verification: bool = True,
@@ -436,9 +490,36 @@ def build_deploy_checklist(
         )
     )
 
-    from app.services.maryland_production_runbook import build_maryland_production_runbook
+    if lite:
+        capstone_payload = _lite_production_capstone_payload(items, live_sms=live_sms)
+        md_production = capstone_payload["md_production"]
+        md_prod_summary = capstone_payload["md_prod_summary"]
+        sms_production = capstone_payload["sms_production"]
+        sms_summary = capstone_payload["sms_summary"]
+        launch_capstone = capstone_payload["launch_capstone"]
+        launch_summary = capstone_payload["launch_summary"]
+        ops_dashboard = capstone_payload["ops_dashboard"]
+        ops_summary = capstone_payload["ops_summary"]
+        perfection_capstone = capstone_payload["perfection_capstone"]
+        perfection_summary = capstone_payload["perfection_summary"]
+        launch_ceremony = capstone_payload["launch_ceremony"]
+        ceremony_summary = capstone_payload["ceremony_summary"]
+        go_live_record = capstone_payload["go_live_record"]
+        go_live_summary = capstone_payload["go_live_summary"]
+        launch_attestation = capstone_payload["launch_attestation"]
+        attestation_summary = capstone_payload["attestation_summary"]
+        perfection_seal = capstone_payload["perfection_seal"]
+        perfection_seal_summary = capstone_payload["perfection_seal_summary"]
+        launch_archive = capstone_payload["launch_archive"]
+        launch_archive_summary = capstone_payload["launch_archive_summary"]
+        launch_finale = capstone_payload["launch_finale"]
+        launch_finale_summary = capstone_payload["launch_finale_summary"]
+        launch_bundle_verification = capstone_payload["launch_bundle_verification"]
+        launch_bundle_verification_summary = capstone_payload["launch_bundle_verification_summary"]
+    if not lite:
+        from app.services.maryland_production_runbook import build_maryland_production_runbook
 
-    md_production = build_maryland_production_runbook(db)
+        md_production = build_maryland_production_runbook(db)
     md_prod_summary = md_production["summary"]
     if md_production["production_ready"]:
         md_prod_status = "ready"

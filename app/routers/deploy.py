@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -366,8 +366,11 @@ def _production_launch_perfection_manifest_response(
 
 
 @router.get("/checklist", response_model=DeployChecklistResponse, dependencies=[Depends(require_admin_api_key)])
-def deploy_checklist(db: Session = Depends(get_db)):
-    payload = build_deploy_checklist(db)
+def deploy_checklist(lite: bool = True, db: Session = Depends(get_db)):
+    try:
+        payload = build_deploy_checklist(db, lite=lite)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"deploy_checklist_failed: {exc}") from exc
     runbook = payload.get("maryland_production_runbook")
     if runbook is not None:
         payload["maryland_production_runbook"] = _maryland_production_runbook_response(runbook)

@@ -390,6 +390,35 @@ def notify_single_ranked_clinician(
         shift_starts_at=shift_starts_at,
         shift_ends_at=shift_ends_at,
     )
+    from app.services.worker_consent import provider_has_sms_dispatch_consent
+
+    provider = db.query(MarylandProvider).filter(MarylandProvider.provider_id == ranked_row.provider_id).first()
+    if provider is not None and not provider_has_sms_dispatch_consent(
+        db,
+        ranked_row.provider_id,
+        email=provider.email,
+    ):
+        db.add(
+            ShiftNotificationLog(
+                offer_id=offer_id,
+                provider_id=ranked_row.provider_id,
+                channel="SMS",
+                status="SKIPPED",
+                message_body=message_body,
+                broadcast_wave_id=broadcast_wave_id,
+            )
+        )
+        if commit:
+            db.commit()
+        return SmsDeliveryOut(
+            provider_id=ranked_row.provider_id,
+            phone_number=ranked_row.phone_number,
+            status="SKIPPED",
+            mode="no_sms_consent",
+            message_body=message_body,
+            twilio_sid=None,
+        )
+
     sms = send_shift_sms(to_number=ranked_row.phone_number, message_body=message_body)
     db.add(
         ShiftNotificationLog(
