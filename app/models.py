@@ -51,6 +51,8 @@ class MarylandProvider(Base):
     dispatch_status = Column(String(20), nullable=False, default="ACTIVE")  # ACTIVE, SUSPENDED
     license_expires_on = Column(DateTime(timezone=True), nullable=True)
     sms_opt_out = Column(String(5), nullable=False, default="false")
+    vetted_status = Column(String(30), nullable=False, default="ACTION_NEEDED")
+    vetted_status_updated_at = Column(DateTime(timezone=True), nullable=True)
 
 
 class LicenseVerificationLog(Base):
@@ -270,3 +272,44 @@ class OpsAuditLog(Base):
     summary = Column(String(500), nullable=False)
     metadata_json = Column(String(2000), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class VettedCareAuditLog(Base):
+    __tablename__ = "vettedcare_audit_log"
+
+    audit_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=True)
+    event_type = Column(String(50), nullable=False)
+    actor = Column(String(100), nullable=True)
+    previous_status = Column(String(30), nullable=True)
+    new_status = Column(String(30), nullable=True)
+    summary = Column(String(500), nullable=False)
+    metadata_json = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class CredentialSafetyAlert(Base):
+    __tablename__ = "credential_safety_alerts"
+
+    alert_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False)
+    channel = Column(String(20), nullable=False)
+    alert_type = Column(String(30), nullable=False)
+    vetted_status = Column(String(30), nullable=False)
+    message_body = Column(String(1000), nullable=False)
+    delivery_status = Column(String(20), nullable=False)
+    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ManusVettingRun(Base):
+    __tablename__ = "manus_vetting_runs"
+
+    run_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    external_run_id = Column(String(128), nullable=True)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=True)
+    status = Column(String(20), nullable=False, default="RECEIVED")
+    checks_count = Column(Numeric(5, 0), nullable=False, default=0)
+    summary = Column(String(500), nullable=True)
+    payload_json = Column(Text, nullable=True)
+    received_at = Column(DateTime(timezone=True), server_default=func.now())
+    applied_at = Column(DateTime(timezone=True), nullable=True)

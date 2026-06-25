@@ -88,6 +88,10 @@ def provider_dispatch_eligible(db: Session, provider: MarylandProvider) -> bool:
         return False
     if has_expired_required_documents(db, provider.provider_id):
         return False
+    from app.services.vetted_status import VETTED_CLEAR, compute_vetted_status
+
+    if compute_vetted_status(db, provider) != VETTED_CLEAR:
+        return False
     return True
 
 

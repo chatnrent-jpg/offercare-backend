@@ -9,8 +9,21 @@ const els = {
   connectBtn: document.getElementById("connect-btn"),
   gateError: document.getElementById("gate-error"),
   disconnectBtn: document.getElementById("disconnect-btn"),
+  connectionStatus: document.getElementById("connection-status"),
   refreshBtn: document.getElementById("refresh-btn"),
   stats: document.getElementById("stats"),
+  vettedTagline: document.getElementById("vetted-tagline"),
+  vettedSummary: document.getElementById("vetted-summary"),
+  vettedProvidersTable: document.getElementById("vetted-providers-table"),
+  vettedAuditTable: document.getElementById("vetted-audit-table"),
+  vettedAlertsTable: document.getElementById("vetted-alerts-table"),
+  vettedManusHint: document.getElementById("vetted-manus-hint"),
+  infraSummary: document.getElementById("infra-summary"),
+  infraChecks: document.getElementById("infra-checks"),
+  refreshInfraBtn: document.getElementById("refresh-infra-btn"),
+  runVettedSafetyBtn: document.getElementById("run-vetted-safety-btn"),
+  syncVettedStatusBtn: document.getElementById("sync-vetted-status-btn"),
+  refreshVettedBtn: document.getElementById("refresh-vetted-btn"),
   pendingTable: document.getElementById("pending-table"),
   shiftsTable: document.getElementById("shifts-table"),
   placementsTable: document.getElementById("placements-table"),
@@ -685,6 +698,182 @@ async function runOutreachCampaign(send = false) {
       `Outreach — ${data.targets} targets, ${data.emails_drafted} drafted, ${data.emails_sent} sent`,
     );
     await loadOutreachDashboard();
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+function renderInfraChecks(data) {
+  if (!els.infraChecks) return;
+  if (els.infraSummary) {
+    els.infraSummary.textContent = `${data.summary} (${data.required_pass}/${data.required_total} required checks pass)`;
+  }
+  const icon = { pass: "✓", warn: "!", fail: "✗" };
+  els.infraChecks.innerHTML = (data.checks || [])
+    .map(
+      (row) => `
+    <div class="deploy-check ${row.status}">
+      <strong>${icon[row.status] || "?"} ${row.name.replace(/_/g, " ")}</strong>
+      <span class="muted">${row.detail}</span>
+    </div>`,
+    )
+    .join("");
+}
+
+async function loadInfrastructureReadiness() {
+  const data = await api("/api/vettedcare/infrastructure");
+  renderInfraChecks(data);
+  return data;
+}
+
+function vettedBadge(status) {
+  const key = String(status || "ACTION_NEEDED").toUpperCase();
+  const cls =
+    key === "CLEAR"
+      ? "vetted-clear"
+      : key === "EXPIRING"
+        ? "vetted-expiring"
+        : key === "BLOCKED"
+          ? "vetted-blocked"
+          : "vetted-action";
+  return `<span class="vetted-badge ${cls}">${key.replace("_", " ")}</span>`;
+}
+
+function renderVettedSummary(data) {
+  if (!els.vettedSummary) return;
+  const counts = data.status_counts || {};
+  els.vettedSummary.innerHTML = `
+    <div class="stat-card"><span class="muted">CLEAR</span><strong>${counts.CLEAR ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">EXPIRING</span><strong>${counts.EXPIRING ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">ACTION NEEDED</span><strong>${counts.ACTION_NEEDED ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">BLOCKED</span><strong>${counts.BLOCKED ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Clear rate</span><strong>${data.clear_rate_percent ?? 0}%</strong></div>
+    <div class="stat-card"><span class="muted">Manus runs</span><strong>${data.manus_runs_applied ?? 0}/${data.manus_runs_total ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Safety alerts</span><strong>${data.alerts_sent_total ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Audit events</span><strong>${data.audit_events_total ?? 0}</strong></div>`;
+  if (els.vettedTagline) els.vettedTagline.textContent = data.tagline || els.vettedTagline.textContent;
+  if (els.vettedManusHint) {
+    els.vettedManusHint.textContent =
+      "Manus worker: GET /api/vettedcare/manus/work-queue → run checks → POST /api/vettedcare/manus/run (header X-Manus-Key)";
+  }
+}
+
+function renderVettedProviders(rows) {
+  if (!els.vettedProvidersTable) return;
+  if (!rows?.length) {
+    els.vettedProvidersTable.innerHTML = `<p class="empty">No clinicians yet — worker opt-in or seed demo data first.</p>`;
+    return;
+  }
+  els.vettedProvidersTable.innerHTML = `
+    <table>
+      <thead><tr><th>Name</th><th>Role</th><th>Safety status</th><th>License</th><th>Dispatch</th><th>Updated</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${rows.map((row) => `
+          <tr>
+            <td>${row.full_name}</td>
+            <td>${row.credential_type || "—"}</td>
+            <td>${vettedBadge(row.vetted_status)}</td>
+            <td>${badge(row.license_status)}</td>
+            <td>${badge(row.dispatch_status)}</td>
+            <td>${row.vetted_status_updated_at ? new Date(row.vetted_status_updated_at).toLocaleString() : "—"}</td>
+            <td>
+              <button class="btn small ghost" data-vetted-profile="${row.provider_id}">Profile</button>
+              <button class="btn small ghost" data-compliance-screen="${row.provider_id}">Screen</button>
+            </td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+  els.vettedProvidersTable.querySelectorAll("[data-vetted-profile]").forEach((btn) => {
+    btn.addEventListener("click", () => viewVettedProfile(btn.dataset.vettedProfile));
+  });
+  els.vettedProvidersTable.querySelectorAll("[data-compliance-screen]").forEach((btn) => {
+    btn.addEventListener("click", () => screenProviderCredentials(btn.dataset.complianceScreen));
+  });
+}
+
+function renderVettedAudit(rows) {
+  if (!els.vettedAuditTable) return;
+  if (!rows?.length) {
+    els.vettedAuditTable.innerHTML = `<p class="empty">No safety audit events yet.</p>`;
+    return;
+  }
+  els.vettedAuditTable.innerHTML = `
+    <table>
+      <thead><tr><th>When</th><th>Event</th><th>Actor</th><th>Status change</th><th>Summary</th></tr></thead>
+      <tbody>
+        ${rows.map((row) => `
+          <tr>
+            <td>${row.created_at ? new Date(row.created_at).toLocaleString() : "—"}</td>
+            <td>${row.event_type}</td>
+            <td>${row.actor || "—"}</td>
+            <td>${row.previous_status ? `${row.previous_status} → ${row.new_status}` : row.new_status || "—"}</td>
+            <td>${row.summary}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderVettedAlerts(rows) {
+  if (!els.vettedAlertsTable) return;
+  if (!rows?.length) {
+    els.vettedAlertsTable.innerHTML = `<p class="empty">No credential safety alerts sent yet.</p>`;
+    return;
+  }
+  els.vettedAlertsTable.innerHTML = `
+    <table>
+      <thead><tr><th>When</th><th>Channel</th><th>Status</th><th>Type</th><th>Delivery</th></tr></thead>
+      <tbody>
+        ${rows.map((row) => `
+          <tr>
+            <td>${row.sent_at ? new Date(row.sent_at).toLocaleString() : "—"}</td>
+            <td>${row.channel}</td>
+            <td>${vettedBadge(row.vetted_status)}</td>
+            <td>${row.alert_type}</td>
+            <td>${badge(row.delivery_status)}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+async function loadVettedCareDashboard() {
+  const data = await api("/api/vettedcare/dashboard?limit=100");
+  renderVettedSummary(data);
+  renderVettedProviders(data.providers || []);
+  renderVettedAudit(data.recent_audit || []);
+  renderVettedAlerts(data.recent_alerts || []);
+  return data;
+}
+
+async function viewVettedProfile(providerId) {
+  try {
+    const data = await api(`/api/vettedcare/providers/${providerId}`);
+    els.complianceBody.textContent = JSON.stringify(data, null, 2);
+    els.complianceDialog.showModal();
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+async function runVettedSafetyCycle() {
+  try {
+    const data = await api("/api/vettedcare/monitor/run", { method: "POST" });
+    const changes = data.vetted_sync?.status_changes?.length || 0;
+    const alerts = data.alerts_sent?.length || 0;
+    showToast(`Safety cycle — ${changes} status change(s), ${alerts} alert(s) sent`);
+    await loadVettedCareDashboard();
+    await loadComplianceDashboard();
+    await refreshPendingAndStats();
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+async function syncVettedStatuses() {
+  try {
+    const data = await api("/api/vettedcare/sync", { method: "POST" });
+    const changes = data.status_changes?.length || 0;
+    showToast(`Synced ${data.providers_synced} clinician(s) — ${changes} status change(s)`);
+    await loadVettedCareDashboard();
   } catch (error) {
     showToast(error.message, true);
   }
@@ -2399,7 +2588,40 @@ async function submitPlacement(placementId) {
   }
 }
 
+function setConnectionStatus(state, detail = "") {
+  const node = els.connectionStatus;
+  if (!node) return;
+  node.classList.remove("hidden", "ok", "warn", "fail");
+  if (state === "hidden") {
+    node.classList.add("hidden");
+    return;
+  }
+  if (state === "connected") {
+    node.textContent = detail || "Connected to API";
+    node.classList.add("ok");
+    return;
+  }
+  if (state === "loading") {
+    node.textContent = detail || "Refreshing…";
+    node.classList.add("warn");
+    return;
+  }
+  node.textContent = detail || "Not connected";
+  node.classList.add("fail");
+}
+
 async function refreshAll() {
+  if (!getKey()) {
+    setConnectionStatus("fail", "Not connected — paste admin key");
+    throw new Error("Admin API key missing — click Disconnect and sign in again.");
+  }
+  const refreshLabel = els.refreshBtn?.textContent || "Refresh all";
+  if (els.refreshBtn) {
+    els.refreshBtn.disabled = true;
+    els.refreshBtn.textContent = "Refreshing…";
+  }
+  setConnectionStatus("loading");
+  try {
   const requests = await Promise.allSettled([
     api("/api/clinicians/pending"),
     api("/api/shifts/filters"),
@@ -2471,9 +2693,21 @@ async function refreshAll() {
   renderPending(pending);
   renderShifts(shifts);
   renderPlacements(placements);
+  await loadInfrastructureReadiness();
+  await loadVettedCareDashboard();
   await loadComplianceDashboard();
   await loadOutreachDashboard();
   await loadWorkerInflowDashboard();
+    setConnectionStatus("connected", `Connected · ${new Date().toLocaleTimeString()}`);
+  } catch (error) {
+    setConnectionStatus("fail", "Refresh failed — check API window");
+    throw error;
+  } finally {
+    if (els.refreshBtn) {
+      els.refreshBtn.disabled = false;
+      els.refreshBtn.textContent = refreshLabel;
+    }
+  }
 }
 
 async function connect() {
@@ -2499,7 +2733,7 @@ async function connect() {
     els.app.classList.remove("hidden");
     opened = true;
     await refreshAll();
-    showToast("Connected to OfferCare.ai admin API");
+    showToast("Connected to VettedCare.ai admin API");
   } catch (error) {
     setKey("");
     if (opened) {
@@ -2523,12 +2757,13 @@ async function connect() {
 function disconnect() {
   if (typeof window.offercareAdminDisconnect === "function") {
     window.offercareAdminDisconnect();
-    return;
+  } else {
+    setKey("");
+    els.app.classList.add("hidden");
+    els.gate.classList.remove("hidden");
+    els.apiKeyInput.value = "";
   }
-  setKey("");
-  els.app.classList.add("hidden");
-  els.gate.classList.remove("hidden");
-  els.apiKeyInput.value = "";
+  setConnectionStatus("hidden");
 }
 
 function logOps(message) {
@@ -2537,7 +2772,17 @@ function logOps(message) {
 }
 
 els.disconnectBtn?.addEventListener("click", disconnect);
-els.refreshBtn?.addEventListener("click", () => refreshAll().catch((e) => showToast(e.message, true)));
+els.connectBtn?.addEventListener("click", () => connect().catch((error) => {
+  if (els.gateError) {
+    els.gateError.textContent = String(error?.message || error || "Connection failed");
+    els.gateError.classList.remove("hidden");
+  }
+}));
+els.refreshBtn?.addEventListener("click", () =>
+  refreshAll()
+    .then(() => showToast("Dashboard refreshed"))
+    .catch((e) => showToast(e.message, true)),
+);
 els.cascadeWorkerTickBtn?.addEventListener("click", () => runCascadeWorkerTick().catch((e) => showToast(e.message, true)));
 els.refreshProductionOpsBtn?.addEventListener("click", () => refreshProductionOpsDashboard().catch((e) => showToast(e.message, true)));
 els.runProductionPerfectionCheckBtn?.addEventListener("click", () => runProductionPerfectionCheck().catch((e) => showToast(e.message, true)));
@@ -2693,6 +2938,10 @@ els.applyShiftFiltersBtn?.addEventListener("click", async () => {
 els.closeRankDialog?.addEventListener("click", () => els.rankDialog.close());
 els.closeComplianceDialog?.addEventListener("click", () => els.complianceDialog.close());
 els.runComplianceMonitorBtn?.addEventListener("click", () => runComplianceMonitor().catch((e) => showToast(e.message, true)));
+els.runVettedSafetyBtn?.addEventListener("click", () => runVettedSafetyCycle().catch((e) => showToast(e.message, true)));
+els.syncVettedStatusBtn?.addEventListener("click", () => syncVettedStatuses().catch((e) => showToast(e.message, true)));
+els.refreshVettedBtn?.addEventListener("click", () => loadVettedCareDashboard().catch((e) => showToast(e.message, true)));
+els.refreshInfraBtn?.addEventListener("click", () => loadInfrastructureReadiness().catch((e) => showToast(e.message, true)));
 els.scanCrisisSignalsBtn?.addEventListener("click", () => scanCrisisSignals().catch((e) => showToast(e.message, true)));
 els.scanJobBoardsBtn?.addEventListener("click", () => scanJobBoardCrisis().catch((e) => showToast(e.message, true)));
 els.ingestVmsShiftsBtn?.addEventListener("click", () => ingestVmsShifts().catch((e) => showToast(e.message, true)));
@@ -3608,6 +3857,7 @@ function sectionScroll(pocketId) {
 
 window.addEventListener("offercare-admin-connected", () => {
   mountAdminPockets();
+  setConnectionStatus("loading", "Loading dashboard…");
   loadShiftFilters().catch((error) => {
     logOps(`Shift filters unavailable — ${error.message}`);
     showToast(error.message, true);

@@ -23,6 +23,7 @@ from app.services.production_launch_finale import build_production_launch_finale
 from app.services.production_launch_perfection_manifest import build_production_launch_perfection_manifest
 from app.services.twilio_sms_production_runbook import build_twilio_sms_production_runbook
 from app.services.states import grid_region_label
+from app.services.vetted_infrastructure import build_vettedcare_infrastructure_readiness
 from app.database import engine, get_db
 import app.models  # noqa: F401 — register tables before migrations
 from app.migrations import run_migrations
@@ -46,6 +47,7 @@ from app.routers.landing import router as landing_router
 from app.routers.live_scraper_adapters import router as live_scraper_adapters_router
 from app.routers.outreach import router as outreach_router
 from app.routers.vms import router as vms_router
+from app.routers.vettedcare import router as vettedcare_router
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +88,7 @@ app.include_router(compliance_router)
 app.include_router(landing_router)
 app.include_router(outreach_router)
 app.include_router(vms_router)
+app.include_router(vettedcare_router)
 
 ADMIN_STATIC_DIR = Path(__file__).resolve().parent / "static" / "admin"
 if ADMIN_STATIC_DIR.is_dir():
@@ -104,7 +107,36 @@ register_asgi_app(app)
 
 @app.get("/")
 def read_root():
-    return {"status": "OfferCare.ai Engine Online", "region": grid_region_label()}
+    from app.config import settings
+
+    return {
+        "status": "VettedCare.ai Engine Online",
+        "product": settings.PROJECT_NAME,
+        "tagline": settings.VETTED_TAGLINE,
+        "safety_first": True,
+        "region": grid_region_label(),
+        "admin": "/admin",
+        "manus": {
+            "config": "/api/vettedcare/manus/config",
+            "work_queue": "/api/vettedcare/manus/work-queue",
+            "submit_run": "/api/vettedcare/manus/run",
+        },
+    }
+
+
+@app.get("/health/vettedcare")
+def health_vettedcare(db: Session = Depends(get_db)):
+    payload = build_vettedcare_infrastructure_readiness(db)
+    return {
+        "status": payload["overall"],
+        "product": payload["product"],
+        "summary": payload["summary"],
+        "required_pass": payload["required_pass"],
+        "required_total": payload["required_total"],
+        "manus_worker_required": False,
+        "manus_hook_ready": payload["manus_hook_ready"],
+        "checks": payload["checks"],
+    }
 
 
 @app.get("/health")

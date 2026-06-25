@@ -382,13 +382,29 @@ function renderStats(provider, placements, shifts) {
   `;
 }
 
-function renderStatus(application) {
+function safetyBadge(status) {
+  const key = String(status || "ACTION_NEEDED").toUpperCase();
+  const cls =
+    key === "CLEAR" ? "ok" : key === "EXPIRING" ? "pending" : key === "BLOCKED" ? "fail" : "pending";
+  return `<span class="badge ${cls}">${key.replace(/_/g, " ")}</span>`;
+}
+
+function renderStatus(application, safety) {
   const provider = application.provider;
+  const safetyBlock = safety
+    ? `
+    <div class="safety-banner">
+      <p><strong>Credential safety:</strong> ${safetyBadge(safety.vetted_status)}</p>
+      <p class="muted">${safety.message}</p>
+      <p class="muted">Placement eligible: ${safety.dispatch_eligible ? "Yes" : "No — complete credential requirements"}</p>
+    </div>`
+    : "";
   els.statusCard.innerHTML = `
+    ${safetyBlock}
     <strong>${provider.full_name}</strong>
     <p class="muted">${provider.email} · ${provider.phone_number}</p>
     <p class="muted">License ${provider.md_license_number} · NPI ${provider.npi_number}</p>
-    <p class="muted">Portal ${application.portal_enabled ? "enabled" : "disabled"} · Status ${provider.license_status}</p>
+    <p class="muted">Portal ${application.portal_enabled ? "enabled" : "disabled"} · License status ${provider.license_status}</p>
   `;
   const history = application.verification_history || [];
   if (!history.length) {
@@ -620,19 +636,20 @@ function focusOfferFromAlert(offerId) {
 }
 
 async function refreshDashboard() {
-  const [application, placements, shiftFilters, shifts, preferences] = await Promise.all([
+  const [application, placements, shiftFilters, shifts, preferences, safety] = await Promise.all([
     api("/api/clinicians/me/application"),
     api("/api/clinicians/me/placements"),
     api("/api/shifts/filters"),
     loadShifts(),
     loadPreferences(),
+    api("/api/clinicians/me/safety").catch(() => null),
   ]);
   populateShiftFilters(shiftFilters);
   const provider = application.provider;
   els.welcomeName.textContent = provider.full_name;
   renderPreferencesForm(preferences);
   renderStats(provider, placements, shifts);
-  renderStatus(application);
+  renderStatus(application, safety);
   renderShifts(shifts);
   renderPlacements(placements);
   await refreshPushStatus();

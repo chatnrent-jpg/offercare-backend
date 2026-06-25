@@ -7,6 +7,7 @@
   const btn = document.getElementById("connect-btn");
   const err = document.getElementById("gate-error");
   const showToggle = document.getElementById("show-key-toggle");
+  const status = document.getElementById("gate-status");
 
   if (!gate || !app || !input || !btn || !err) {
     console.error("OfferCare admin gate: missing DOM nodes");
@@ -24,6 +25,22 @@
 
   window.offercareAdminGetKey = getKey;
   window.offercareAdminSetKey = setKey;
+
+  async function checkApi() {
+    if (!status) return;
+    status.textContent = "Checking API…";
+    status.className = "muted gate-status";
+    try {
+      const response = await fetch("/health/vettedcare", { cache: "no-store" });
+      if (!response.ok) throw new Error("health check failed");
+      status.textContent = "API is running — paste your key and click Connect.";
+      status.className = "muted gate-status ok";
+    } catch {
+      status.textContent =
+        "API is not running. Double-click VettedCare Admin on your desktop, or run start-all.bat.";
+      status.className = "muted gate-status fail";
+    }
+  }
 
   async function connect() {
     const key = input.value.trim();
@@ -59,9 +76,9 @@
       app.classList.remove("hidden");
       window.dispatchEvent(new CustomEvent("offercare-admin-connected"));
     } catch (error) {
-      setKey("");
       const message = String(error?.message || error || "unknown error");
       if (message.includes("admin_unauthorized")) {
+        setKey("");
         err.textContent =
           "Connection failed: admin key rejected. Copy ADMIN_API_KEY from .env exactly, restart start-api.bat, then try again.";
       } else if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
@@ -71,6 +88,8 @@
         err.textContent = `Connection failed: ${message}`;
       }
       err.classList.remove("hidden");
+      gate.classList.remove("hidden");
+      app.classList.add("hidden");
     } finally {
       btn.disabled = false;
       btn.textContent = label;
@@ -95,6 +114,8 @@
   showToggle?.addEventListener("change", (event) => {
     input.type = event.target.checked ? "text" : "password";
   });
+
+  checkApi();
 
   const saved = getKey();
   if (saved) {

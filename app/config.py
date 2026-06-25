@@ -110,7 +110,7 @@ class Settings(BaseSettings):
     OUTREACH_LLM_MODEL: str = "gpt-4o-mini"
     OUTREACH_LLM_TIMEOUT_SECONDS: float = 30.0
     OUTREACH_SENDER_NAME: str = "Henry Okojie"
-    OUTREACH_AGENCY_NAME: str = "OfferCare.ai"
+    OUTREACH_AGENCY_NAME: str = "VettedCare.ai"
 
     JWT_SECRET_KEY: str = "offercare-dev-secret-change-in-production"
     JWT_EXPIRE_MINUTES: int = 60 * 24
@@ -122,6 +122,13 @@ class Settings(BaseSettings):
     VMS_AUTH_TOKEN: str = ""
 
     ADMIN_API_KEY: str = ""
+    MANUS_API_KEY: str = ""
+    MANUS_WORK_QUEUE_DEFAULT_LIMIT: int = 25
+    MANUS_STALE_CLEAR_DAYS: int = 30
+    MANUS_MIN_RERUN_HOURS: int = 24
+    VETTED_ALERTS_ENABLED: bool = True
+    VETTED_ADMIN_ALERT_EMAIL: str = ""
+    VETTED_TAGLINE: str = "AI credential verification — safety before placement"
     TWILIO_VALIDATE_SIGNATURES: bool = False
 
     EMAIL_ALERTS_ENABLED: bool = True

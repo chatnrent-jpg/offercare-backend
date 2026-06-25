@@ -582,6 +582,20 @@ class ClinicianApplicationStatusResponse(BaseModel):
     verification_history: list[LicenseVerificationLogRead]
 
 
+class ClinicianSafetyStatusResponse(BaseModel):
+    provider_id: str
+    full_name: str
+    vetted_status: str
+    computed_status: str
+    dispatch_eligible: bool
+    license_status: str
+    dispatch_status: str
+    message: str
+    vetted_status_updated_at: str | None = None
+    documents: list[dict] = Field(default_factory=list)
+    screenings: list[dict] = Field(default_factory=list)
+
+
 class ClinicianPreferencesOut(BaseModel):
     min_hourly_rate: float
     service_lines: str
@@ -1905,3 +1919,217 @@ class OutreachEmailLogOut(BaseModel):
     mode: str
     crisis_context: str | None = None
     sent_at: str | None = None
+
+
+class VettedProviderRowOut(BaseModel):
+    provider_id: UUID
+    full_name: str
+    credential_type: str | None = None
+    vetted_status: str
+    license_status: str
+    dispatch_status: str
+    vetted_status_updated_at: str | None = None
+
+
+class VettedAuditEventOut(BaseModel):
+    audit_id: str
+    provider_id: str | None = None
+    event_type: str
+    actor: str | None = None
+    previous_status: str | None = None
+    new_status: str | None = None
+    summary: str
+    metadata: dict = Field(default_factory=dict)
+    created_at: str | None = None
+
+
+class VettedAlertOut(BaseModel):
+    alert_id: str
+    provider_id: str
+    channel: str
+    alert_type: str
+    vetted_status: str
+    delivery_status: str
+    sent_at: str | None = None
+
+
+class VettedCareDashboardResponse(BaseModel):
+    product: str
+    tagline: str
+    safety_first: bool = True
+    total_providers: int
+    clear_rate_percent: float
+    status_counts: dict[str, int]
+    manus_runs_total: int
+    manus_runs_applied: int
+    audit_events_total: int
+    alerts_sent_total: int
+    providers: list[VettedProviderRowOut]
+    recent_audit: list[VettedAuditEventOut]
+    recent_alerts: list[VettedAlertOut]
+    manus_webhook: str
+
+
+class VettedProviderProfileResponse(BaseModel):
+    provider_id: str
+    full_name: str
+    credential_type: str | None = None
+    email: str
+    phone_number: str
+    npi_number: str
+    md_license_number: str
+    license_status: str
+    dispatch_status: str
+    dispatch_eligible: bool
+    vetted_status: str
+    computed_status: str
+    vetted_status_updated_at: str | None = None
+    license_expires_on: str | None = None
+    last_verified_timestamp: str | None = None
+    documents: list[ComplianceDocumentOut]
+    screenings: list[ComplianceScreeningOut]
+
+
+class ManusCheckIn(BaseModel):
+    check_type: str
+    result: str
+    notes: str | None = None
+    source_url: str | None = None
+    evidence: str | None = None
+
+
+class ManusVettingRunIn(BaseModel):
+    run_id: str | None = None
+    provider_id: UUID | None = None
+    npi_number: str | None = None
+    email: str | None = None
+    md_license_number: str | None = None
+    summary: str | None = None
+    recommended_status: str | None = None
+    run_full_screen: bool = False
+    checks: list[ManusCheckIn] = Field(default_factory=list)
+
+
+class ManusVettingRunResponse(BaseModel):
+    run_id: str
+    external_run_id: str
+    status: str
+    provider_id: str | None = None
+    checks_applied: int | None = None
+    vetted_status: str | None = None
+    computed_status: str | None = None
+    status_changed: bool | None = None
+    error: str | None = None
+
+
+class ManusRequiredCheckOut(BaseModel):
+    check_type: str
+    description: str
+    lookup: dict = Field(default_factory=dict)
+
+
+class ManusWorkQueueItemOut(BaseModel):
+    provider_id: str
+    full_name: str
+    credential_type: str | None = None
+    state: str
+    npi_number: str
+    md_license_number: str
+    email: str
+    vetted_status: str
+    license_status: str
+    priority_rank: int
+    priority: str
+    reason: str | None = None
+    last_manus_applied_at: str | None = None
+    required_checks: list[str]
+    work_order_url: str
+    submit_url: str
+
+
+class ManusWorkQueueResponse(BaseModel):
+    generated_at: str
+    queue: str
+    total_due: int
+    returned: int
+    skipped_recent_runs: int
+    status_breakdown_due: dict[str, int]
+    items: list[ManusWorkQueueItemOut]
+    submit_batch_url: str
+    next_steps: list[str]
+
+
+class ManusSubmitTemplateOut(BaseModel):
+    method: str
+    url: str
+    headers: dict[str, str]
+    body_template: dict
+
+
+class ManusProviderWorkOrderResponse(BaseModel):
+    provider_id: str
+    full_name: str
+    email: str
+    phone_number: str
+    credential_type: str | None = None
+    state: str
+    npi_number: str
+    md_license_number: str
+    license_status: str
+    license_expires_on: str | None = None
+    vetted_status: str
+    priority: str
+    last_manus_applied_at: str | None = None
+    required_checks: list[ManusRequiredCheckOut]
+    submit: ManusSubmitTemplateOut
+
+
+class ManusIntegrationConfigResponse(BaseModel):
+    product: str
+    tagline: str
+    base_url: str
+    auth_header: str
+    required_checks: list[str]
+    endpoints: dict[str, str]
+    limits: dict[str, int]
+    operator_note: str
+
+
+class ManusBatchRunIn(BaseModel):
+    runs: list[ManusVettingRunIn] = Field(default_factory=list)
+    run_cycle_after: bool = True
+
+
+class VettedSafetyCycleResponse(BaseModel):
+    compliance: ComplianceMonitorResponse
+    vetted_sync: dict
+    alerts_sent: list[dict]
+
+
+class VettedInfraCheckOut(BaseModel):
+    name: str
+    status: str
+    detail: str
+    level: str
+
+
+class VettedInfrastructureResponse(BaseModel):
+    product: str
+    overall: str
+    summary: str
+    required_pass: int
+    required_total: int
+    optional_warnings: int
+    manus_worker_required: bool
+    manus_hook_ready: bool
+    checks: list[VettedInfraCheckOut]
+    manus_endpoints: dict[str, str]
+    next_without_manus: list[str]
+
+
+class ManusBatchRunResponse(BaseModel):
+    submitted: int
+    applied: int
+    failed: int
+    runs: list[ManusVettingRunResponse]
+    safety_cycle: VettedSafetyCycleResponse | None = None

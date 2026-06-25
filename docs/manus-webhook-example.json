@@ -1,0 +1,26 @@
+{
+  "run_id": "manus-daily-2026-06-24-001",
+  "npi_number": "1234567890",
+  "summary": "Daily MBON + OIG re-check",
+  "recommended_status": "CLEAR",
+  "run_full_screen": false,
+  "checks": [
+    {
+      "check_type": "MBON",
+      "result": "PASS",
+      "source_url": "https://mbon.maryland.gov/",
+      "notes": "RN license active through 2027-04-01"
+    },
+    {
+      "check_type": "OIG",
+      "result": "CLEAR",
+      "source_url": "https://exclusions.oig.hhs.gov/",
+      "notes": "No LEIE match"
+    },
+    {
+      "check_type": "JUDICIARY",
+      "result": "PASS",
+      "notes": "No open disciplinary case"
+    }
+  ]
+}

@@ -17,6 +17,7 @@ from app.schemas import (
     ClinicianPlacementOut,
     ClinicianPreferencesOut,
     ClinicianPreferencesUpdateRequest,
+    ClinicianSafetyStatusResponse,
     ClinicianVerifyRequest,
     ClinicianVerifyResponse,
     LicenseVerificationLogRead,
@@ -44,6 +45,8 @@ from app.services.shift_calendar import placement_calendar_filename, placements_
 from app.services.shift_matching import list_matched_shifts_for_provider
 from app.services.shift_lock import lock_shift_for_provider
 from app.services.vms_submission import list_clinician_placements
+from app.services.vetted_alerts import build_clinician_safety_message
+from app.services.vetted_status import build_provider_vetted_profile
 
 router = APIRouter(prefix="/api/clinicians", tags=["clinicians"])
 
@@ -90,6 +93,39 @@ def clinician_application_status(
         verification_history=[
             LicenseVerificationLogRead.model_validate(row) for row in status["verification_history"]
         ],
+    )
+
+
+@router.get("/me/safety", response_model=ClinicianSafetyStatusResponse)
+def clinician_safety_status(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    profile = build_provider_vetted_profile(db, current.provider_id)
+    status = str(profile["vetted_status"]).upper()
+    reason_map = {
+        "CLEAR": "All required credentials verified and current.",
+        "EXPIRING": "One or more credentials expire soon — please update documents.",
+        "ACTION_NEEDED": "Action required on your credential file — complete verification.",
+        "BLOCKED": "Your profile requires immediate attention before patient care placement.",
+    }
+    message = build_clinician_safety_message(
+        full_name=profile["full_name"],
+        vetted_status=status,
+        reason=reason_map.get(status, "Credential review required."),
+    )
+    return ClinicianSafetyStatusResponse(
+        provider_id=profile["provider_id"],
+        full_name=profile["full_name"],
+        vetted_status=status,
+        computed_status=str(profile["computed_status"]).upper(),
+        dispatch_eligible=bool(profile["dispatch_eligible"]),
+        license_status=profile["license_status"],
+        dispatch_status=profile["dispatch_status"],
+        message=message,
+        vetted_status_updated_at=profile.get("vetted_status_updated_at"),
+        documents=profile.get("documents") or [],
+        screenings=profile.get("screenings") or [],
     )
 
 

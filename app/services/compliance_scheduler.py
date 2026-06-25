@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import SessionLocal
-from app.services.compliance_monitor import run_compliance_monitor
+from app.services.vetted_monitor import run_vettedcare_safety_cycle
 from app.services.ops_metrics import log_ops_event
 
 logger = logging.getLogger(__name__)
@@ -56,31 +56,37 @@ def run_compliance_monitor_tick(db: Session) -> dict:
     if not settings.COMPLIANCE_MONITOR_WORKER_ENABLED:
         return {"skipped": True, "reason": "compliance_monitor_worker_disabled"}
 
-    result = run_compliance_monitor(db)
+    result = run_vettedcare_safety_cycle(db, actor="compliance_scheduler")
+    compliance = result["compliance"]
+    sync = result["vetted_sync"]
     _last_run_at = datetime.now(timezone.utc)
     _last_summary = {
-        "documents_checked": result["documents_checked"],
-        "expiring_alerts": len(result["expiring_alerts"]),
-        "suspended_provider_ids": len(result["suspended_provider_ids"]),
+        "documents_checked": compliance["documents_checked"],
+        "expiring_alerts": len(compliance["expiring_alerts"]),
+        "suspended_provider_ids": len(compliance["suspended_provider_ids"]),
+        "vetted_status_changes": len(sync["status_changes"]),
+        "alerts_sent": len(result["alerts_sent"]),
     }
     log_ops_event(
         db,
-        event_type="COMPLIANCE_MONITOR_TICK",
+        event_type="VETTEDCARE_SAFETY_TICK",
         actor="compliance_scheduler",
         entity_type="system",
         entity_id=None,
         summary=(
-            f"Compliance monitor checked {result['documents_checked']} document(s); "
-            f"{len(result['suspended_provider_ids'])} provider(s) suspended"
+            f"VettedCare safety cycle — {compliance['documents_checked']} doc(s), "
+            f"{len(sync['status_changes'])} status change(s), "
+            f"{len(result['alerts_sent'])} alert(s) sent"
         ),
         metadata=_last_summary,
         commit=True,
     )
     logger.info(
-        "Compliance monitor tick: documents=%s expiring_alerts=%s suspended=%s",
-        result["documents_checked"],
-        len(result["expiring_alerts"]),
-        len(result["suspended_provider_ids"]),
+        "VettedCare safety tick: documents=%s status_changes=%s alerts=%s suspended=%s",
+        compliance["documents_checked"],
+        len(sync["status_changes"]),
+        len(result["alerts_sent"]),
+        len(compliance["suspended_provider_ids"]),
     )
     return result
 

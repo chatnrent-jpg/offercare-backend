@@ -3,15 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OfferCare.ai — Admin</title>
-  <link rel="stylesheet" href="/admin/styles.css?v=2" />
+  <title>VettedCare.ai — Admin</title>
+  <link rel="icon" href="/admin/favicon.ico" type="image/x-icon" />
+  <link rel="apple-touch-icon" href="/admin/logo.png" />
+  <link rel="stylesheet" href="/admin/styles.css?v=7" />
 </head>
 <body>
   <div id="gate" class="gate">
     <div class="gate-card">
-      <p class="eyebrow">Maryland State Wide Grid</p>
-      <h1>OfferCare.ai Admin</h1>
-      <p class="muted">Enter your admin API key to manage clinicians, shifts, and VMS placements.</p>
+      <div class="brand-lockup">
+        <img class="brand-logo" src="/admin/logo.png" alt="VettedCare.ai" width="72" height="72" />
+        <div>
+          <p class="eyebrow">Credential Safety Platform</p>
+          <h1>VettedCare.ai Admin</h1>
+        </div>
+      </div>
+      <p class="muted">Enter your admin API key to manage credential verification, safety alerts, and compliance.</p>
       <label for="api-key-input">Admin API key</label>
       <input id="api-key-input" type="password" placeholder="Paste ADMIN_API_KEY from .env" autocomplete="off" />
       <label class="muted" style="display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;font-size:0.85rem;">
@@ -19,6 +26,7 @@
         Show key (dots only mean the field is hidden — not logged in yet)
       </label>
       <button id="connect-btn" class="btn primary" type="button">Connect</button>
+      <p id="gate-status" class="muted gate-status">Checking API…</p>
       <p class="muted" style="margin-top:0.75rem;font-size:0.85rem;">After pasting, click <strong>Connect</strong> or press Enter.</p>
       <p id="gate-error" class="error hidden"></p>
     </div>
@@ -26,17 +34,59 @@
 
   <div id="app" class="app hidden">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">OfferCare.ai Core Engine</p>
-        <h1>Operations Console</h1>
+      <div class="brand-lockup">
+        <img class="brand-logo brand-logo-sm" src="/admin/logo.png" alt="" width="48" height="48" />
+        <div>
+          <p class="eyebrow">VettedCare.ai · Safety First</p>
+          <h1>Credential Safety Console</h1>
+        </div>
       </div>
       <div class="topbar-actions">
+        <span id="connection-status" class="connection-status hidden">Connected</span>
         <button id="refresh-btn" class="btn ghost">Refresh all</button>
         <button id="disconnect-btn" class="btn ghost">Disconnect</button>
       </div>
     </header>
 
     <section class="stats" id="stats"></section>
+
+    <section class="panel vetted-panel" id="infra-panel">
+      <div class="panel-head">
+        <h2>Infrastructure readiness</h2>
+        <p class="muted" id="infra-summary">Pre-flight checks — no Manus or live operations required.</p>
+      </div>
+      <div id="infra-checks" class="deploy-checklist"></div>
+      <div class="actions-row">
+        <button id="refresh-infra-btn" class="btn ghost" type="button">Refresh infra checks</button>
+      </div>
+    </section>
+
+    <section class="panel vetted-panel" id="vetted-panel">
+      <div class="panel-head">
+        <h2>Credential safety dashboard</h2>
+        <p class="muted" id="vetted-tagline">AI credential verification — safety before placement.</p>
+      </div>
+      <div id="vetted-summary" class="stats"></div>
+      <div class="actions-row">
+        <button id="run-vetted-safety-btn" class="btn primary">Run safety cycle</button>
+        <button id="sync-vetted-status-btn" class="btn">Sync all statuses</button>
+        <button id="refresh-vetted-btn" class="btn ghost">Refresh dashboard</button>
+      </div>
+      <div class="panel-head">
+        <h3>Clinician safety roster</h3>
+        <p class="muted">CLEAR · EXPIRING · ACTION NEEDED · BLOCKED — Manus reports in; VettedCare decides.</p>
+      </div>
+      <div id="vetted-providers-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>Recent safety audit</h3>
+      </div>
+      <div id="vetted-audit-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>Recent alerts</h3>
+      </div>
+      <div id="vetted-alerts-table" class="table-wrap"></div>
+      <p class="muted" id="vetted-manus-hint"></p>
+    </section>
 
     <section class="panel">
       <div class="panel-head">
@@ -495,7 +545,7 @@
     <pre id="compliance-body" class="log"></pre>
   </dialog>
 
-  <script src="/admin/gate.js?v=1"></script>
-  <script src="/admin/app.js?v=7"></script>
+  <script src="/admin/app.js?v=9"></script>
+  <script src="/admin/gate.js?v=3"></script>
 </body>
 </html>

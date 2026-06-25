@@ -105,3 +105,13 @@ def require_admin_api_key(
         return
     if not x_admin_key or not hmac.compare_digest(x_admin_key.strip(), configured):
         raise HTTPException(status_code=401, detail="admin_unauthorized")
+
+
+def require_manus_api_key(
+    x_manus_key: str | None = Header(default=None, alias="X-Manus-Key"),
+) -> None:
+    configured = str(settings.MANUS_API_KEY or "").strip()
+    if not configured:
+        raise HTTPException(status_code=503, detail="manus_not_configured")
+    if not x_manus_key or not hmac.compare_digest(x_manus_key.strip(), configured):
+        raise HTTPException(status_code=401, detail="manus_unauthorized")
