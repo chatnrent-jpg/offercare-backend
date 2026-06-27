@@ -1,4 +1,4 @@
-"""Initial OfferCare.ai schema.
+"""Initial VettedCare.ai schema.
 
 Revision ID: 001_initial
 Revises:

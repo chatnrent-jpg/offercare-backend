@@ -35,7 +35,7 @@ def test_build_demo_gates_txt_matches_clipboard_text(db: Session) -> None:
     run_full_demo_setup(db, notify_matched=False)
     payload = build_demo_gates_txt(db)
     assert payload["filename"] == DEMO_GATES_TXT_FILENAME
-    assert "OfferCare Demo Confirmation Gates" in payload["content"]
+    assert "VettedCare Demo Confirmation Gates" in payload["content"]
     assert "Gate matrix:" in payload["content"]
 
 
@@ -68,7 +68,7 @@ def test_demo_gates_txt_download_endpoint(client: TestClient) -> None:
     assert response.status_code == 200
     assert "text/plain" in response.headers.get("content-type", "")
     assert DEMO_GATES_TXT_FILENAME in response.headers.get("content-disposition", "")
-    assert "OfferCare Demo Confirmation Gates" in response.text
+    assert "VettedCare Demo Confirmation Gates" in response.text
     assert "Gate matrix:" in response.text
 
 

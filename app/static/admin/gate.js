@@ -10,7 +10,7 @@
   const status = document.getElementById("gate-status");
 
   if (!gate || !app || !input || !btn || !err) {
-    console.error("OfferCare admin gate: missing DOM nodes");
+    console.error("VettedCare admin gate: missing DOM nodes");
     return;
   }
 

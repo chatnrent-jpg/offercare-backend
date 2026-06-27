@@ -33,7 +33,7 @@ def db() -> Session:
 def test_clinician_portal_static_page(client: TestClient) -> None:
     response = client.get("/portal/")
     assert response.status_code == 200
-    assert "OfferCare.ai Portal" in response.text
+    assert "VettedCare.ai Portal" in response.text
     assert "/portal/app.js" in response.text
     assert "Your placements" in response.text
     assert "Mid-Atlantic clinicians" in response.text

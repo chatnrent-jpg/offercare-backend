@@ -8,11 +8,15 @@ from datetime import datetime, timedelta, timezone
 def mock_mbon_verify_payload(*, license_number: str) -> dict:
     expires = (datetime.now(timezone.utc) + timedelta(days=365)).date().isoformat()
     status = "EXPIRED" if license_number.endswith("X") else "ACTIVE"
+    token = str(license_number or "").upper()
+    gna_endorsement = token.startswith("GNA") or (token.startswith("CNA") and not token.endswith("NOGNA"))
     return {
         "status": status,
         "license_number": license_number,
         "expires_on": None if status == "EXPIRED" else expires,
         "disciplinary_action": license_number.endswith("D"),
+        "gna_endorsement": gna_endorsement,
+        "compact_status": "ACTIVE" if token.startswith("LPN") or token.startswith("PN") else None,
         "source": "MOCK_ADAPTER",
     }
 

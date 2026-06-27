@@ -48,6 +48,13 @@ from app.routers.live_scraper_adapters import router as live_scraper_adapters_ro
 from app.routers.outreach import router as outreach_router
 from app.routers.vms import router as vms_router
 from app.routers.vettedcare import router as vettedcare_router
+from api.intake_webhooks import register_intake_webhooks
+from api.vector_match_engine import register_vector_match_engine
+from api.instant_pay_retention import (
+    register_instant_pay_retention,
+    start_instant_pay_worker,
+    stop_instant_pay_worker,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +71,11 @@ async def lifespan(app: FastAPI):
     worker_stop = await start_cascade_worker()
     scheduler_stop = await start_staffing_scheduler()
     compliance_stop = await start_compliance_scheduler()
+    instant_pay_stop = await start_instant_pay_worker()
     try:
         yield
     finally:
+        await stop_instant_pay_worker(instant_pay_stop)
         await stop_compliance_scheduler(compliance_stop)
         await stop_staffing_scheduler(scheduler_stop)
         await stop_cascade_worker(worker_stop)
@@ -89,6 +98,9 @@ app.include_router(landing_router)
 app.include_router(outreach_router)
 app.include_router(vms_router)
 app.include_router(vettedcare_router)
+register_intake_webhooks(app)
+register_vector_match_engine(app)
+register_instant_pay_retention(app)
 
 ADMIN_STATIC_DIR = Path(__file__).resolve().parent / "static" / "admin"
 if ADMIN_STATIC_DIR.is_dir():

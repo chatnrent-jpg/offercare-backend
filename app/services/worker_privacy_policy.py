@@ -1,15 +1,15 @@
-"""OfferCare clinician Privacy Policy — versioned for /join apply flow."""
+"""VettedCare clinician Privacy Policy — versioned for /join apply flow."""
 
 from __future__ import annotations
 
 WORKER_PRIVACY_VERSION = "2026-06-21"
 WORKER_PRIVACY_EFFECTIVE_DATE = "June 21, 2026"
-WORKER_PRIVACY_TITLE = "OfferCare.ai Clinician Privacy Policy"
+WORKER_PRIVACY_TITLE = "VettedCare.ai Clinician Privacy Policy"
 
 WORKER_PRIVACY_SECTIONS: tuple[tuple[str, str], ...] = (
     (
         "1. Who we are",
-        "OfferCare.ai operates a Maryland nursing home per-diem staffing platform. "
+        "VettedCare.ai operates a Maryland nursing home per-diem staffing platform. "
         "This policy explains how we collect, use, and protect clinician information when you apply at /join.",
     ),
     (
@@ -45,7 +45,7 @@ WORKER_PRIVACY_SECTIONS: tuple[tuple[str, str], ...] = (
     ),
     (
         "8. Your choices",
-        "Reply STOP to end marketing/shift-offer texts. Contact compliance@offercare.ai to request access, "
+        "Reply STOP to end marketing/shift-offer texts. Contact compliance@vettedcare.ai to request access, "
         "correction, or deletion where applicable law allows.",
     ),
     (
@@ -54,12 +54,12 @@ WORKER_PRIVACY_SECTIONS: tuple[tuple[str, str], ...] = (
     ),
     (
         "10. Contact",
-        "Privacy questions: compliance@offercare.ai",
+        "Privacy questions: compliance@vettedcare.ai",
     ),
 )
 
 CONSENT_PRIVACY_POLICY = (
-    f"I have read and agree to the OfferCare.ai Clinician Privacy Policy "
+    f"I have read and agree to the VettedCare.ai Clinician Privacy Policy "
     f"(version {WORKER_PRIVACY_VERSION}, effective {WORKER_PRIVACY_EFFECTIVE_DATE})."
 )
 

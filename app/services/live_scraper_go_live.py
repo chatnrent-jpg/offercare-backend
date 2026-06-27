@@ -10,7 +10,7 @@ from app.services.live_scrapers import live_scraper_channels
 def build_live_scraper_go_live_profile() -> dict:
     gateway = live_scraper_gateway_base()
     env_lines = [
-        "# Live scraper go-live profile (OfferCare step 133)",
+        "# Live scraper go-live profile (VettedCare step 133)",
         f"LIVE_SCRAPER_GATEWAY_BASE_URL={gateway or 'http://127.0.0.1:8000/api/adapters'}",
         "LIVE_SCRAPER_MOCK_ADAPTERS_ENABLED=true",
         "MBON_VERIFY_DRY_RUN=false",

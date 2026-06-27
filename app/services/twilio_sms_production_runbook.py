@@ -140,7 +140,7 @@ def build_twilio_sms_production_runbook(db: Session) -> dict:
     )
 
     env_lines = [
-        "# Twilio live SMS production (OfferCare step 135)",
+        "# Twilio live SMS production (VettedCare step 135)",
         "SMS_DRY_RUN=false",
         f"TWILIO_ACCOUNT_SID={settings.TWILIO_ACCOUNT_SID or '<your-account-sid>'}",
         "TWILIO_AUTH_TOKEN=<your-auth-token>",
@@ -153,7 +153,7 @@ def build_twilio_sms_production_runbook(db: Session) -> dict:
     steps = [
         "Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, and SMS_DRY_RUN=false",
         f"Set PUBLIC_BASE_URL to your public HTTPS API base (no trailing slash)",
-        f"Twilio Console → Phone Numbers → your OfferCare number → Messaging → A MESSAGE COMES IN",
+        f"Twilio Console → Phone Numbers → your VettedCare number → Messaging → A MESSAGE COMES IN",
         f"Paste webhook URL: {webhook_url or '<PUBLIC_BASE_URL>/shift-sniper/twilio/sms'} (HTTP POST)",
         "Set TWILIO_VALIDATE_SIGNATURES=true before exposing the webhook publicly",
         "Admin → Integrations → Test SMS to verify outbound delivery",
@@ -178,7 +178,7 @@ def build_twilio_sms_production_runbook(db: Session) -> dict:
         "steps": steps,
         "env_snippet": "\n".join(env_lines),
         "twilio_console_steps": [
-            "Twilio Console → Phone Numbers → Manage → Active numbers → select your OfferCare number",
+            "Twilio Console → Phone Numbers → Manage → Active numbers → select your VettedCare number",
             "Messaging configuration → A MESSAGE COMES IN → Webhook",
             f"URL: {webhook_url or '<PUBLIC_BASE_URL>/shift-sniper/twilio/sms'}",
             "HTTP method: POST",

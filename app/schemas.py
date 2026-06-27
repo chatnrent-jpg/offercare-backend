@@ -736,7 +736,7 @@ class IntegrationsStatusResponse(BaseModel):
 
 class TestSmsRequest(BaseModel):
     phone_number: str = Field(min_length=10, max_length=20)
-    message: str = Field(default="OfferCare.ai integration test", max_length=320)
+    message: str = Field(default="VettedCare.ai integration test", max_length=320)
 
 
 class TestSmsResponse(BaseModel):
@@ -784,8 +784,8 @@ class TwilioLockReplySmokeResponse(BaseModel):
 
 class TestEmailRequest(BaseModel):
     email_address: EmailStr
-    subject: str = Field(default="OfferCare.ai integration test", max_length=200)
-    message: str = Field(default="OfferCare.ai email alert test", max_length=2000)
+    subject: str = Field(default="VettedCare.ai integration test", max_length=200)
+    message: str = Field(default="VettedCare.ai email alert test", max_length=2000)
 
 
 class TestEmailResponse(BaseModel):
@@ -832,8 +832,8 @@ class TestPushRequest(BaseModel):
     endpoint: str = Field(min_length=10, max_length=500)
     p256dh_key: str = Field(min_length=10, max_length=255)
     auth_key: str = Field(min_length=10, max_length=255)
-    title: str = Field(default="OfferCare.ai push test", max_length=200)
-    message: str = Field(default="OfferCare push alert test", max_length=500)
+    title: str = Field(default="VettedCare.ai push test", max_length=200)
+    message: str = Field(default="VettedCare push alert test", max_length=500)
 
 
 class TestPushResponse(BaseModel):
@@ -2133,3 +2133,118 @@ class ManusBatchRunResponse(BaseModel):
     failed: int
     runs: list[ManusVettingRunResponse]
     safety_cycle: VettedSafetyCycleResponse | None = None
+
+
+class ManusRecruitmentConfigResponse(BaseModel):
+    product: str
+    architecture: str
+    auth_header: str
+    endpoints: dict[str, str]
+    filesystem_handoff: dict[str, str]
+    lead_csv_required_fields: list[str]
+    lead_csv_optional_fields: list[str]
+    shift_json_required_fields: list[str]
+    manus_workflows: list[dict]
+    safety_rules: dict[str, str]
+
+
+class ManusShiftIngestIn(BaseModel):
+    shifts: list[dict] = Field(default_factory=list)
+
+
+class ManusLeadImportIn(BaseModel):
+    csv_filename: str = Field(..., min_length=1, max_length=255)
+
+
+class ManusRecruitmentProcessResponse(BaseModel):
+    ok: bool = True
+    detail: dict | list | None = None
+
+
+class RecruitmentDashboardResponse(BaseModel):
+    generated_at_utc: str
+    summary: dict
+    drop_zones: dict
+    manus_config: dict
+    contracts: list[dict]
+    leads: list[dict]
+    ingested_shifts: list[dict]
+
+
+class ManusDeskPipelineRunIn(BaseModel):
+    pipeline: str = Field(
+        default="full",
+        pattern="^(full|booking|callout|penalty)$",
+        description="Desk pipeline mode",
+    )
+    order_id: str | None = Field(default=None, max_length=128)
+    evaluation_timestamp: str | None = None
+    request_timestamp: str | None = None
+    disrupted_shift_id: str | None = Field(default=None, max_length=128)
+    original_provider_id: str | None = Field(default=None, max_length=64)
+    facility_id: str | None = Field(default=None, max_length=128)
+    provider_id: str | None = Field(default=None, max_length=64)
+    total_hours_worked: float | None = Field(default=None, ge=0)
+    persist: bool = True
+
+
+class ManusDeskPipelineRunResponse(BaseModel):
+    ok: bool = True
+    run_id: str
+    pipeline: str
+    status: str
+    live_execution: bool = False
+    result: dict
+    log_path: str
+    handoff_path: str
+    mode: str | None = None
+    slice_key: str | None = None
+    db_source: dict | None = None
+
+
+class ManusDeskProductionRunIn(BaseModel):
+    evaluation_timestamp: str | None = None
+    request_timestamp: str | None = None
+    persist: bool = True
+
+
+class ManusDeskLiveCalloutIn(BaseModel):
+    original_provider_id: str = Field(default="CNA-MD-88421", max_length=64)
+
+
+class ManusDeskLiveCalloutResponse(BaseModel):
+    ok: bool = True
+    live_execution: bool = True
+    mode: str = "PRODUCTION_SLICE"
+    slice_key: str
+    facility: str | None = None
+    original_provider_id: str
+    dispatch: dict
+    notify_cascade: dict | None = None
+
+
+class ManusDeskBackupCascadeAdvanceIn(BaseModel):
+    dispatch_id: str = Field(..., min_length=8, max_length=128)
+    force: bool = False
+
+
+class ManusDeskBackupCascadeAdvanceResponse(BaseModel):
+    ok: bool = True
+    status: str
+    message: str
+    dispatch_id: str
+    notification: dict | None = None
+    cascade: dict | None = None
+
+
+class ManusDeskHandoffResponse(BaseModel):
+    schema_version: str
+    product: str
+    architecture: str
+    live_execution: bool
+    operator_workflows: list[dict]
+    engine_chain: list[str]
+    filesystem_paths: dict[str, str]
+    api_endpoints: dict[str, str]
+    auth_header: str
+    generated_at_utc: str

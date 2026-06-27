@@ -31,7 +31,7 @@ def build_shift_alert_message(
     if shift_starts_at is not None and shift_ends_at is not None:
         when = f" · {format_shift_window_et(shift_starts_at, shift_ends_at)}"
     return (
-        f"OfferCare.ai · {facility_name} · {shift_role} · ${hourly_pay_rate:.2f}/hr{when}. "
+        f"VettedCare.ai · {facility_name} · {shift_role} · ${hourly_pay_rate:.2f}/hr{when}. "
         f"Reply {reply_keyword} to lock this shift. Reply STOP to opt out, HELP for help."
     )
 

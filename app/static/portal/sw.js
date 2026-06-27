@@ -1,4 +1,4 @@
-const CACHE_NAME = "offercare-portal-v1";
+const CACHE_NAME = "vettedcare-portal-v1";
 const SHELL_URLS = [
   "/portal/",
   "/portal/index.html",
@@ -48,7 +48,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "OfferCare.ai", body: "New shift alert" };
+  let payload = { title: "VettedCare.ai", body: "New shift alert" };
   try {
     if (event.data) {
       payload = { ...payload, ...event.data.json() };
@@ -57,7 +57,7 @@ self.addEventListener("push", (event) => {
     // keep defaults
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title || "OfferCare.ai", {
+    self.registration.showNotification(payload.title || "VettedCare.ai", {
       body: payload.body || "New shift alert",
       data: payload,
       icon: "/portal/icon.svg",

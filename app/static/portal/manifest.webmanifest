@@ -1,6 +1,6 @@
 {
-  "name": "OfferCare.ai Clinician Portal",
-  "short_name": "OfferCare",
+  "name": "VettedCare.ai Clinician Portal",
+  "short_name": "VettedCare",
   "description": "Mid-Atlantic shift alerts, open shifts, and placement tracking for clinicians.",
   "start_url": "/portal/",
   "scope": "/portal/",

@@ -1,0 +1,4 @@
+facility_name,facility_type,md_license_status,decision_maker_name,decision_maker_title,direct_email,facility_county,procurement_urgency,source_url
+FutureCare Northpoint,SNF,ACTIVE,Jane Smith,Director of Nursing,jsmith@futurecare.com,Baltimore,HIGH,https://health.maryland.gov/ohcq/Pages/default.aspx
+CommuniCare Silver Spring,ALF,LICENSED,Robert Lee,Facility Administrator,rlee@communicare.org,Montgomery,MEDIUM,https://health.maryland.gov/ohcq/Pages/default.aspx
+Bay Home Health Services,HHA,CURRENT,Maria Johnson,HR Director,mjohnson@bayhomehealth.net,Anne Arundel,URGENT,https://health.maryland.gov/ohcq/Pages/default.aspx

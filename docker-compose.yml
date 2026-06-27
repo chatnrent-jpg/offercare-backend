@@ -1,7 +1,7 @@
 services:
   db:
     image: postgis/postgis:17-3.5
-    container_name: offercare-db
+    container_name: vettedcare-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -20,7 +20,7 @@ services:
 
   api:
     build: .
-    container_name: offercare-api
+    container_name: vettedcare-api
     restart: unless-stopped
     depends_on:
       db:

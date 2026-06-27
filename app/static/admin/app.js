@@ -589,6 +589,115 @@ function renderComplianceVmsIngest(rows) {
     </table>`;
 }
 
+function renderRecruitmentSummary(data) {
+  const el = document.getElementById("recruitment-summary");
+  if (!el) return;
+  const s = data.summary || {};
+  el.innerHTML = `
+    <div class="stat-card"><span class="muted">Contracts</span><strong>${s.contracts_total ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Pending review</span><strong>${s.contracts_pending_review ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Dispatch halted</span><strong>${s.contracts_dispatch_halted ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">B2B leads</span><strong>${s.leads_total ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Shifts ingested</span><strong>${s.shifts_ingested ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Shifts matched</span><strong>${s.shifts_matched ?? 0}</strong></div>
+    <div class="stat-card"><span class="muted">Drop-zone files</span><strong>${s.drop_zone_files ?? 0}</strong></div>`;
+}
+
+function renderRecruitmentDropzones(data) {
+  const el = document.getElementById("recruitment-dropzones");
+  if (!el) return;
+  const zones = data.drop_zones || {};
+  const rows = [
+    ["raw_leads CSV", zones.raw_leads_csv || []],
+    ["incoming contracts", zones.incoming_contracts || []],
+    ["incoming shifts JSON", zones.incoming_shifts_json || []],
+  ];
+  el.innerHTML = rows
+    .map(
+      ([label, files]) =>
+        `<div class="deploy-check ${files.length ? "warn" : "pass"}"><strong>${label}</strong><span>${files.length ? files.join(", ") : "Empty — ready for Manus drop"}</span></div>`,
+    )
+    .join("");
+}
+
+function renderRecruitmentContracts(rows) {
+  const el = document.getElementById("recruitment-contracts-table");
+  if (!el) return;
+  if (!rows?.length) {
+    el.innerHTML = `<p class="muted">No parsed contracts yet. Drop MSAs in data_engine/incoming_contracts/.</p>`;
+    return;
+  }
+  el.innerHTML = `<table><thead><tr>
+    <th>Facility</th><th>Status</th><th>Bill</th><th>Pay</th><th>Margin</th><th>Halted</th><th>Reason</th>
+  </tr></thead><tbody>
+    ${rows.map((row) => `<tr>
+      <td>${row.facility_name || row.contract_name || "—"}</td>
+      <td>${badge(row.review_status)}</td>
+      <td>${row.bill_rate_hourly != null ? `$${row.bill_rate_hourly}` : "—"}</td>
+      <td>${row.pay_rate_hourly != null ? `$${row.pay_rate_hourly}` : "—"}</td>
+      <td>${row.margin_pct != null ? `${(row.margin_pct * 100).toFixed(1)}%` : "—"}</td>
+      <td>${row.dispatch_halted ? "YES" : "no"}</td>
+      <td>${row.review_reason || "—"}</td>
+    </tr>`).join("")}
+  </tbody></table>`;
+}
+
+function renderRecruitmentLeads(rows) {
+  const el = document.getElementById("recruitment-leads-table");
+  if (!el) return;
+  if (!rows?.length) {
+    el.innerHTML = `<p class="muted">No B2B leads imported. Manus CSV → data_engine/raw_leads/.</p>`;
+    return;
+  }
+  el.innerHTML = `<table><thead><tr>
+    <th>Facility</th><th>Role</th><th>Domain</th><th>Urgency</th><th>Source</th>
+  </tr></thead><tbody>
+    ${rows.map((row) => `<tr>
+      <td>${row.facility_name}</td>
+      <td>${row.contact_role}</td>
+      <td>${row.email_domain}</td>
+      <td>${badge(row.procurement_urgency)}</td>
+      <td><a href="${row.source_url}" target="_blank" rel="noopener">link</a></td>
+    </tr>`).join("")}
+  </tbody></table>`;
+}
+
+function renderRecruitmentShifts(rows) {
+  const el = document.getElementById("recruitment-shifts-table");
+  if (!el) return;
+  if (!rows?.length) {
+    el.innerHTML = `<p class="muted">No Manus VMS shifts ingested yet.</p>`;
+    return;
+  }
+  el.innerHTML = `<table><thead><tr>
+    <th>Facility</th><th>Date</th><th>Unit</th><th>Role</th><th>Pay</th><th>Status</th><th>Top matches</th>
+  </tr></thead><tbody>
+    ${rows.map((row) => `<tr>
+      <td>${row.facility_name || "—"}</td>
+      <td>${row.shift_date} ${row.start_time}</td>
+      <td>${row.unit_dept}</td>
+      <td>${row.shift_role}</td>
+      <td>$${row.hourly_pay_rate}</td>
+      <td>${badge(row.status)}</td>
+      <td>${(row.top_matches || []).map((m) => m.full_name).join(", ") || "—"}</td>
+    </tr>`).join("")}
+  </tbody></table>`;
+}
+
+async function loadRecruitmentDashboard() {
+  const data = await api("/api/vettedcare/recruitment/dashboard?limit=50");
+  renderRecruitmentSummary(data);
+  renderRecruitmentDropzones(data);
+  renderRecruitmentContracts(data.contracts);
+  renderRecruitmentLeads(data.leads);
+  renderRecruitmentShifts(data.ingested_shifts);
+  const hint = document.getElementById("recruitment-manus-hint");
+  if (hint && data.manus_config?.endpoints?.config) {
+    hint.textContent = `Manus config: ${data.manus_config.endpoints.config} · Daily routine: docs/MANUS_RECRUITMENT_DAILY.md`;
+  }
+  return data;
+}
+
 async function loadOutreachDashboard() {
   const [targets, emails] = await Promise.all([
     api("/api/outreach/targets?limit=25"),
@@ -2417,7 +2526,7 @@ async function testTwilioSmsDelivery() {
   if (!phone) return;
   const data = await api("/api/integrations/test/sms", {
     method: "POST",
-    body: JSON.stringify({ phone_number: phone, message: "OfferCare.ai Twilio production test" }),
+    body: JSON.stringify({ phone_number: phone, message: "VettedCare.ai Twilio production test" }),
   });
   showToast(`Test SMS — ${data.status} (${data.mode})`);
 }
@@ -2696,6 +2805,7 @@ async function refreshAll() {
   await loadInfrastructureReadiness();
   await loadVettedCareDashboard();
   await loadComplianceDashboard();
+  await loadRecruitmentDashboard();
   await loadOutreachDashboard();
   await loadWorkerInflowDashboard();
     setConnectionStatus("connected", `Connected · ${new Date().toLocaleTimeString()}`);
@@ -2949,6 +3059,45 @@ els.refreshComplianceBtn?.addEventListener("click", () => loadComplianceDashboar
 els.runOutreachCampaignBtn?.addEventListener("click", () => runOutreachCampaign(false).catch((e) => showToast(e.message, true)));
 els.sendOutreachCampaignBtn?.addEventListener("click", () => runOutreachCampaign(true).catch((e) => showToast(e.message, true)));
 els.refreshOutreachBtn?.addEventListener("click", () => loadOutreachDashboard().then(() => showToast("Outreach dashboard refreshed")).catch((e) => showToast(e.message, true)));
+
+document.getElementById("refresh-recruitment-btn")?.addEventListener("click", () =>
+  loadRecruitmentDashboard().then(() => showToast("Recruitment dashboard refreshed")).catch((e) => showToast(e.message, true)),
+);
+document.getElementById("import-recruitment-leads-btn")?.addEventListener("click", async () => {
+  try {
+    const data = await api("/api/vettedcare/recruitment/leads/import-all", { method: "POST" });
+    await loadRecruitmentDashboard();
+    showToast(`Lead import done (${(data.detail || []).length} file(s))`);
+  } catch (error) {
+    showToast(error.message, true);
+  }
+});
+document.getElementById("process-recruitment-contracts-btn")?.addEventListener("click", async () => {
+  try {
+    await api("/api/vettedcare/recruitment/contracts/process", { method: "POST" });
+    await loadRecruitmentDashboard();
+    showToast("Contracts processed");
+  } catch (error) {
+    showToast(error.message, true);
+  }
+});
+document.getElementById("process-recruitment-shifts-btn")?.addEventListener("click", async () => {
+  try {
+    await api("/api/vettedcare/recruitment/shifts/process-dir", { method: "POST" });
+    await loadRecruitmentDashboard();
+    showToast("VMS JSON processed");
+  } catch (error) {
+    showToast(error.message, true);
+  }
+});
+document.getElementById("export-manus-recruitment-btn")?.addEventListener("click", async () => {
+  try {
+    await downloadAdminFile("/api/vettedcare/recruitment/manus-snapshot", "vettedcare-recruitment-snapshot.json");
+    showToast("Manus recruitment snapshot downloaded");
+  } catch (error) {
+    showToast(error.message, true);
+  }
+});
 els.refreshWorkerInflowBtn?.addEventListener("click", () => loadWorkerInflowDashboard().then(() => showToast("Worker inflow stats refreshed")).catch((e) => showToast(e.message, true)));
 els.copyWorkerInflowLinkBtn?.addEventListener("click", () => copyWorkerInflowLink().catch((e) => showToast(e.message, true)));
 els.closeScheduleDialog?.addEventListener("click", () => {

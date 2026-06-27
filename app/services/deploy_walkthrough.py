@@ -1136,7 +1136,7 @@ def build_deploy_checklist(
         "demo_gates": demo_gates_snapshot,
         "demo_admin_actions": list(DEMO_ADMIN_ACTION_DEMO_GATES),
         "twilio_console_steps": [
-            "Twilio Console → Phone Numbers → Manage → Active numbers → select your OfferCare number",
+            "Twilio Console → Phone Numbers → Manage → Active numbers → select your VettedCare number",
             "Messaging configuration → A MESSAGE COMES IN → Webhook",
             f"Set URL to: {webhook_url or '<PUBLIC_BASE_URL>/shift-sniper/twilio/sms'}",
             "HTTP method: POST",
@@ -1466,7 +1466,7 @@ def collect_deploy_bundle_artifacts(db: Session) -> list[dict[str, object]]:
     gates = build_demo_gates_summary(db)
     readme = "\n".join(
         [
-            "OfferCare Deploy Bundle",
+            "VettedCare Deploy Bundle",
             "",
             (
                 f"Deploy checklist: {summary['ready']} ready, "

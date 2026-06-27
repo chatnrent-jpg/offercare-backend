@@ -162,6 +162,17 @@ class Settings(BaseSettings):
 
     OPS_AUDIT_ENABLED: bool = True
 
+    MD_MONTGOMERY_SNF_CNA_LIVE_DISPATCH: bool = True
+
+    SEMANTIC_EMBEDDING_MODEL: str = "text-embedding-3-small"
+    SEMANTIC_EMBEDDING_DIMENSIONS: int = 1536
+
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_INSTANT_PAYOUT_DRY_RUN: bool = True
+    INSTANT_PAY_WINDOW_MINUTES: int = 30
+    INSTANT_PAY_WORKER_ENABLED: bool = True
+    INSTANT_PAY_WORKER_INTERVAL_SECONDS: int = 60
+
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_LOGIN_PER_MINUTE: int = 10
     RATE_LIMIT_APPLY_PER_MINUTE: int = 5
@@ -171,6 +182,19 @@ class Settings(BaseSettings):
     SECURITY_HEADERS_ENABLED: bool = True
     LOG_LEVEL: str = "INFO"
     SHIFT_CALENDAR_DURATION_HOURS: float = 12.0
+
+    # Facility recruitment / contract engine
+    CONTRACT_MIN_MARGIN_PCT: float = 0.18
+    CONTRACT_BASELINE_MIN_PAY_RATE: float = 28.0
+
+    # Maryland LTC regional bill-rate floors (MSA margin gate)
+    MD_LPN_MIN_BILL_RATE: float = 38.0
+    MD_CNA_MIN_BILL_RATE: float = 28.0
+    MD_GNA_MIN_BILL_RATE: float = 30.0
+    MD_LPN_MIN_MARGIN_PCT: float = 0.18
+    MD_CNA_MIN_MARGIN_PCT: float = 0.16
+    MD_GNA_MIN_MARGIN_PCT: float = 0.16
+    MD_MBON_RECHECK_STALE_DAYS: int = 7
 
     class Config:
         env_file = str(_ENV_FILE)

@@ -16,6 +16,17 @@ REQUIRED_TABLES = (
     "manus_vetting_runs",
 )
 
+RECRUITMENT_TABLES = (
+    "facility_contracts",
+    "b2b_raw_leads",
+    "ingested_open_shifts",
+    "md_provider_licensure",
+    "md_outreach_payloads",
+    "facilities",
+    "facility_contacts",
+    "md_provider_compliance",
+)
+
 
 def _check(name: str, *, ok: bool, detail: str, level: str = "required") -> dict:
     status = "pass" if ok else ("warn" if level == "optional" else "fail")
@@ -45,6 +56,18 @@ def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
             detail="All VettedCare tables present"
             if not missing
             else f"Missing tables: {', '.join(missing)}",
+        )
+    )
+
+    missing_recruitment = [table for table in RECRUITMENT_TABLES if table not in existing_tables]
+    checks.append(
+        _check(
+            "recruitment_engine_schema",
+            ok=not missing_recruitment,
+            detail="Facility recruitment tables present"
+            if not missing_recruitment
+            else f"Run alembic upgrade head (014_facility_recruitment): {', '.join(missing_recruitment)}",
+            level="optional" if missing_recruitment else "required",
         )
     )
 

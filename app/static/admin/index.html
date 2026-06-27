@@ -422,6 +422,40 @@
       <div id="compliance-providers-table" class="table-wrap"></div>
     </section>
 
+    <section class="panel vetted-panel" id="recruitment-panel">
+      <div class="panel-head">
+        <h2>Facility recruitment engine</h2>
+        <p class="muted">Manus sources RFP leads + VMS shifts · VettedCare parses contracts, dedupes shifts, matches nurses.</p>
+      </div>
+      <div id="recruitment-summary" class="stats"></div>
+      <div class="actions-row">
+        <button id="refresh-recruitment-btn" class="btn ghost" type="button">Refresh recruitment</button>
+        <button id="import-recruitment-leads-btn" class="btn" type="button">Import lead CSVs</button>
+        <button id="process-recruitment-contracts-btn" class="btn" type="button">Process contracts</button>
+        <button id="process-recruitment-shifts-btn" class="btn" type="button">Process VMS JSON</button>
+        <button id="export-manus-recruitment-btn" class="btn ghost" type="button">Export Manus snapshot</button>
+      </div>
+      <div class="panel-head">
+        <h3>Drop zones (awaiting Manus / operator)</h3>
+      </div>
+      <div id="recruitment-dropzones" class="deploy-checklist"></div>
+      <div class="panel-head">
+        <h3>Facility contracts</h3>
+        <p class="muted">Low margin → PENDING_EXECUTIVE_REVIEW · dispatch halted.</p>
+      </div>
+      <div id="recruitment-contracts-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>B2B raw leads</h3>
+      </div>
+      <div id="recruitment-leads-table" class="table-wrap"></div>
+      <div class="panel-head">
+        <h3>Ingested open shifts</h3>
+        <p class="muted">Deduped VMS shifts with top 3 lookahead matches.</p>
+      </div>
+      <div id="recruitment-shifts-table" class="table-wrap"></div>
+      <p class="muted" id="recruitment-manus-hint"></p>
+    </section>
+
     <section class="panel" id="outreach-panel">
       <div class="panel-head">
         <h2>B2B outreach pipeline</h2>

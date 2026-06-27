@@ -54,14 +54,14 @@ def test_join_landing_assets(client: TestClient) -> None:
 
 def test_maryland_privacy_policy_api(client: TestClient) -> None:
     body = client.get("/api/landing/maryland/privacy-policy").json()
-    assert body["title"] == "OfferCare.ai Clinician Privacy Policy"
+    assert body["title"] == "VettedCare.ai Clinician Privacy Policy"
     assert len(body["sections"]) >= 10
     assert any("STOP" in section["body"] for section in body["sections"])
 
 
 def test_maryland_terms_of_service_api(client: TestClient) -> None:
     body = client.get("/api/landing/maryland/terms-of-service").json()
-    assert body["title"] == "OfferCare.ai Clinician Terms of Service"
+    assert body["title"] == "VettedCare.ai Clinician Terms of Service"
     assert body["version"] == WORKER_TERMS_VERSION
     assert len(body["sections"]) >= 10
     assert any("W-2" in section["body"] for section in body["sections"])
@@ -75,7 +75,7 @@ def test_maryland_landing_api_payload(client: TestClient) -> None:
     assert "terms_of_service" in body["consent_disclosures"]
     assert body["consent_disclosures"]["terms_of_service_url"] == "/api/landing/maryland/terms-of-service"
     assert body["consent_disclosures"]["privacy_policy_url"] == "/api/landing/maryland/privacy-policy"
-    assert body["privacy_policy"]["title"] == "OfferCare.ai Clinician Privacy Policy"
+    assert body["privacy_policy"]["title"] == "VettedCare.ai Clinician Privacy Policy"
     assert len(body["terms_of_service"]["sections"]) >= 10
     codes = {row["code"] for row in body["credentials"]}
     assert codes == {"CNA", "LPN", "GNA"}

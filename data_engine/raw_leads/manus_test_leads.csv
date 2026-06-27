@@ -1,0 +1,3 @@
+facility_name,contact_role,email_domain,procurement_urgency,source_url,contact_name,state,notes
+Role Filter Hospital 2e4061,CNO,rolefilter.org,HIGH,https://procurement.maryland.gov/example-rfp-2026,Jane DON,MD,Surge staffing RFP — Manus test row
+Mercy Baltimore Medical Center,DON,mercy.net,CRITICAL,https://example.com/rfq/cna-surge,Mary Smith,MD,30-day CNA posting crisis

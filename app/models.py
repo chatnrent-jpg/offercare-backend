@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -313,3 +313,226 @@ class ManusVettingRun(Base):
     payload_json = Column(Text, nullable=True)
     received_at = Column(DateTime(timezone=True), server_default=func.now())
     applied_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class FacilityContract(Base):
+    __tablename__ = "facility_contracts"
+
+    contract_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(UUID(as_uuid=True), ForeignKey("maryland_facilities.facility_id"), nullable=False)
+    external_contract_id = Column(String(120), nullable=False)
+    vms_source = Column(String(50), nullable=False, default="MSA_UPLOAD")
+    contract_name = Column(String(255), nullable=True)
+    source_filename = Column(String(255), nullable=True)
+    bill_rate_hourly = Column(Numeric(8, 2), nullable=True)
+    pay_rate_hourly = Column(Numeric(8, 2), nullable=True)
+    margin_dollars = Column(Numeric(8, 2), nullable=True)
+    margin_pct = Column(Numeric(6, 4), nullable=True)
+    cancellation_policy_text = Column(Text, nullable=True)
+    cancellation_notice_hours = Column(Numeric(5, 0), nullable=True)
+    credential_requirements_json = Column(Text, nullable=True)
+    review_status = Column(String(40), nullable=False, default="ACTIVE")
+    dispatch_halted = Column(String(5), nullable=False, default="false")
+    review_reason = Column(String(500), nullable=True)
+    raw_text_excerpt = Column(Text, nullable=True)
+    staffing_role = Column(String(20), nullable=True)
+    md_regional_bill_floor = Column(Numeric(8, 2), nullable=True)
+    parsed_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class B2BRawLead(Base):
+    __tablename__ = "b2b_raw_leads"
+
+    lead_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_name = Column(String(255), nullable=False)
+    contact_role = Column(String(120), nullable=False)
+    email_domain = Column(String(255), nullable=False)
+    procurement_urgency = Column(String(50), nullable=False)
+    source_url = Column(String(500), nullable=False)
+    contact_name = Column(String(255), nullable=True)
+    contact_email = Column(String(255), nullable=True)
+    state = Column(String(2), nullable=False, default="MD")
+    county = Column(String(100), nullable=True)
+    notes = Column(Text, nullable=True)
+    manus_run_id = Column(String(128), nullable=True)
+    source = Column(String(30), nullable=False, default="manus")
+    imported_at = Column(DateTime(timezone=True), server_default=func.now())
+    facility_type = Column(String(10), nullable=True)
+    md_license_status = Column(String(40), nullable=True)
+    decision_maker_name = Column(String(255), nullable=True)
+    decision_maker_title = Column(String(120), nullable=True)
+    direct_email = Column(String(255), nullable=True)
+    facility_county = Column(String(100), nullable=True)
+    outreach_payload_json = Column(Text, nullable=True)
+    outreach_ready = Column(String(5), nullable=False, default="false")
+
+
+class MdProviderLicensure(Base):
+    __tablename__ = "md_provider_licensure"
+
+    profile_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("maryland_providers.provider_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    cna_license_number = Column(String(50), nullable=True)
+    gna_endorsement_status = Column(Boolean, nullable=False, default=False)
+    mbon_status_last_checked = Column(DateTime(timezone=True), nullable=True)
+    mbon_last_status = Column(String(40), nullable=True)
+    mbon_expires_on = Column(DateTime(timezone=True), nullable=True)
+    ohcq_sanction_flag = Column(Boolean, nullable=False, default=False)
+    compact_multistate = Column(Boolean, nullable=False, default=False)
+    facility_county = Column(String(100), nullable=True)
+    verification_payload_json = Column(Text, nullable=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class MdOutreachPayload(Base):
+    __tablename__ = "md_outreach_payloads"
+
+    payload_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("b2b_raw_leads.lead_id"), nullable=True)
+    facility_contact_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("facility_contacts.contact_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    facility_name = Column(String(255), nullable=False)
+    decision_maker_name = Column(String(255), nullable=True)
+    decision_maker_title = Column(String(120), nullable=True)
+    direct_email = Column(String(255), nullable=True)
+    facility_county = Column(String(100), nullable=True)
+    facility_type = Column(String(10), nullable=True)
+    email_subject = Column(String(500), nullable=False)
+    email_body = Column(Text, nullable=False)
+    sms_body = Column(String(320), nullable=True)
+    channel = Column(String(20), nullable=False, default="EMAIL")
+    status = Column(String(30), nullable=False, default="READY")
+    generated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class MdMarketFacility(Base):
+    __tablename__ = "facilities"
+
+    facility_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    company_name = Column(String(255), nullable=False)
+    facility_type = Column(String(10), nullable=False)
+    md_license_number = Column(String(64), nullable=True, unique=True)
+    md_license_status = Column(String(40), nullable=False, default="UNKNOWN")
+    md_county = Column(String(100), nullable=False)
+    state = Column(String(2), nullable=False, default="MD")
+    address_line = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=True)
+    zip_code = Column(String(20), nullable=True)
+    phone = Column(String(30), nullable=True)
+    maryland_facility_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("maryland_facilities.facility_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    source = Column(String(40), nullable=False, default="ohcq")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class MdFacilityContact(Base):
+    __tablename__ = "facility_contacts"
+
+    contact_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("facilities.facility_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    full_name = Column(String(255), nullable=False)
+    contact_role = Column(String(20), nullable=False)
+    email = Column(String(255), nullable=True)
+    phone = Column(String(30), nullable=True)
+    outreach_status = Column(String(20), nullable=False, default="PENDING")
+    last_contacted_at = Column(DateTime(timezone=True), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class MdProviderCompliance(Base):
+    __tablename__ = "md_provider_compliance"
+
+    compliance_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("maryland_providers.provider_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    credential_type = Column(String(10), nullable=False)
+    license_number = Column(String(50), nullable=False)
+    has_gna_endorsement = Column(Boolean, nullable=False, default=False)
+    license_expires_on = Column(DateTime(timezone=True), nullable=True)
+    compliance_status = Column(String(20), nullable=False, default="PENDING")
+    mbon_status_last_checked = Column(DateTime(timezone=True), nullable=True)
+    mbon_last_status = Column(String(40), nullable=True)
+    ohcq_sanction_flag = Column(Boolean, nullable=False, default=False)
+    compact_multistate = Column(Boolean, nullable=False, default=False)
+    home_county = Column(String(100), nullable=True)
+    verification_payload_json = Column(Text, nullable=True)
+    rejection_reason = Column(String(500), nullable=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class IngestedOpenShift(Base):
+    __tablename__ = "ingested_open_shifts"
+
+    ingest_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    composite_hash = Column(String(64), nullable=False, unique=True)
+    facility_id = Column(UUID(as_uuid=True), ForeignKey("maryland_facilities.facility_id"), nullable=False)
+    offer_id = Column(UUID(as_uuid=True), ForeignKey("offercare_job_offers.offer_id"), nullable=True)
+    source = Column(String(30), nullable=False, default="manus_vms")
+    shift_date = Column(String(20), nullable=False)
+    unit_dept = Column(String(120), nullable=False)
+    start_time = Column(String(20), nullable=False)
+    shift_role = Column(String(100), nullable=False)
+    hourly_pay_rate = Column(Numeric(8, 2), nullable=False)
+    payload_json = Column(Text, nullable=True)
+    match_payload_json = Column(Text, nullable=True)
+    status = Column(String(30), nullable=False, default="INGESTED")
+    ingested_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ProviderProfileEmbedding(Base):
+    __tablename__ = "provider_profile_embeddings"
+
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), primary_key=True)
+    profile_text = Column(Text, nullable=False)
+    # Stored via pgvector; ORM reads/writes through semantic match service raw SQL.
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class ProviderStripePayoutAccount(Base):
+    __tablename__ = "provider_stripe_payout_accounts"
+
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), primary_key=True)
+    stripe_connect_account_id = Column(String(128), nullable=False)
+    stripe_debit_card_id = Column(String(128), nullable=False)
+    instant_payout_enabled = Column(Boolean, nullable=False, default=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class ShiftTimesheetPayout(Base):
+    __tablename__ = "shift_timesheet_payouts"
+
+    payout_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    timesheet_id = Column(UUID(as_uuid=True), nullable=False, unique=True)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False)
+    gross_pay_amount = Column(Numeric(10, 2), nullable=False)
+    supervisor_name = Column(String(255), nullable=False)
+    supervisor_signed_at = Column(DateTime(timezone=True), nullable=False)
+    payout_eligible_at = Column(DateTime(timezone=True), nullable=False)
+    payout_status = Column(String(30), nullable=False, default="PENDING")
+    stripe_payout_id = Column(String(128), nullable=True)
+    stripe_mode = Column(String(30), nullable=True)
+    failure_reason = Column(String(500), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    paid_at = Column(DateTime(timezone=True), nullable=True)

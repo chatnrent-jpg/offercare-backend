@@ -92,7 +92,7 @@ def test_integrations_status_endpoint(client: TestClient) -> None:
 def test_integrations_test_sms_endpoint(client: TestClient) -> None:
     response = client.post(
         "/api/integrations/test/sms",
-        json={"phone_number": "+14105550001", "message": "OfferCare test"},
+        json={"phone_number": "+14105550001", "message": "VettedCare test"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "DRY_RUN"

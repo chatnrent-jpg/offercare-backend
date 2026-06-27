@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import SessionLocal
 from app.models import OfferCareJobOffer
+from app.services.md_backup_notify_cascade import run_backup_cascade_worker_tick
 from app.services.shift_cascade import CascadeAdvanceResult, advance_cascade, get_cascade_status
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,13 @@ def run_cascade_worker_tick(db: Session) -> list[CascadeAdvanceResult]:
                 result.delivery.phone_number if result.delivery else "clinician",
                 offer.offer_id,
             )
+
+    for backup_result in run_backup_cascade_worker_tick(db):
+        logger.info(
+            "Backup cascade worker notified %s for dispatch %s",
+            backup_result.notification.get("phone_number") if backup_result.notification else "clinician",
+            backup_result.dispatch_id,
+        )
     return results
 
 

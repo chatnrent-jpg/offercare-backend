@@ -46,7 +46,7 @@ def _build_signoff_markdown(ceremony: dict) -> str:
     perfection_summary = perfection["summary"]
     launch_urls = ceremony["launch_urls"]
     lines = [
-        "# OfferCare Maryland Production Launch Ceremony",
+        "# VettedCare Maryland Production Launch Ceremony",
         "",
         f"Generated: {summary.get('refreshed_at', datetime.now(timezone.utc).isoformat())}",
         "",

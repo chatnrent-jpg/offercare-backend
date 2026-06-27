@@ -29,6 +29,10 @@ def verify_mbon_license(provider: MarylandProvider) -> MbonVerificationResult:
     if settings.MBON_VERIFY_DRY_RUN:
         expires = datetime.now(timezone.utc) + timedelta(days=365)
         status = "EXPIRED" if license_number.endswith("X") else "ACTIVE"
+        token = license_number
+        gna_endorsement = token.startswith("GNA") or (
+            token.startswith("CNA") and not token.endswith("NOGNA")
+        )
         return MbonVerificationResult(
             status=status,
             license_number=license_number,
@@ -39,6 +43,7 @@ def verify_mbon_license(provider: MarylandProvider) -> MbonVerificationResult:
                 "license_number": license_number,
                 "credential_type": provider.credential_type,
                 "status": status,
+                "gna_endorsement": gna_endorsement,
                 "dry_run": True,
             },
         )

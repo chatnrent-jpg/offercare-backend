@@ -135,7 +135,7 @@ def rank_clinicians_for_shift(
 def saint_judes_icu_demo(
     weights: SniperWeights | None = None,
 ) -> dict[str, object]:
-    """Saint Jude's ICU $120/hr example from the OfferCare blueprint."""
+    """Saint Jude's ICU $120/hr example from the VettedCare blueprint."""
     shift_pay = 120.0
     candidates = [
         ClinicianCandidate("nurse_a", 1, 85.0, 0.85, 0.0),

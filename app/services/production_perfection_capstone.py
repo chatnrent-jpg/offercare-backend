@@ -126,7 +126,7 @@ def build_production_perfection_capstone(db: Session) -> dict:
         [
             launch_capstone["env_snippet"],
             "",
-            "# Production ops workers (OfferCare step 138)",
+            "# Production ops workers (VettedCare step 138)",
             "SNIPER_CASCADE_WORKER_ENABLED=true",
             "SNIPER_CASCADE_ENABLED=true",
             "STAFFING_VMS_WORKER_ENABLED=true",

@@ -166,7 +166,7 @@ def build_maryland_production_runbook(db: Session, *, include_probes: bool = Fal
         probes = [row.__dict__ for row in probe_all_live_scrapers()]
 
     production_env = [
-        "# Maryland production launch (OfferCare step 134)",
+        "# Maryland production launch (VettedCare step 134)",
         f"LIVE_SCRAPER_GATEWAY_BASE_URL={gateway or 'https://adapters.yourdomain.com'}",
         "LIVE_SCRAPER_MOCK_ADAPTERS_ENABLED=false",
         "MBON_VERIFY_DRY_RUN=false",

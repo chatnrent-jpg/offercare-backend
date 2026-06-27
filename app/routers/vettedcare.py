@@ -12,11 +12,24 @@ from app.database import get_db
 from app.schemas import (
     ManusBatchRunIn,
     ManusBatchRunResponse,
+    ManusDeskHandoffResponse,
+    ManusDeskBackupCascadeAdvanceIn,
+    ManusDeskBackupCascadeAdvanceResponse,
+    ManusDeskLiveCalloutIn,
+    ManusDeskLiveCalloutResponse,
+    ManusDeskPipelineRunIn,
+    ManusDeskPipelineRunResponse,
+    ManusDeskProductionRunIn,
     ManusIntegrationConfigResponse,
+    ManusLeadImportIn,
     ManusProviderWorkOrderResponse,
+    ManusRecruitmentConfigResponse,
+    ManusRecruitmentProcessResponse,
+    ManusShiftIngestIn,
     ManusVettingRunIn,
     ManusVettingRunResponse,
     ManusWorkQueueResponse,
+    RecruitmentDashboardResponse,
     VettedAlertOut,
     VettedAuditEventOut,
     VettedCareDashboardResponse,
@@ -25,7 +38,15 @@ from app.schemas import (
     VettedSafetyCycleResponse,
 )
 from app.services.manus_ingest import ingest_manus_vetting_run, run_manus_batch_and_cycle
+from app.services.manus_recruitment import build_manus_recruitment_config
 from app.services.manus_work_queue import build_manus_integration_config, build_manus_provider_work_order, build_manus_work_queue
+from app.services.md_desk_pipeline import (
+    build_manus_desk_handoff,
+    run_md_desk_pipeline,
+    run_md_desk_pipeline_production,
+    run_md_desk_production_live_callout,
+)
+from app.services.recruitment_dashboard import build_recruitment_dashboard
 from app.services.vetted_infrastructure import build_vettedcare_infrastructure_readiness
 from app.services.vetted_alerts import list_recent_alerts
 from app.services.vetted_audit import list_vetted_audit
@@ -178,3 +199,296 @@ def manus_batch_runs(payload: ManusBatchRunIn, db: Session = Depends(get_db)):
         runs=[ManusVettingRunResponse(**row) for row in runs],
         safety_cycle=safety_cycle,
     )
+
+
+@router.get(
+    "/manus/desk/handoff",
+    response_model=ManusDeskHandoffResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_desk_handoff():
+    return ManusDeskHandoffResponse(**build_manus_desk_handoff())
+
+
+@router.post(
+    "/manus/desk/run",
+    response_model=ManusDeskPipelineRunResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_desk_pipeline_run(payload: ManusDeskPipelineRunIn):
+    try:
+        result = run_md_desk_pipeline(
+            pipeline=payload.pipeline,  # type: ignore[arg-type]
+            order_id=payload.order_id,
+            evaluation_timestamp=payload.evaluation_timestamp,
+            request_timestamp=payload.request_timestamp,
+            disrupted_shift_id=payload.disrupted_shift_id,
+            original_provider_id=payload.original_provider_id,
+            facility_id=payload.facility_id,
+            provider_id=payload.provider_id,
+            total_hours_worked=payload.total_hours_worked,
+            persist=payload.persist,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ManusDeskPipelineRunResponse(**result)
+
+
+@router.post(
+    "/manus/desk/run-production",
+    response_model=ManusDeskPipelineRunResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_desk_production_run(payload: ManusDeskProductionRunIn, db: Session = Depends(get_db)):
+    try:
+        result = run_md_desk_pipeline_production(
+            db,
+            evaluation_timestamp=payload.evaluation_timestamp,
+            request_timestamp=payload.request_timestamp,
+            persist=payload.persist,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ManusDeskPipelineRunResponse(**result)
+
+
+@router.post(
+    "/manus/desk/run-production-live",
+    response_model=ManusDeskLiveCalloutResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_desk_production_live_callout(payload: ManusDeskLiveCalloutIn, db: Session = Depends(get_db)):
+    try:
+        result = run_md_desk_production_live_callout(db, original_provider_id=payload.original_provider_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ManusDeskLiveCalloutResponse(**result)
+
+
+@router.post(
+    "/manus/desk/advance-backup-cascade",
+    response_model=ManusDeskBackupCascadeAdvanceResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_desk_advance_backup_cascade(payload: ManusDeskBackupCascadeAdvanceIn, db: Session = Depends(get_db)):
+    from app.services.md_backup_notify_cascade import advance_backup_notify_cascade
+
+    try:
+        result = advance_backup_notify_cascade(
+            db,
+            payload.dispatch_id,
+            force=payload.force,
+            actor="manus_api",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return ManusDeskBackupCascadeAdvanceResponse(
+        ok=True,
+        status=result.status,
+        message=result.message,
+        dispatch_id=result.dispatch_id,
+        notification=result.notification,
+        cascade=result.cascade,
+    )
+
+
+@router.get(
+    "/manus/recruitment/config",
+    response_model=ManusRecruitmentConfigResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_recruitment_config():
+    return ManusRecruitmentConfigResponse(**build_manus_recruitment_config())
+
+
+@router.post(
+    "/manus/recruitment/leads/import",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_import_leads(payload: ManusLeadImportIn, db: Session = Depends(get_db)):
+    from data_engine.lead_schema import import_raw_leads_csv
+    from data_engine.paths import RAW_LEADS_DIR, ensure_data_engine_dirs
+
+    ensure_data_engine_dirs()
+    csv_path = RAW_LEADS_DIR / payload.csv_filename
+    if not csv_path.is_file():
+        raise HTTPException(status_code=404, detail="csv_not_found")
+    result = import_raw_leads_csv(db, csv_path)
+    return ManusRecruitmentProcessResponse(ok=True, detail=result)
+
+
+@router.post(
+    "/manus/recruitment/shifts",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_ingest_shifts(payload: ManusShiftIngestIn, db: Session = Depends(get_db)):
+    from data_engine.shift_ingest import ingest_manus_shift_payload
+
+    result = ingest_manus_shift_payload(db, {"shifts": payload.shifts})
+    return ManusRecruitmentProcessResponse(ok=True, detail=result)
+
+
+@router.post(
+    "/manus/recruitment/contracts/process",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_process_contracts(db: Session = Depends(get_db)):
+    from data_engine.contract_processor import process_incoming_contracts_dir
+
+    results = process_incoming_contracts_dir(db)
+    return ManusRecruitmentProcessResponse(ok=True, detail=results)
+
+
+@router.get(
+    "/recruitment/dashboard",
+    response_model=RecruitmentDashboardResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def recruitment_dashboard(
+    limit: int = Query(default=50, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    return RecruitmentDashboardResponse(**build_recruitment_dashboard(db, limit=limit))
+
+
+@router.post(
+    "/recruitment/contracts/process",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def admin_process_contracts(db: Session = Depends(get_db)):
+    from data_engine.contract_processor import process_incoming_contracts_dir
+
+    return ManusRecruitmentProcessResponse(ok=True, detail=process_incoming_contracts_dir(db))
+
+
+@router.post(
+    "/recruitment/shifts/process-dir",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def admin_process_shift_dropzone(db: Session = Depends(get_db)):
+    from data_engine.shift_ingest import ingest_shifts_from_directory
+
+    return ManusRecruitmentProcessResponse(ok=True, detail=ingest_shifts_from_directory(db))
+
+
+@router.post(
+    "/recruitment/leads/import-all",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def admin_import_all_leads(db: Session = Depends(get_db)):
+    from data_engine.lead_schema import import_raw_leads_csv
+    from data_engine.paths import RAW_LEADS_DIR, ensure_data_engine_dirs
+
+    ensure_data_engine_dirs()
+    results = []
+    for csv_path in sorted(RAW_LEADS_DIR.glob("*.csv")):
+        if csv_path.name == "md_facilities.csv":
+            from data_engine.md_lead_schema import import_md_facilities_csv
+
+            results.append(import_md_facilities_csv(db, csv_path))
+        else:
+            results.append(import_raw_leads_csv(db, csv_path))
+    return ManusRecruitmentProcessResponse(ok=True, detail=results)
+
+
+@router.post(
+    "/manus/recruitment/leads/import-md",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_manus_api_key)],
+)
+def manus_import_md_facilities(
+    payload: ManusLeadImportIn,
+    db: Session = Depends(get_db),
+):
+    from data_engine.md_lead_schema import import_md_facilities_csv
+    from data_engine.paths import RAW_LEADS_DIR, ensure_data_engine_dirs
+
+    ensure_data_engine_dirs()
+    filename = payload.csv_filename or "md_facilities.csv"
+    csv_path = RAW_LEADS_DIR / filename
+    if not csv_path.is_file():
+        raise HTTPException(status_code=404, detail="csv_not_found")
+    result = import_md_facilities_csv(db, csv_path)
+    return ManusRecruitmentProcessResponse(ok=True, detail=result)
+
+
+@router.get(
+    "/recruitment/md-outreach-queue",
+    dependencies=[Depends(require_admin_api_key)],
+)
+def recruitment_md_outreach_queue(db: Session = Depends(get_db)):
+    from data_engine.md_outreach_sequencer import export_manus_outreach_queue
+
+    return export_manus_outreach_queue(db)
+
+
+@router.post(
+    "/recruitment/md-outreach/sync-facilities",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def recruitment_md_outreach_sync_facilities(
+    limit: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
+):
+    from data_engine.md_outreach_sequencer import sync_ready_facility_contacts_to_outreach
+
+    return ManusRecruitmentProcessResponse(
+        ok=True,
+        detail=sync_ready_facility_contacts_to_outreach(db, limit=limit),
+    )
+
+
+@router.post(
+    "/recruitment/md-outreach-snapshot",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def recruitment_md_outreach_snapshot(db: Session = Depends(get_db)):
+    from data_engine.md_outreach_sequencer import write_manus_outreach_snapshot
+
+    path = write_manus_outreach_snapshot(db)
+    return ManusRecruitmentProcessResponse(ok=True, detail={"snapshot_path": str(path)})
+
+
+@router.post(
+    "/recruitment/md-licensure/batch",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def recruitment_md_licensure_batch(
+    limit: int = Query(default=50, ge=1, le=500),
+    db: Session = Depends(get_db),
+):
+    from compliance.md_licensure_validator import run_md_licensure_batch
+
+    return ManusRecruitmentProcessResponse(ok=True, detail=run_md_licensure_batch(db, limit=limit))
+
+
+@router.post(
+    "/recruitment/md-facilities/import-scraped",
+    response_model=ManusRecruitmentProcessResponse,
+    dependencies=[Depends(require_admin_api_key)],
+)
+def recruitment_import_md_facilities(db: Session = Depends(get_db)):
+    from data_engine.md_facility_import import import_scraped_facilities_csv
+
+    return ManusRecruitmentProcessResponse(ok=True, detail=import_scraped_facilities_csv(db))
+
+
+@router.get(
+    "/recruitment/manus-snapshot",
+    dependencies=[Depends(require_admin_api_key)],
+)
+def recruitment_manus_snapshot(db: Session = Depends(get_db)):
+    from app.services.recruitment_dashboard import build_manus_recruitment_snapshot
+
+    return build_manus_recruitment_snapshot(db)

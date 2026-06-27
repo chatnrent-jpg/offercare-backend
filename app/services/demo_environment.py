@@ -354,7 +354,7 @@ def build_demo_active_gates(health: dict) -> list[str]:
 def build_demo_gates_clipboard_text(summary: dict) -> str:
     active = summary.get("active_gates") or []
     lines = [
-        "OfferCare Demo Confirmation Gates",
+        "VettedCare Demo Confirmation Gates",
         f"Health: {summary.get('health_label') or '—'} ({summary.get('health_status') or 'pending'})",
         f"Walkthrough intact: {'yes' if summary.get('walkthrough_intact') else 'no'}",
         (
@@ -882,7 +882,7 @@ def build_demo_walkthrough_script(db: Session) -> dict:
     gate = build_demo_ready_gate(db)
     links = build_demo_links(db)
     lines = [
-        "# OfferCare Mid-Atlantic Demo Walkthrough",
+        "# VettedCare Mid-Atlantic Demo Walkthrough",
         "",
         "## Before you start",
         "1. Admin → Run full demo setup (auto-resets locked shifts, then re-seeds)",
@@ -1108,7 +1108,7 @@ def build_demo_export_bundle(db: Session) -> dict:
     health = status["health"]
     readme = "\n".join(
         [
-            "OfferCare Mid-Atlantic Demo Bundle",
+            "VettedCare Mid-Atlantic Demo Bundle",
             "",
             f"Health: {health['label']} ({health['status']})",
             health["summary"],

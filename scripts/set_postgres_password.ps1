@@ -1,6 +1,6 @@
 # Run as Administrator: sets postgres user password after silent PostgreSQL install.
 # Usage: Right-click PowerShell -> Run as administrator, then:
-#   cd C:\OFFERCARE.AI\offercare-backend\scripts
+#   cd C:\VettedCare.ai\vettedcare-backend\scripts
 #   .\set_postgres_password.ps1
 
 $ErrorActionPreference = "Stop"
@@ -62,4 +62,4 @@ Restart-Service $serviceName
 
 Write-Host ""
 Write-Host "Done. postgres password is set." -ForegroundColor Green
-Write-Host "Next step: update DATABASE_URL in offercare-backend\.env with this password."
+Write-Host "Next step: update DATABASE_URL in vettedcare-backend\.env with this password."

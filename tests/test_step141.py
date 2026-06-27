@@ -84,7 +84,7 @@ def test_production_launch_attestation_endpoint(client: TestClient) -> None:
     assert "attestation_markdown" in body
     assert "checks" in body
     assert any(row["id"] == "production_launch_attestation" for row in body["checks"])
-    assert "# OfferCare Maryland Production Launch Attestation" in body["attestation_markdown"]
+    assert "# VettedCare Maryland Production Launch Attestation" in body["attestation_markdown"]
 
 
 def test_production_launch_attestation_markdown_download(client: TestClient) -> None:

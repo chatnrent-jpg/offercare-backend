@@ -53,7 +53,7 @@ def test_build_demo_export_bundle_json_matches_status_snapshot(db: Session) -> N
         readme = archive.read(DEMO_EXPORT_README_FILENAME).decode("utf-8")
     assert status["health"]["status"] == "green"
     assert len(status["offers"]) == 10
-    assert "# OfferCare Mid-Atlantic Demo Walkthrough" in markdown
+    assert "# VettedCare Mid-Atlantic Demo Walkthrough" in markdown
     assert "Health: READY (green)" in readme
     assert "Active gates:" in readme
 

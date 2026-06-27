@@ -1,6 +1,6 @@
 ﻿from pathlib import Path
 
-ROOT = Path(r"C:\OFFERCARE.AI\offercare-backend")
+ROOT = Path(r"C:\VettedCare.ai\vettedcare-backend")
 demo_env = ROOT / "app/services/demo_environment.py"
 text = demo_env.read_text(encoding="utf-8")
 

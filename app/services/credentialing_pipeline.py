@@ -13,6 +13,8 @@ from app.services.license_verification import run_license_auto_check
 from app.services.mbon_verification import mbon_result_to_json, verify_mbon_license
 from app.services.md_judiciary_screen import judiciary_result_to_json, screen_md_judiciary
 from app.services.oig_exclusion import oig_result_to_json, screen_oig_exclusion
+from app.services.care_taxonomy import normalize_credential_type
+from app.services.states import normalize_state
 
 
 def _log_screening(
@@ -97,6 +99,25 @@ def run_full_credentialing_screen(db: Session, provider_id: UUID) -> dict:
         ):
             seed_default_compliance_documents(db, provider, license_expires_on=mbon.expires_on)
 
+    # Maryland LTC licensure gate (CNA/GNA/LPN) — may upgrade block to REJECTED_COMPLIANCE
+    md_ltc_result: dict | None = None
+
+    if normalize_state(provider.state) == "MD" and normalize_credential_type(provider.credential_type) in {
+        "LPN",
+        "CNA",
+        "GNA",
+    }:
+        from compliance.md_licensure_validator import verify_provider_md_licensure
+
+        md_outcome = verify_provider_md_licensure(db, provider)
+        md_ltc_result = {
+            "disposition": md_outcome.disposition,
+            "errors": md_outcome.errors,
+            "gna_endorsement_status": md_outcome.gna_endorsement_status,
+        }
+        if md_outcome.block_dispatch:
+            blocked = True
+
     db.add(
         LicenseVerificationLog(
             provider_id=provider.provider_id,
@@ -118,4 +139,5 @@ def run_full_credentialing_screen(db: Session, provider_id: UUID) -> dict:
         "license_status": provider.license_status,
         "dispatch_status": provider.dispatch_status,
         "blocked": blocked,
+        "md_ltc": md_ltc_result,
     }

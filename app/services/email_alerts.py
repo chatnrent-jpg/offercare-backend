@@ -30,7 +30,7 @@ def build_shift_alert_email(
     schedule_line: str = "",
 ) -> tuple[str, str]:
     greeting = f"Hi {clinician_name}," if clinician_name else "Hi,"
-    subject = f"OfferCare.ai shift · {facility_name} · {shift_role}"
+    subject = f"VettedCare.ai shift · {facility_name} · {shift_role}"
     body = (
         f"{greeting}\n\n"
         f"Urgent shift available:\n"
@@ -39,7 +39,7 @@ def build_shift_alert_email(
         f"  Pay: ${hourly_pay_rate:.2f}/hr"
         f"{schedule_line}\n\n"
         f"Reply {reply_keyword} by SMS to your registered phone to lock this shift.\n\n"
-        f"— OfferCare.ai Grid"
+        f"— VettedCare.ai Grid"
     )
     return subject, body
 

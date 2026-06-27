@@ -37,7 +37,7 @@ Work through these **in order**. None require live operations, real clinicians, 
 ## Quick commands
 
 ```powershell
-cd C:\OfferCare.ai\offercare-backend
+cd C:\VettedCare.ai\vettedcare-backend
 
 # Start platform
 ..\start-all.bat   # or desktop VettedCare.ai shortcut

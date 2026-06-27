@@ -174,7 +174,7 @@ def test_integrations_test_push_endpoint(client: TestClient) -> None:
             "endpoint": "https://push.example.test/device-admin",
             "p256dh_key": "admin-p256dh",
             "auth_key": "admin-auth",
-            "message": "OfferCare test",
+            "message": "VettedCare test",
         },
     )
     assert response.status_code == 200

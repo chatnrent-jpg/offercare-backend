@@ -142,7 +142,7 @@ def lock_shift_from_sms_reply(
         if provider is None:
             return ShiftLockResult(
                 status="unknown_sender",
-                message="Phone not registered with OfferCare.ai.",
+                message="Phone not registered with VettedCare.ai.",
             )
         opt_out_provider_sms(db, provider)
         return ShiftLockResult(
@@ -155,7 +155,7 @@ def lock_shift_from_sms_reply(
         if provider is None:
             return ShiftLockResult(
                 status="unknown_sender",
-                message="Phone not registered with OfferCare.ai.",
+                message="Phone not registered with VettedCare.ai.",
             )
         opt_in_provider_sms(db, provider)
         return ShiftLockResult(
@@ -172,7 +172,7 @@ def lock_shift_from_sms_reply(
         )
 
     if provider is None:
-        return ShiftLockResult(status="unknown_sender", message="Phone not registered with OfferCare.ai.")
+        return ShiftLockResult(status="unknown_sender", message="Phone not registered with VettedCare.ai.")
 
     from app.services.sms_compliance import provider_is_sms_opted_out
 

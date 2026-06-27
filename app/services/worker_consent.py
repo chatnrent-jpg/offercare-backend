@@ -22,7 +22,7 @@ from app.services.worker_terms_of_service import (
 WORKER_CONSENT_VERSION = "2026-06-21"
 
 CONSENT_CREDENTIAL_SCREENING = (
-    "I authorize OfferCare.ai to verify my Maryland license/certification through MBON, "
+    "I authorize VettedCare.ai to verify my Maryland license/certification through MBON, "
     "OIG LEIE, and Maryland judiciary exclusion databases."
 )
 CONSENT_SMS_DISPATCH = (

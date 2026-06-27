@@ -1,0 +1,13 @@
+{
+  "shifts": [
+    {
+      "facility_id": "b6945e91-1012-4d3c-9486-17ea4bd10b0b",
+      "shift_date": "2026-07-15",
+      "unit_dept": "ICU",
+      "start_time": "07:00",
+      "shift_role": "ICU_RN",
+      "hourly_pay_rate": 48.0,
+      "source": "manus_vms_test"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
-const STORAGE_KEY = "offercare_clinician_token";
-const INSTALL_DISMISS_KEY = "offercare_install_dismissed";
+const STORAGE_KEY = "vettedcare_clinician_token";
+const INSTALL_DISMISS_KEY = "vettedcare_install_dismissed";
 
 const els = {
   gate: document.getElementById("gate"),
@@ -157,10 +157,10 @@ async function installPortalApp() {
     deferredInstallPrompt = null;
     hideInstallPrompt(true);
     els.installAppTopBtn?.classList.add("hidden");
-    showToast("OfferCare installed");
+    showToast("VettedCare installed");
     return;
   }
-  showToast("Use your browser menu to add OfferCare to your home screen");
+  showToast("Use your browser menu to add VettedCare to your home screen");
 }
 
 window.addEventListener("beforeinstallprompt", (event) => {
@@ -756,7 +756,7 @@ els.showAllShiftsToggle?.addEventListener("change", async (event) => {
 });
 els.downloadMatchedCalendarBtn?.addEventListener("click", async () => {
   try {
-    const filename = showAllOpenShifts ? "offercare-open-shifts.ics" : "offercare-matched-shifts.ics";
+    const filename = showAllOpenShifts ? "vettedcare-open-shifts.ics" : "vettedcare-matched-shifts.ics";
     await downloadFile(buildShiftCalendarQuery(), filename);
     showToast("Shift calendar downloaded");
   } catch (error) {
@@ -765,7 +765,7 @@ els.downloadMatchedCalendarBtn?.addEventListener("click", async () => {
 });
 els.downloadPlacementsCalendarBtn?.addEventListener("click", async () => {
   try {
-    await downloadFile("/api/clinicians/me/calendar.ics", "offercare-placements.ics");
+    await downloadFile("/api/clinicians/me/calendar.ics", "vettedcare-placements.ics");
     showToast("Placement calendar downloaded");
   } catch (error) {
     showToast(error.message, true);

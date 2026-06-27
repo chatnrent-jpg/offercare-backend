@@ -90,7 +90,7 @@ def build_ics_calendar(*, calendar_name: str, events: list[str]) -> str:
     header = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//OfferCare.ai//Grid//EN",
+        "PRODID:-//VettedCare.ai//Grid//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
         f"X-WR-CALNAME:{_escape_ics_text(calendar_name)}",
@@ -107,7 +107,7 @@ def placements_to_ics(rows: list[dict[str, Any]]) -> str:
         start, end = _row_shift_window(row)
         summary = f"{row['clinical_unit']} @ {row['facility_name']}"
         description = (
-            f"Locked OfferCare.ai placement\\n"
+            f"Locked VettedCare.ai placement\\n"
             f"Rate: ${float(row['hourly_bill_rate']):.2f}/hr\\n"
             f"VMS: {row.get('vms_submission_status', 'PENDING')}"
         )
@@ -122,7 +122,7 @@ def placements_to_ics(rows: list[dict[str, Any]]) -> str:
                 status="CONFIRMED",
             )
         )
-    return build_ics_calendar(calendar_name="OfferCare.ai Placements", events=events)
+    return build_ics_calendar(calendar_name="VettedCare.ai Placements", events=events)
 
 
 def open_shifts_to_ics(rows: list[dict[str, Any]]) -> str:
@@ -132,7 +132,7 @@ def open_shifts_to_ics(rows: list[dict[str, Any]]) -> str:
         start, end = _row_shift_window(row)
         summary = f"{row['shift_role']} @ {row['facility_name']}"
         description = (
-            f"Open shift on OfferCare.ai\\n"
+            f"Open shift on VettedCare.ai\\n"
             f"Pay: ${float(row['hourly_pay_rate']):.2f}/hr\\n"
             f"Reply YES via SMS to lock."
         )
@@ -148,7 +148,7 @@ def open_shifts_to_ics(rows: list[dict[str, Any]]) -> str:
                 status="TENTATIVE",
             )
         )
-    return build_ics_calendar(calendar_name="OfferCare.ai Open Shifts", events=events)
+    return build_ics_calendar(calendar_name="VettedCare.ai Open Shifts", events=events)
 
 
 def placement_calendar_filename(provider_id: UUID) -> str:
