@@ -100,7 +100,7 @@ def build_ics_calendar(*, calendar_name: str, events: list[str]) -> str:
     return "\r\n".join(_fold_ics_line(line) for line in body) + "\r\n"
 
 
-def placements_to_ics(rows: list[dict[str, Any]]) -> str:
+def _placement_calendar_events(rows: list[dict[str, Any]]) -> list[str]:
     events: list[str] = []
     for row in rows:
         placement_id = row["placement_id"]
@@ -122,45 +122,10 @@ def placements_to_ics(rows: list[dict[str, Any]]) -> str:
                 status="CONFIRMED",
             )
         )
-    return build_ics_calendar(calendar_name="VettedCare.ai Placements", events=events)
+    return events
 
 
-def open_shifts_to_ics(rows: list[dict[str, Any]]) -> str:
-    events: list[str] = []
-    for row in rows:
-        offer_id = row["offer_id"]
-        start, end = _row_shift_window(row)
-        summary = f"{row['shift_role']} @ {row['facility_name']}"
-        description = (
-            f"Open shift on VettedCare.ai\\n"
-            f"Pay: ${float(row['hourly_pay_rate']):.2f}/hr\\n"
-            f"Reply YES via SMS to lock."
-        )
-        location = f"{row['facility_name']}, {row.get('county', '')}, {row.get('state', 'MD')}"
-        events.append(
-            build_calendar_event(
-                uid=f"offer-{offer_id}@offercare.ai",
-                summary=summary,
-                description=description,
-                location=location,
-                dtstart=start,
-                dtend=end,
-                status="TENTATIVE",
-            )
-        )
-    return build_ics_calendar(calendar_name="VettedCare.ai Open Shifts", events=events)
-
-
-def placement_calendar_filename(provider_id: UUID) -> str:
-    return f"offercare-placements-{str(provider_id)[:8]}.ics"
-
-
-def open_shifts_calendar_filename(*, prefix: str = "offercare-open-shifts") -> str:
-    token = prefix if prefix.endswith(".ics") else f"{prefix}.ics"
-    return token
-
-
-def schedule_events_to_ics(rows: list[dict[str, Any]], *, calendar_token: str = "clinician") -> str:
+def _schedule_calendar_events(rows: list[dict[str, Any]]) -> list[str]:
     events: list[str] = []
     for row in rows:
         event_id = row.get("event_id") or row.get("id")
@@ -199,8 +164,76 @@ def schedule_events_to_ics(rows: list[dict[str, Any]], *, calendar_token: str = 
                 status=status,
             )
         )
+    return events
+
+
+def placements_to_ics(rows: list[dict[str, Any]]) -> str:
+    return build_ics_calendar(
+        calendar_name="VettedCare.ai Placements",
+        events=_placement_calendar_events(rows),
+    )
+
+
+def open_shifts_to_ics(rows: list[dict[str, Any]]) -> str:
+    events: list[str] = []
+    for row in rows:
+        offer_id = row["offer_id"]
+        start, end = _row_shift_window(row)
+        summary = f"{row['shift_role']} @ {row['facility_name']}"
+        description = (
+            f"Open shift on VettedCare.ai\\n"
+            f"Pay: ${float(row['hourly_pay_rate']):.2f}/hr\\n"
+            f"Reply YES via SMS to lock."
+        )
+        location = f"{row['facility_name']}, {row.get('county', '')}, {row.get('state', 'MD')}"
+        events.append(
+            build_calendar_event(
+                uid=f"offer-{offer_id}@offercare.ai",
+                summary=summary,
+                description=description,
+                location=location,
+                dtstart=start,
+                dtend=end,
+                status="TENTATIVE",
+            )
+        )
+    return build_ics_calendar(calendar_name="VettedCare.ai Open Shifts", events=events)
+
+
+def placement_calendar_filename(provider_id: UUID) -> str:
+    return f"offercare-placements-{str(provider_id)[:8]}.ics"
+
+
+def open_shifts_calendar_filename(*, prefix: str = "offercare-open-shifts") -> str:
+    token = prefix if prefix.endswith(".ics") else f"{prefix}.ics"
+    return token
+
+
+def schedule_events_to_ics(rows: list[dict[str, Any]], *, calendar_token: str = "clinician") -> str:
     safe_token = str(calendar_token or "clinician").replace(" ", "-")[:32]
-    return build_ics_calendar(calendar_name=f"VettedCare.ai Schedule ({safe_token})", events=events)
+    return build_ics_calendar(
+        calendar_name=f"VettedCare.ai Schedule ({safe_token})",
+        events=_schedule_calendar_events(rows),
+    )
+
+
+def unified_clinician_calendar_to_ics(
+    *,
+    placements: list[dict[str, Any]],
+    schedule_events: list[dict[str, Any]],
+    calendar_token: str = "clinician",
+) -> str:
+    safe_token = str(calendar_token or "clinician").replace(" ", "-")[:32]
+    events = _placement_calendar_events(placements) + _schedule_calendar_events(schedule_events)
+    return build_ics_calendar(
+        calendar_name=f"VettedCare.ai — Placements & Schedule ({safe_token})",
+        events=events,
+    )
+
+
+def unified_calendar_filename(calendar_token: str) -> str:
+    safe = str(calendar_token or "clinician").replace(" ", "-")[:32]
+    return f"offercare-full-calendar-{safe}.ics"
 
 
 def schedule_calendar_filename(calendar_token: str) -> str:

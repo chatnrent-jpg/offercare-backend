@@ -25,7 +25,7 @@ from app.services.demo_push_subscriptions import ensure_demo_push_subscriptions
 from app.services.matched_shift_alerts import notify_matched_clinicians_for_offer, notify_matched_clinicians_for_offers
 from app.services.push_subscriptions import list_push_subscriptions_for_provider
 from app.services.shift_lock import lock_shift_for_provider
-from app.services.shift_matching import provider_matches_open_shift
+from app.services.shift_matching import provider_matches_open_shift, count_portal_lockable_shifts
 from app.services.shift_offer_generator import get_open_shift_by_id
 from app.services.states import normalize_state
 
@@ -136,6 +136,20 @@ def demo_portal_deep_link(offer_id: str | UUID | None) -> str | None:
     if not offer_id:
         return None
     return f"/portal/?offer={offer_id}"
+
+
+def count_demo_portal_lockable_shifts(
+    db: Session,
+    email: str = SAMPLE_DEMO_CLINICIAN_EMAIL,
+) -> int:
+    provider = (
+        db.query(MarylandProvider)
+        .filter(MarylandProvider.email == email)
+        .first()
+    )
+    if provider is None:
+        return 0
+    return count_portal_lockable_shifts(db, provider)
 
 
 def find_demo_clinician_for_shift(db: Session, row: dict) -> MarylandProvider | None:
@@ -661,6 +675,26 @@ def build_demo_environment_status(db: Session) -> dict:
     health["gate_count"] = len(DEMO_GATE_DEFINITIONS)
     health["demo_admin_action_count"] = len(DEMO_ADMIN_ACTION_DEMO_GATES)
 
+    portal_lockable = count_demo_portal_lockable_shifts(db)
+    health["portal_lockable_shift_count"] = portal_lockable
+    if health.get("status") == "green":
+        if portal_lockable == 0:
+            health = {
+                **health,
+                "status": "yellow",
+                "label": "PARTIAL",
+                "summary": "Demo loaded but no portal-lockable shifts for the sample CNA.",
+                "issues": [
+                    *list(health.get("issues") or []),
+                    f"No lockable open shifts for {SAMPLE_DEMO_CLINICIAN_EMAIL}",
+                ],
+            }
+        else:
+            health["summary"] = (
+                f"Demo environment ready — {portal_lockable} portal-lockable shift(s) "
+                f"for {SAMPLE_DEMO_CLINICIAN_EMAIL}."
+            )
+
     status = {
         "loaded": loaded_count == expected_count,
         "facility_count": loaded_count,
@@ -675,6 +709,7 @@ def build_demo_environment_status(db: Session) -> dict:
         "clinicians": clinician_rows,
         "next_steps": DEMO_NEXT_STEPS,
         "health": health,
+        "portal_lockable_shift_count": portal_lockable,
     }
     status["demo_gates"] = build_demo_gates_payload_from_status(status)
     status["demo_admin_actions"] = list(DEMO_ADMIN_ACTION_DEMO_GATES)
@@ -832,12 +867,14 @@ def run_full_demo_setup(db: Session, *, notify_matched: bool = True) -> dict:
             "matched_push_alerts_sent": 0,
         }
     status = build_demo_environment_status(db)
+    portal_lockable = int(status.get("portal_lockable_shift_count") or 0)
     return {
         "reset": reset,
         "seed": seed,
         "push_subscriptions": push_subscriptions,
         "matched_push": matched_push,
         "status": status,
+        "portal_lockable_shift_count": portal_lockable,
     }
 
 

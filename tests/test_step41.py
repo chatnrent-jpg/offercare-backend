@@ -170,11 +170,11 @@ def test_hospital_only_rn_skips_nursing_home_shifts(db: Session) -> None:
     assert snf["offer_id"] not in matched_ids
 
 
-def test_portal_uses_matched_shifts_ui(client: TestClient) -> None:
+def test_portal_uses_open_shifts_ui(client: TestClient) -> None:
     html = client.get("/portal/")
     assert html.status_code == 200
-    assert "Matched shifts" in html.text
-    assert "show-all-shifts-toggle" in html.text
+    assert "Open shifts" in html.text
+    assert "show-all-shifts-toggle" not in html.text
     js = client.get("/portal/app.js")
-    assert "/api/clinicians/me/matched-shifts" in js.text
-    assert "rate_delta" in js.text
+    assert "/api/shifts/open?" in js.text
+    assert "/api/clinicians/me/open-shifts" in js.text

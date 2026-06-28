@@ -9,7 +9,11 @@ from app.database import SessionLocal
 from app.models import ClinicianPortalAccount, MarylandProvider
 from app.seed import seed_all_mid_atlantic_demos
 from app.services.demo_environment import build_demo_environment_status
-from app.services.demo_portal_accounts import DEMO_PORTAL_PASSWORD, ensure_demo_portal_accounts
+from app.services.demo_portal_accounts import (
+    DEMO_PORTAL_PASSWORD,
+    authenticate_demo_aware_clinician,
+    ensure_demo_portal_accounts,
+)
 
 
 @pytest.fixture
@@ -73,6 +77,45 @@ def test_demo_clinician_can_login_after_portal_accounts(client: TestClient) -> N
     body = response.json()
     assert body["provider"]["email"] == "nj.snf.cna.a@offercare.demo"
     assert body["access_token"]
+
+
+def test_demo_login_auto_provisions_missing_portal_account(client: TestClient, db: Session) -> None:
+    seed_all_mid_atlantic_demos(db)
+    provider = (
+        db.query(MarylandProvider)
+        .filter(MarylandProvider.email == "nj.snf.cna.a@offercare.demo")
+        .first()
+    )
+    assert provider is not None
+    db.query(ClinicianPortalAccount).filter(
+        ClinicianPortalAccount.provider_id == provider.provider_id,
+    ).delete()
+    db.commit()
+
+    response = client.post(
+        "/api/clinicians/login",
+        json={"email": provider.email, "password": DEMO_PORTAL_PASSWORD},
+    )
+    assert response.status_code == 200
+    assert response.json()["provider"]["email"] == provider.email
+
+
+def test_demo_login_rejects_incomplete_demo_email(db: Session) -> None:
+    with pytest.raises(ValueError, match="demo_email_requires_local_part"):
+        authenticate_demo_aware_clinician(
+            db,
+            email="@offercare.demo",
+            password=DEMO_PORTAL_PASSWORD,
+        )
+
+
+def test_authenticate_demo_aware_reports_missing_seed(db: Session) -> None:
+    with pytest.raises(ValueError, match="demo_clinician_not_seeded"):
+        authenticate_demo_aware_clinician(
+            db,
+            email="missing.demo.user@offercare.demo",
+            password=DEMO_PORTAL_PASSWORD,
+        )
 
 
 def test_demo_status_shows_portal_account_counts(client: TestClient) -> None:

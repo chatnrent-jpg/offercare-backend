@@ -10,6 +10,7 @@ from app.config import settings
 from app.database import get_db
 from app.models import MarylandProvider
 from app.schemas import (
+    ClinicianOpenShiftOut,
     ClinicianApplicationStatusResponse,
     ClinicianApplyResponse,
     ClinicianLoginRequest,
@@ -32,7 +33,8 @@ from app.schemas import (
     PushSubscriptionRegisterRequest,
     ShiftLockResponse,
 )
-from app.services.clinician_auth import authenticate_clinician, get_clinician_application_status
+from app.services.clinician_auth import get_clinician_application_status
+from app.services.demo_portal_accounts import authenticate_demo_aware_clinician
 from app.services.clinician_schedule import (
     create_clinician_schedule_block,
     delete_clinician_schedule_block,
@@ -50,8 +52,15 @@ from app.services.push_subscriptions import (
     register_push_subscription,
     unregister_push_subscription,
 )
-from app.services.shift_calendar import placement_calendar_filename, placements_to_ics, schedule_calendar_filename, schedule_events_to_ics
-from app.services.shift_matching import list_matched_shifts_for_provider
+from app.services.shift_calendar import (
+    placement_calendar_filename,
+    placements_to_ics,
+    schedule_calendar_filename,
+    schedule_events_to_ics,
+    unified_calendar_filename,
+    unified_clinician_calendar_to_ics,
+)
+from app.services.shift_matching import list_matched_shifts_for_provider, list_open_shifts_for_clinician
 from app.services.shift_lock import lock_shift_for_provider
 from app.services.vms_submission import list_clinician_placements
 from app.services.vetted_alerts import build_clinician_safety_message
@@ -73,9 +82,13 @@ def clinician_apply(db: Session = Depends(get_db)):
 @router.post("/login", response_model=ClinicianLoginResponse)
 def clinician_login(payload: ClinicianLoginRequest, db: Session = Depends(get_db)):
     try:
-        provider = authenticate_clinician(db, email=str(payload.email), password=payload.password)
+        provider = authenticate_demo_aware_clinician(
+            db,
+            email=str(payload.email),
+            password=payload.password,
+        )
     except ValueError as exc:
-        raise HTTPException(status_code=401, detail="invalid_credentials") from exc
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
     return ClinicianLoginResponse(
         access_token=create_access_token(provider.provider_id),
         provider=ProviderRead.model_validate(provider),
@@ -201,6 +214,34 @@ def clinician_matched_shifts(
     return [MatchedShiftOut.model_validate(row) for row in rows]
 
 
+@router.get("/me/open-shifts", response_model=list[ClinicianOpenShiftOut])
+def clinician_open_shifts(
+    limit: int = 50,
+    state: str | None = None,
+    county: str | None = None,
+    facility_type: str | None = None,
+    shift_role: str | None = None,
+    min_pay: float | None = None,
+    starts_after: datetime | None = None,
+    lockable_only: bool = False,
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    rows = list_open_shifts_for_clinician(
+        db,
+        current,
+        limit=limit,
+        state=state,
+        county=county,
+        facility_type=facility_type,
+        shift_role=shift_role,
+        min_pay=min_pay,
+        starts_after=starts_after,
+        lockable_only=lockable_only,
+    )
+    return [ClinicianOpenShiftOut.model_validate(row) for row in rows]
+
+
 @router.get("/me/matched-shifts/calendar.ics")
 def clinician_matched_shifts_calendar(
     limit: int = 50,
@@ -248,13 +289,13 @@ def clinician_lock_matched_shift(
             provider_id=result.provider_id,
             placement_id=result.placement_id,
         )
-    if result.status == "rejected":
-        raise HTTPException(status_code=403, detail=result.status) from None
+    if result.status in {"rejected", "schedule_conflict"}:
+        raise HTTPException(status_code=403, detail=result.message) from None
     if result.status in {"not_matched", "not_found"}:
-        raise HTTPException(status_code=404, detail=result.status) from None
+        raise HTTPException(status_code=404, detail=result.message) from None
     if result.status == "already_locked":
-        raise HTTPException(status_code=409, detail=result.status) from None
-    raise HTTPException(status_code=400, detail=result.status) from None
+        raise HTTPException(status_code=409, detail=result.message) from None
+    raise HTTPException(status_code=400, detail=result.message) from None
 
 
 @router.get("/me/calendar.ics")
@@ -309,6 +350,31 @@ def clinician_schedule_calendar(
     )
     content = schedule_events_to_ics(rows, calendar_token=calendar_token)
     filename = schedule_calendar_filename(calendar_token)
+    return Response(
+        content=content,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/me/unified/calendar.ics")
+def clinician_unified_calendar(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    placements = list_clinician_placements(db, current.provider_id, limit=100)
+    calendar_token, schedule_rows = list_clinician_schedule_events(
+        db,
+        current,
+        limit=100,
+        upcoming_only=True,
+    )
+    content = unified_clinician_calendar_to_ics(
+        placements=placements,
+        schedule_events=schedule_rows,
+        calendar_token=calendar_token,
+    )
+    filename = unified_calendar_filename(calendar_token)
     return Response(
         content=content,
         media_type="text/calendar; charset=utf-8",

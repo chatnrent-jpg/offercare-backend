@@ -706,6 +706,13 @@ class MatchedShiftOut(OpenShiftOut):
     rate_delta: float
 
 
+class ClinicianOpenShiftOut(OpenShiftOut):
+    lock_eligible: bool = False
+    lock_preview: str | None = None
+    rate_delta: float | None = None
+    vault_review_recommended: bool = False
+
+
 class ShiftFilterOptionsResponse(BaseModel):
     states: list[str]
     counties: list[str]

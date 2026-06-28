@@ -14,9 +14,9 @@
   <link rel="manifest" href="/portal/manifest.webmanifest" />
   <link rel="icon" href="/portal/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/portal/icon.svg" />
-  <link rel="stylesheet" href="/portal/styles.css?v=portal-step11-2026" />
+  <link rel="stylesheet" href="/portal/styles.css?v=portal-step15-2026" />
 </head>
-<body data-portal-build="portal-step11-2026">
+<body data-portal-build="portal-step15-2026">
   <div id="install-banner" class="install-banner hidden" role="region" aria-label="Install app">
     <div>
       <strong>Install VettedCare</strong>
@@ -41,9 +41,22 @@
 
       <form id="login-form" class="auth-form">
         <label for="login-email">Email</label>
-        <input id="login-email" type="email" autocomplete="username" required />
+        <input
+          id="login-email"
+          type="email"
+          autocomplete="username"
+          placeholder="nj.snf.cna.a@offercare.demo"
+          required
+        />
         <label for="login-password">Password</label>
-        <input id="login-password" type="password" autocomplete="current-password" required />
+        <input
+          id="login-password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="SecretPass1"
+          required
+        />
+        <p class="demo-login-hint muted">Demo sign-in: <strong>nj.snf.cna.a@offercare.demo</strong> / <strong>SecretPass1</strong></p>
         <button class="btn primary" type="submit">Sign in</button>
       </form>
 
@@ -99,7 +112,7 @@
 
     <nav id="portal-section-nav" class="section-nav" aria-label="Portal sections">
       <button type="button" class="section-tab active" data-view="overview">Overview</button>
-      <button type="button" class="section-tab" data-view="shifts">Matched shifts</button>
+      <button type="button" class="section-tab" data-view="shifts">Open shifts</button>
       <button type="button" class="section-tab" data-view="schedule">My schedule</button>
       <button type="button" class="section-tab" data-view="placements">Placements</button>
     </nav>
@@ -115,6 +128,9 @@
         </div>
         <div id="status-card" class="status-card"></div>
         <div id="history-list" class="history-list"></div>
+        <div class="actions-row">
+          <button id="download-unified-calendar-btn" class="btn ghost" type="button">Download full calendar (.ics)</button>
+        </div>
       </section>
 
       <section class="panel">
@@ -149,16 +165,17 @@
     <div id="view-shifts" class="portal-view hidden">
       <section class="panel">
         <div class="panel-head">
-          <h2>Matched shifts</h2>
-          <p class="muted">Open shifts in your home state that match your credential, care setting, and minimum pay. Tap Lock to accept.</p>
+          <h2>Open shifts</h2>
+          <p class="muted">All open shifts in the market. Lockable shifts appear first with a Lock button; others show why you cannot lock yet.</p>
         </div>
         <div class="actions-row">
-          <button id="download-matched-calendar-btn" class="btn ghost" type="button">Download matched shifts (.ics)</button>
+          <button id="download-matched-calendar-btn" class="btn ghost" type="button">Download open shifts (.ics)</button>
           <label class="inline-check">
-            <input id="show-all-shifts-toggle" type="checkbox" />
-            Show all open shifts
+            <input id="lockable-only-toggle" type="checkbox" />
+            Lockable only
           </label>
         </div>
+        <div id="shifts-alert" class="shifts-alert hidden" role="status"></div>
         <div class="actions-row shift-filters">
           <label>
             State
@@ -227,6 +244,6 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-  <script src="/portal/app.js?v=portal-step11-2026"></script>
+  <script src="/portal/app.js?v=portal-step15-2026"></script>
 </body>
 </html>

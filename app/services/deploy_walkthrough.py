@@ -537,7 +537,7 @@ def build_deploy_checklist(
         md_prod_detail = (
             f"Maryland production partial — {md_prod_summary['ready']} ready, "
             f"{md_prod_summary['warnings']} warning(s); "
-            f"live scrapers {md_prod_summary['live_scrapers_live_count']}/5"
+            f"live scrapers {md_prod_summary.get('live_scrapers_live_count', 0)}/5"
         )
         md_prod_action = "Complete live scraper go-live, disable mock adapters, and set PUBLIC_BASE_URL"
     items.append(

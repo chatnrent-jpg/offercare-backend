@@ -72,6 +72,20 @@ async def lifespan(app: FastAPI):
     try:
         run_migrations(engine)
         logger.info("Database migrations ready.")
+        try:
+            from app.database import SessionLocal
+            from app.services.demo_portal_accounts import ensure_demo_portal_accounts
+
+            with SessionLocal() as db:
+                portal_bootstrap = ensure_demo_portal_accounts(db)
+            if portal_bootstrap["created"] or portal_bootstrap["updated"]:
+                logger.info(
+                    "Demo portal logins ready: created=%s updated=%s",
+                    portal_bootstrap["created"],
+                    portal_bootstrap["updated"],
+                )
+        except Exception as exc:
+            logger.warning("Demo portal login bootstrap skipped: %s", exc)
     except Exception as exc:
         logger.warning("Database not ready — API online, tables not created: %s", exc)
     worker_stop = await start_cascade_worker()
@@ -133,7 +147,7 @@ if ADMIN_STATIC_DIR.is_dir():
     app.mount("/admin", StaticFiles(directory=ADMIN_STATIC_DIR, html=True), name="admin")
 
 PORTAL_STATIC_DIR = Path(__file__).resolve().parent / "static" / "portal"
-PORTAL_BUILD_ID = "portal-step11-2026"
+PORTAL_BUILD_ID = "portal-step15-2026"
 
 
 def _portal_asset_headers() -> dict[str, str]:

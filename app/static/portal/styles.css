@@ -485,3 +485,56 @@ tr.shift-highlight td {
   background: rgba(248, 113, 113, 0.1);
   color: var(--text);
 }
+
+.shifts-alert {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: rgba(37, 99, 235, 0.1);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.shifts-alert.error {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.gate-card .demo-login-hint {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.gate-card .demo-login-hint strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.lock-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--danger);
+  max-width: 14rem;
+  line-height: 1.3;
+}
+
+.lock-preview {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  max-width: 14rem;
+  line-height: 1.35;
+}
+
+.lock-cell .btn.text {
+  margin-top: 0.35rem;
+  padding: 0;
+  font-size: 0.78rem;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}

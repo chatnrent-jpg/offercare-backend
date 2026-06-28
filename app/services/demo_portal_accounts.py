@@ -10,6 +10,7 @@ from app.models import ClinicianPortalAccount, MarylandProvider
 from app.services.clinician_auth import create_portal_account
 
 DEMO_PORTAL_PASSWORD = "SecretPass1"
+SAMPLE_DEMO_PORTAL_EMAIL = "nj.snf.cna.a@offercare.demo"
 
 _PORTAL_EMAIL_SUFFIXES = (
     "%@offercare.demo",
@@ -60,3 +61,38 @@ def ensure_demo_portal_accounts(
         "updated": updated,
         "password_hint": password,
     }
+
+
+def _normalize_portal_email(email: str) -> str:
+    return str(email or "").strip().lower()
+
+
+def _is_incomplete_demo_email(email: str) -> bool:
+    normalized = _normalize_portal_email(email)
+    return normalized in {"@offercare.demo", "offercare.demo"} or (
+        normalized.startswith("@") and normalized.endswith("offercare.demo")
+    )
+
+
+def authenticate_demo_aware_clinician(db: Session, *, email: str, password: str) -> MarylandProvider:
+    """Authenticate portal login; auto-provision @offercare.demo accounts when missing."""
+    from app.services.clinician_auth import authenticate_clinician
+
+    normalized = _normalize_portal_email(email)
+    if _is_incomplete_demo_email(normalized):
+        raise ValueError("demo_email_requires_local_part")
+
+    try:
+        return authenticate_clinician(db, email=normalized, password=password)
+    except ValueError as exc:
+        if str(exc) != "invalid_credentials" or not normalized.endswith("@offercare.demo"):
+            raise
+        provider = (
+            db.query(MarylandProvider)
+            .filter(MarylandProvider.email.ilike(normalized))
+            .first()
+        )
+        if provider is None:
+            raise ValueError("demo_clinician_not_seeded") from exc
+        ensure_demo_portal_accounts(db)
+        return authenticate_clinician(db, email=normalized, password=password)

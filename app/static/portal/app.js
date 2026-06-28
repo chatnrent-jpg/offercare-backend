@@ -31,9 +31,9 @@ const els = {
   prefMinRate: document.getElementById("pref-min-rate"),
   prefServiceLines: document.getElementById("pref-service-lines"),
   downloadMatchedCalendarBtn: document.getElementById("download-matched-calendar-btn"),
-  showAllShiftsToggle: document.getElementById("show-all-shifts-toggle"),
   downloadPlacementsCalendarBtn: document.getElementById("download-placements-calendar-btn"),
   downloadScheduleCalendarBtn: document.getElementById("download-schedule-calendar-btn"),
+  downloadUnifiedCalendarBtn: document.getElementById("download-unified-calendar-btn"),
   enablePushBtn: document.getElementById("enable-push-btn"),
   disablePushBtn: document.getElementById("disable-push-btn"),
   pushStatus: document.getElementById("push-status"),
@@ -49,12 +49,16 @@ const els = {
   scheduleStats: document.getElementById("schedule-stats"),
   scheduleTable: document.getElementById("schedule-table"),
   fatigueBanner: document.getElementById("fatigue-banner"),
+  shiftsAlert: document.getElementById("shifts-alert"),
+  lockableOnlyToggle: document.getElementById("lockable-only-toggle"),
 };
+
+let openShiftsEnriched = false;
+let showLockableOnly = false;
 
 let activePushEndpoint = null;
 let deferredInstallPrompt = null;
 let careTaxonomy = null;
-let showAllOpenShifts = false;
 let activeView = "overview";
 
 function credentialsForState(state) {
@@ -184,6 +188,8 @@ window.addEventListener("appinstalled", () => {
   els.installAppTopBtn?.classList.add("hidden");
 });
 
+const API_TIMEOUT_MS = 20000;
+
 async function api(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   const token = getToken();
@@ -191,7 +197,21 @@ async function api(path, options = {}) {
   if (options.body && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
-  const response = await fetch(path, { ...options, headers, cache: "no-store" });
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(path, { ...options, headers, cache: "no-store", signal: controller.signal });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      const timeoutError = new Error("Request timed out");
+      timeoutError.name = "AbortError";
+      throw timeoutError;
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timer);
+  }
   const text = await response.text();
   let data = null;
   try {
@@ -201,9 +221,31 @@ async function api(path, options = {}) {
   }
   if (!response.ok) {
     const detail = data?.detail || response.statusText;
-    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+    const error = new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+    error.status = response.status;
+    throw error;
   }
   return data;
+}
+
+function isAuthError(error) {
+  if (!error) return false;
+  if (error.status === 401) return true;
+  const msg = String(error.message || "").toLowerCase();
+  return ["not_authenticated", "invalid_token", "expired", "unauthorized"].some((token) =>
+    msg.includes(token),
+  );
+}
+
+function clearSessionAndShowGate(message) {
+  setToken("");
+  els.demoHintMismatchBanner?.classList.add("hidden");
+  showDashboardAlert("");
+  showGate();
+  if (message && els.gateError) {
+    els.gateError.textContent = message;
+    els.gateError.classList.remove("hidden");
+  }
 }
 
 function badge(status) {
@@ -252,6 +294,14 @@ function setPortalView(view) {
     btn.classList.toggle("active", btn.dataset.view === safe);
   });
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (safe === "shifts") {
+    refreshShiftsTab().catch(() => {});
+  }
+}
+
+async function refreshShiftsTab() {
+  const rows = await loadShifts();
+  renderShifts(rows);
 }
 
 function initPortalSectionNav() {
@@ -355,11 +405,11 @@ function showApp() {
 
 function setAuthTab(mode) {
   const login = mode === "login";
-  els.tabLogin.classList.toggle("active", login);
-  els.tabApply.classList.toggle("active", !login);
-  els.loginForm.classList.toggle("hidden", !login);
-  els.applyForm.classList.toggle("hidden", login);
-  els.gateError.classList.add("hidden");
+  els.tabLogin?.classList.toggle("active", login);
+  els.tabApply?.classList.toggle("active", !login);
+  els.loginForm?.classList.toggle("hidden", !login);
+  els.applyForm?.classList.toggle("hidden", login);
+  els.gateError?.classList.add("hidden");
   if (!login) initApplyForm().catch(() => refreshApplyCredentialOptions());
 }
 
@@ -441,7 +491,8 @@ function renderFatigueBanner(provider) {
 }
 
 function renderStats(provider, placements, shifts) {
-  const shiftLabel = showAllOpenShifts ? "Open shifts" : "Matched shifts";
+  if (!els.stats) return;
+  const shiftLabel = "Open shifts";
   els.stats.innerHTML = `
     <div class="stat-card"><span class="muted">License</span>${badge(provider.license_status)}</div>
     <div class="stat-card"><span class="muted">Credential</span><strong>${provider.credential_type || "RN"}</strong></div>
@@ -460,6 +511,7 @@ function safetyBadge(status) {
 }
 
 function renderStatus(application, safety) {
+  if (!els.statusCard) return;
   const provider = application.provider;
   const safetyBlock = safety
     ? `
@@ -475,6 +527,7 @@ function renderStatus(application, safety) {
     <p class="muted">${provider.email} · ${provider.phone_number}</p>
     <p class="muted">License ${provider.md_license_number} · NPI ${provider.npi_number || "—"}</p>
     <p class="muted">Portal ${application.portal_enabled ? "enabled" : "disabled"} · License status ${provider.license_status}</p>`;
+  if (!els.historyList) return;
   const history = application.verification_history || [];
   if (!history.length) {
     els.historyList.innerHTML = `<p class="empty">No verification events yet.</p>`;
@@ -491,7 +544,8 @@ function renderStatus(application, safety) {
     .join("");
 }
 
-function buildShiftQuery() {
+function buildShiftQueryParams(options = {}) {
+  const includeLockableOnly = options.includeLockableOnly !== false;
   const params = new URLSearchParams({ limit: "50" });
   const state = els.shiftStateFilter?.value.trim();
   const county = els.shiftCountyFilter?.value.trim();
@@ -503,28 +557,120 @@ function buildShiftQuery() {
   if (facilityType) params.set("facility_type", facilityType);
   if (role) params.set("shift_role", role);
   if (minPay) params.set("min_pay", minPay);
-  if (showAllOpenShifts || !getToken()) {
-    return `/api/shifts/open?${params.toString()}`;
-  }
-  return `/api/clinicians/me/matched-shifts?${params.toString()}`;
+  if (includeLockableOnly && showLockableOnly && getToken()) params.set("lockable_only", "true");
+  return params.toString();
+}
+
+function enrichMatchedShiftRow(row) {
+  return {
+    ...row,
+    lock_eligible: true,
+    lock_preview: "Ready to lock",
+    rate_delta: row.rate_delta ?? null,
+    vault_review_recommended: false,
+  };
+}
+
+function mergeOpenShiftsWithMatched(openRows, matchedRows) {
+  const matchedById = new Map(matchedRows.map((row) => [String(row.offer_id), row]));
+  return openRows.map((row) => {
+    const matched = matchedById.get(String(row.offer_id));
+    const broadcasting = String(row.compliance_lock_status || "").toUpperCase() === "BROADCASTING";
+    if (!matched || !broadcasting) {
+      return {
+        ...row,
+        lock_eligible: false,
+        lock_preview: row.lock_preview ?? null,
+        rate_delta: matched?.rate_delta ?? null,
+        vault_review_recommended: false,
+      };
+    }
+    return enrichMatchedShiftRow({ ...row, rate_delta: matched.rate_delta });
+  }).sort((a, b) => {
+    if (a.lock_eligible !== b.lock_eligible) return a.lock_eligible ? -1 : 1;
+    return (Number(b.rate_delta) || -1) - (Number(a.rate_delta) || -1);
+  });
+}
+
+function buildShiftQuery() {
+  const base = getToken() ? "/api/clinicians/me/open-shifts" : "/api/shifts/open";
+  return `${base}?${buildShiftQueryParams()}`;
 }
 
 function buildShiftCalendarQuery() {
-  const params = new URLSearchParams({ limit: "50" });
-  const state = els.shiftStateFilter?.value.trim();
-  const county = els.shiftCountyFilter?.value.trim();
-  const facilityType = els.shiftFacilityTypeFilter?.value.trim();
-  const role = els.shiftRoleFilter?.value.trim();
-  const minPay = els.shiftMinPayFilter?.value.trim();
-  if (state) params.set("state", state);
-  if (county) params.set("county", county);
-  if (facilityType) params.set("facility_type", facilityType);
-  if (role) params.set("shift_role", role);
-  if (minPay) params.set("min_pay", minPay);
-  if (showAllOpenShifts || !getToken()) {
-    return `/api/shifts/open/calendar.ics?${params.toString()}`;
+  return `/api/shifts/open/calendar.ics?${buildShiftQueryParams()}`;
+}
+
+function showShiftsAlert(message, isError = false) {
+  const el = els.shiftsAlert;
+  if (!el) return;
+  if (!message) {
+    el.classList.add("hidden");
+    el.textContent = "";
+    return;
   }
-  return `/api/clinicians/me/matched-shifts/calendar.ics?${params.toString()}`;
+  el.textContent = message;
+  el.classList.toggle("error", isError);
+  el.classList.remove("hidden");
+}
+
+async function enrichOpenShiftsWithMatched(openRows, query) {
+  try {
+    const matched = await api(`/api/clinicians/me/matched-shifts?${query}`);
+    if (!matched.length || activeView !== "shifts") return;
+    openShiftsEnriched = true;
+    renderShifts(mergeOpenShiftsWithMatched(openRows, matched));
+  } catch {
+    // Keep the open-shift list visible even if matched enrichment fails or times out.
+  }
+}
+
+function mapBasicOpenShiftRow(row) {
+  return {
+    ...row,
+    lock_eligible: false,
+    lock_preview: null,
+    rate_delta: null,
+    vault_review_recommended: false,
+  };
+}
+
+async function loadShifts() {
+  const baseQuery = buildShiftQueryParams({ includeLockableOnly: false });
+
+  if (showLockableOnly && getToken()) {
+    try {
+      const matched = await api(`/api/clinicians/me/matched-shifts?${baseQuery}`);
+      openShiftsEnriched = true;
+      const rows = matched.map(enrichMatchedShiftRow);
+      showShiftsAlert(
+        rows.length
+          ? ""
+          : "No lockable shifts right now. Uncheck Lockable only to browse all open shifts.",
+      );
+      return rows;
+    } catch (error) {
+      const msg = error.name === "AbortError" ? "Lockable shifts request timed out." : error.message;
+      showShiftsAlert(msg, true);
+      return [];
+    }
+  }
+
+  try {
+    const openRows = await api(`/api/shifts/open?${baseQuery}`);
+    openShiftsEnriched = Boolean(getToken());
+    showShiftsAlert(
+      openRows.length ? "" : "No open shifts are broadcasting right now. Try Admin demo setup or clear filters.",
+    );
+    if (getToken() && openRows.length) {
+      enrichOpenShiftsWithMatched(openRows, baseQuery);
+    }
+    return openRows.map(mapBasicOpenShiftRow);
+  } catch (error) {
+    const msg = error.name === "AbortError" ? "Open shifts request timed out. Tap Refresh to retry." : error.message;
+    showShiftsAlert(msg, true);
+    return [];
+  }
 }
 
 function populateShiftFilters(options) {
@@ -560,27 +706,40 @@ function populateShiftFilters(options) {
   }
 }
 
-async function loadShifts() {
-  return api(buildShiftQuery());
+function renderLockCell(row) {
+  if (row.lock_eligible) {
+    return `<button class="btn ghost lock-shift-btn" type="button" data-offer-id="${row.offer_id}">Lock</button>`;
+  }
+  const parts = [];
+  if (row.lock_preview) {
+    parts.push(`<span class="lock-preview">${row.lock_preview}</span>`);
+  }
+  if (row.vault_review_recommended) {
+    parts.push(
+      `<button type="button" class="btn text lock-vault-btn" data-offer-id="${row.offer_id}">Review schedule</button>`,
+    );
+  }
+  return parts.join("") || `<span class="lock-preview muted">—</span>`;
 }
 
 function renderShifts(rows) {
+  if (!els.shiftsTable) return;
   if (!rows.length) {
-    const emptyCopy = showAllOpenShifts
-      ? "No open shifts in your selected filters right now."
-      : "No matched shifts for your credential and minimum pay right now.";
+    const emptyCopy = showLockableOnly
+      ? "No lockable shifts right now. Uncheck Lockable only above to browse all open shifts."
+      : "No open shifts in your selected filters right now.";
     els.shiftsTable.innerHTML = `<p class="empty">${emptyCopy}</p>`;
     return;
   }
-  const matchedView = !showAllOpenShifts && getToken();
+  const showLockColumn = Boolean(getToken());
   els.shiftsTable.innerHTML = `
     <table>
-      <thead><tr><th>Facility</th><th>Setting</th><th>State</th><th>County</th><th>Role</th><th>Starts</th><th>Pay</th>${matchedView ? "<th>+$ vs min</th>" : ""}<th>Status</th>${matchedView ? "<th></th>" : ""}</tr></thead>
+      <thead><tr><th>Facility</th><th>Setting</th><th>State</th><th>County</th><th>Role</th><th>Starts</th><th>Pay</th>${showLockColumn ? "<th>+$ vs min</th>" : ""}<th>Status</th>${showLockColumn ? "<th></th>" : ""}</tr></thead>
       <tbody>
         ${rows
           .map(
             (row) => `
-          <tr>
+          <tr data-offer-id="${row.offer_id}">
             <td>${row.facility_name}</td>
             <td>${row.facility_type_label || row.facility_type || ""}</td>
             <td>${row.state || "MD"}</td>
@@ -588,32 +747,58 @@ function renderShifts(rows) {
             <td>${row.shift_role_label || row.shift_role}</td>
             <td>${fmtShiftTime(row.shift_starts_at)}</td>
             <td>$${Number(row.hourly_pay_rate).toFixed(2)}/hr</td>
-            ${matchedView ? `<td>$${Number(row.rate_delta ?? 0).toFixed(2)}</td>` : ""}
+            ${showLockColumn ? `<td>${row.rate_delta != null ? `$${Number(row.rate_delta).toFixed(2)}` : "—"}</td>` : ""}
             <td>${badge(row.compliance_lock_status)}</td>
-            ${matchedView ? `<td>${row.compliance_lock_status === "BROADCASTING" ? `<button class="btn ghost lock-shift-btn" type="button" data-offer-id="${row.offer_id}">Lock</button>` : ""}</td>` : ""}
+            ${showLockColumn ? `<td class="lock-cell">${renderLockCell(row)}</td>` : ""}
           </tr>`,
           )
           .join("")}
       </tbody>
     </table>`;
-  if (matchedView) {
+  if (showLockColumn) {
     els.shiftsTable.querySelectorAll(".lock-shift-btn").forEach((button) => {
       button.addEventListener("click", () => lockMatchedShift(button.dataset.offerId));
+    });
+    els.shiftsTable.querySelectorAll(".lock-vault-btn").forEach((button) => {
+      button.addEventListener("click", () => setPortalView("schedule"));
     });
   }
 }
 
+function showLockError(offerId, message) {
+  const row = els.shiftsTable?.querySelector(`tr[data-offer-id="${offerId}"]`);
+  if (!row) return;
+  let el = row.querySelector(".lock-error");
+  const copy = /fatigue|schedule conflict/i.test(message)
+    ? `${message} Open My schedule to adjust blocks.`
+    : message;
+  if (!el) {
+    el = document.createElement("p");
+    el.className = "lock-error";
+    row.querySelector(".lock-cell")?.appendChild(el);
+  }
+  el.textContent = copy;
+}
+
+function clearLockError(offerId) {
+  els.shiftsTable?.querySelector(`tr[data-offer-id="${offerId}"] .lock-error`)?.remove();
+}
+
 async function lockMatchedShift(offerId) {
+  clearLockError(offerId);
   try {
     const data = await api(`/api/clinicians/me/matched-shifts/${offerId}/lock`, { method: "POST" });
-    showToast(data.message || "Shift locked");
+    showToast(data.message || "Shift locked — see Placements and My schedule.");
+    setPortalView("placements");
     await refreshDashboard();
   } catch (error) {
+    showLockError(offerId, error.message);
     showToast(error.message, true);
   }
 }
 
 function renderPlacements(rows) {
+  if (!els.placementsTable) return;
   if (!rows.length) {
     els.placementsTable.innerHTML = `<p class="empty">No locked shifts yet. Lock a matched shift above or reply YES to an SMS alert.</p>`;
     return;
@@ -799,35 +984,47 @@ async function refreshDashboard() {
   try {
     application = await api("/api/clinicians/me/application");
   } catch (error) {
+    if (isAuthError(error)) {
+      clearSessionAndShowGate("Your session expired. Please sign in again.");
+      return false;
+    }
     showDashboardAlert(`Could not load your profile: ${error.message}`);
     throw error;
   }
 
-  const [placements, shiftFilters, shifts, preferences, safety, schedule] = await Promise.all([
-    api("/api/clinicians/me/placements").catch(() => []),
-    api("/api/shifts/filters").catch(() => ({})),
-    loadShifts().catch(() => []),
-    loadPreferences().catch(() => ({})),
-    api("/api/clinicians/me/safety").catch(() => null),
-    api("/api/clinicians/me/schedule").catch(() => ({ total: 0, events: [] })),
-  ]);
+  try {
+    const [placements, shiftFilters, shifts, preferences, safety, schedule] = await Promise.all([
+      api("/api/clinicians/me/placements").catch(() => []),
+      api("/api/shifts/filters").catch(() => ({})),
+      loadShifts().catch(() => []),
+      loadPreferences().catch(() => ({})),
+      api("/api/clinicians/me/safety").catch(() => null),
+      api("/api/clinicians/me/schedule").catch(() => ({ total: 0, events: [] })),
+    ]);
 
-  populateShiftFilters(shiftFilters);
-  const provider = application.provider;
-  if (els.welcomeName) els.welcomeName.textContent = provider.full_name || "Welcome";
-  renderFatigueBanner(provider);
-  renderPreferencesForm(preferences);
-  renderStats(provider, placements, shifts);
-  renderStatus(application, safety);
-  renderShifts(shifts);
-  renderPlacements(placements);
-  renderSchedule(schedule);
-  await refreshPushStatus().catch(() => {});
+    populateShiftFilters(shiftFilters);
+    const provider = application.provider;
+    if (els.welcomeName) els.welcomeName.textContent = provider.full_name || "Welcome";
+    renderFatigueBanner(provider);
+    renderPreferencesForm(preferences);
+    renderStats(provider, placements, shifts);
+    renderStatus(application, safety);
+    renderShifts(shifts);
+    renderPlacements(placements);
+    renderSchedule(schedule);
+    await refreshPushStatus().catch(() => {});
 
-  const clinicianMatchesDemoOffer = await refreshDemoHintMismatch(provider).catch(() => true);
-  if (clinicianMatchesDemoOffer) {
-    focusOfferFromAlert(getOfferIdFromQuery());
+    const clinicianMatchesDemoOffer = await refreshDemoHintMismatch(provider).catch(() => true);
+    if (clinicianMatchesDemoOffer) {
+      focusOfferFromAlert(getOfferIdFromQuery());
+    }
+  } catch (error) {
+    console.error("refreshDashboard render", error);
+    showDashboardAlert(
+      `Profile loaded, but some sections failed: ${error.message}. Tap Refresh to retry.`,
+    );
   }
+  return true;
 }
 
 async function login(email, password) {
@@ -879,16 +1076,23 @@ async function purgeStalePortalCache() {
 async function bootstrap() {
   await purgeStalePortalCache();
   initPortalSectionNav();
-  await registerPortalServiceWorker();
+  registerPortalServiceWorker().catch(() => {});
   initApplyForm().catch(() => {});
-  await loadDemoHint();
+  loadDemoHint().catch(() => {});
   if (!getToken()) return;
   showApp();
   setPortalView("overview");
   try {
-    await refreshDashboard();
-  } catch {
-    showDashboardAlert("Session restored but dashboard could not load. Tap Refresh or sign out and back in.");
+    const loaded = await refreshDashboard();
+    if (loaded === false) return;
+  } catch (error) {
+    if (isAuthError(error)) {
+      clearSessionAndShowGate("Your session expired. Please sign in again.");
+      return;
+    }
+    showDashboardAlert(
+      `Session restored but dashboard could not load: ${error.message}. Tap Refresh or sign out and back in.`,
+    );
   }
 }
 
@@ -897,19 +1101,30 @@ els.tabApply?.addEventListener("click", () => setAuthTab("apply"));
 document.getElementById("apply-state")?.addEventListener("change", refreshApplyCredentialOptions);
 document.getElementById("apply-credential")?.addEventListener("change", refreshNpiField);
 
+function loginErrorMessage(detail) {
+  const msg = String(detail || "");
+  if (msg === "demo_email_requires_local_part") {
+    return "Enter the full demo email (not just @offercare.demo). Try nj.snf.cna.a@offercare.demo with password SecretPass1.";
+  }
+  if (msg === "demo_clinician_not_seeded") {
+    return "Demo clinician not found in the database. Ask admin to run full demo setup, then try nj.snf.cna.a@offercare.demo / SecretPass1.";
+  }
+  if (msg === "invalid_credentials") {
+    return "Wrong email or password. Demo: nj.snf.cna.a@offercare.demo / SecretPass1";
+  }
+  return msg || "Sign in failed.";
+}
+
 els.loginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  els.gateError.classList.add("hidden");
+  els.gateError?.classList.add("hidden");
   try {
     await login(
       document.getElementById("login-email").value.trim(),
       document.getElementById("login-password").value,
     );
   } catch (error) {
-    const msg = String(error.message || "");
-    els.gateError.textContent = msg.includes("invalid_credentials")
-      ? "Wrong email or password. Demo: @offercare.demo / SecretPass1"
-      : msg;
+    els.gateError.textContent = loginErrorMessage(error.message);
     els.gateError.classList.remove("hidden");
   }
 });
@@ -945,22 +1160,23 @@ els.refreshBtn?.addEventListener("click", () => refreshDashboard().catch((e) => 
 els.applyShiftFiltersBtn?.addEventListener("click", async () => {
   try {
     await refreshDashboard();
-    showToast(`Showing ${showAllOpenShifts ? "all open" : "matched"} shifts`);
+    showToast("Open shifts updated");
   } catch (error) {
     showToast(error.message, true);
   }
 });
-els.showAllShiftsToggle?.addEventListener("change", async (event) => {
-  showAllOpenShifts = Boolean(event.target.checked);
+els.lockableOnlyToggle?.addEventListener("change", async (event) => {
+  showLockableOnly = Boolean(event.target.checked);
   try {
     await refreshDashboard();
+    showToast(showLockableOnly ? "Showing lockable shifts only" : "Showing all open shifts");
   } catch (error) {
     showToast(error.message, true);
   }
 });
 els.downloadMatchedCalendarBtn?.addEventListener("click", async () => {
   try {
-    const filename = showAllOpenShifts ? "vettedcare-open-shifts.ics" : "vettedcare-matched-shifts.ics";
+    const filename = "vettedcare-open-shifts.ics";
     await downloadFile(buildShiftCalendarQuery(), filename);
     showToast("Shift calendar downloaded");
   } catch (error) {
@@ -983,6 +1199,14 @@ els.downloadScheduleCalendarBtn?.addEventListener("click", async () => {
     showToast(error.message, true);
   }
 });
+els.downloadUnifiedCalendarBtn?.addEventListener("click", async () => {
+  try {
+    await downloadFile("/api/clinicians/me/unified/calendar.ics", "vettedcare-full-calendar.ics");
+    showToast("Full calendar downloaded");
+  } catch (error) {
+    showToast(error.message, true);
+  }
+});
 els.enablePushBtn?.addEventListener("click", () => {
   enablePushAlerts().catch((error) => showToast(error.message, true));
 });
@@ -998,6 +1222,8 @@ els.installAppTopBtn?.addEventListener("click", () => {
 els.dismissInstallBtn?.addEventListener("click", () => hideInstallPrompt(true));
 els.logoutBtn?.addEventListener("click", () => {
   setToken("");
+  showLockableOnly = false;
+  if (els.lockableOnlyToggle) els.lockableOnlyToggle.checked = false;
   els.demoHintMismatchBanner?.classList.add("hidden");
   showGate();
   showToast("Signed out");

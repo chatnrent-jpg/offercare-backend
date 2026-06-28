@@ -1,4 +1,4 @@
-const CACHE_NAME = "vettedcare-portal-v1";
+const CACHE_NAME = "vettedcare-portal-v2";
 const SHELL_URLS = [
   "/portal/",
   "/portal/index.html",
