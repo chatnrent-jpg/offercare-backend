@@ -89,6 +89,30 @@ def list_clinician_schedule_events(
     return token, [_serialize_event_row(row) for row in rows]
 
 
+def resolve_provider_by_calendar_token(db: Session, token: str) -> MarylandProvider | None:
+    """Resolve clinician by license number (vault key) or provider UUID."""
+    raw = str(token or "").strip()
+    if not raw:
+        return None
+    try:
+        provider_uuid = UUID(raw)
+    except ValueError:
+        provider_uuid = None
+    if provider_uuid is not None:
+        row = (
+            db.query(MarylandProvider)
+            .filter(MarylandProvider.provider_id == provider_uuid)
+            .first()
+        )
+        if row is not None:
+            return row
+    return (
+        db.query(MarylandProvider)
+        .filter(MarylandProvider.md_license_number.ilike(raw))
+        .first()
+    )
+
+
 def create_clinician_schedule_block(
     db: Session,
     provider: MarylandProvider,
@@ -96,6 +120,7 @@ def create_clinician_schedule_block(
     event_type: str,
     start_time: datetime,
     end_time: datetime,
+    channel: str = "portal",
 ) -> dict[str, Any]:
     """Create blackout or soft preference — reject hard calendar conflicts."""
     token = str(event_type or "").strip().upper()
@@ -123,7 +148,7 @@ def create_clinician_schedule_block(
         event_type=token,
         start_time=start_time,
         end_time=end_time,
-        channel="portal",
+        channel=channel,
     )
     db.commit()
     return {
@@ -151,3 +176,38 @@ def delete_clinician_schedule_block(
     payload = writer.delete_self_service_event(provider=provider, event_id=event_id)
     db.commit()
     return UUID(str(payload["event_id"]))
+
+
+def ops_create_schedule_block(
+    db: Session,
+    *,
+    provider_token: str,
+    event_type: str,
+    start_time: datetime,
+    end_time: datetime,
+) -> dict[str, Any]:
+    """Ops console write — blackout or soft preference for a provider vault token."""
+    provider = resolve_provider_by_calendar_token(db, provider_token)
+    if provider is None:
+        raise ValueError("provider_not_found")
+    return create_clinician_schedule_block(
+        db,
+        provider,
+        event_type=event_type,
+        start_time=start_time,
+        end_time=end_time,
+        channel="ops_console",
+    )
+
+
+def ops_delete_schedule_block(
+    db: Session,
+    *,
+    provider_token: str,
+    event_id: UUID,
+) -> UUID:
+    """Ops console delete — self-service blocks only."""
+    provider = resolve_provider_by_calendar_token(db, provider_token)
+    if provider is None:
+        raise ValueError("provider_not_found")
+    return delete_clinician_schedule_block(db, provider, event_id=event_id)

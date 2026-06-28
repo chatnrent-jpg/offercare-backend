@@ -440,3 +440,34 @@ tr.shift-highlight td {
   background: rgba(37, 99, 235, 0.08);
   outline: 2px solid rgba(37, 99, 235, 0.35);
 }
+
+.fatigue-banner {
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: rgba(10, 16, 28, 0.65);
+}
+
+.fatigue-banner strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.fatigue-banner.fatigue-soft {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.fatigue-banner.fatigue-soft strong {
+  color: var(--warn);
+}
+
+.fatigue-banner.fatigue-hard {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.fatigue-banner.fatigue-hard strong {
+  color: var(--danger);
+}

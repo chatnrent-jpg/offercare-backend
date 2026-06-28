@@ -1,6 +1,8 @@
 const STORAGE_KEY = "vettedcare_clinician_token";
 const INSTALL_DISMISS_KEY = "vettedcare_install_dismissed";
 const PORTAL_VIEWS = ["overview", "shifts", "schedule", "placements"];
+const FATIGUE_SOFT_THRESHOLD = 2.5;
+const FATIGUE_HARD_THRESHOLD = 4.0;
 
 const els = {
   gate: document.getElementById("gate"),
@@ -44,6 +46,7 @@ const els = {
   blockForm: document.getElementById("block-form"),
   scheduleStats: document.getElementById("schedule-stats"),
   scheduleTable: document.getElementById("schedule-table"),
+  fatigueBanner: document.getElementById("fatigue-banner"),
 };
 
 let activePushEndpoint = null;
@@ -396,6 +399,28 @@ async function savePreferences(event) {
   } catch (error) {
     showToast(error.message, true);
   }
+}
+
+function renderFatigueBanner(provider) {
+  const el = els.fatigueBanner;
+  if (!el) return;
+  const score = Number(provider?.fatigue_score ?? 0);
+  if (score >= FATIGUE_HARD_THRESHOLD) {
+    el.className = "fatigue-banner fatigue-hard";
+    el.innerHTML = `<strong>Fatigue cap reached (${score.toFixed(2)})</strong>
+      <p class="muted">New shift locks may be blocked until you rest. Contact dispatch if urgent.</p>`;
+    el.classList.remove("hidden");
+    return;
+  }
+  if (score >= FATIGUE_SOFT_THRESHOLD) {
+    el.className = "fatigue-banner fatigue-soft";
+    el.innerHTML = `<strong>Elevated fatigue (${score.toFixed(2)})</strong>
+      <p class="muted">You can still accept shifts, but consider rest before taking more.</p>`;
+    el.classList.remove("hidden");
+    return;
+  }
+  el.classList.add("hidden");
+  el.innerHTML = "";
 }
 
 function renderStats(provider, placements, shifts) {
@@ -765,6 +790,7 @@ async function refreshDashboard() {
   populateShiftFilters(shiftFilters);
   const provider = application.provider;
   els.welcomeName.textContent = provider.full_name;
+  renderFatigueBanner(provider);
   renderPreferencesForm(preferences);
   renderStats(provider, placements, shifts);
   renderStatus(application, safety);

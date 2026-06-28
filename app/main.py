@@ -133,7 +133,7 @@ if ADMIN_STATIC_DIR.is_dir():
     app.mount("/admin", StaticFiles(directory=ADMIN_STATIC_DIR, html=True), name="admin")
 
 PORTAL_STATIC_DIR = Path(__file__).resolve().parent / "static" / "portal"
-PORTAL_BUILD_ID = "portal-rebuild-2026"
+PORTAL_BUILD_ID = "portal-step10-2026"
 
 
 def _portal_asset_headers() -> dict[str, str]:

@@ -555,6 +555,74 @@ def _fetch_provider_calendar_events_safe(
         return True, []
 
 
+def _ops_create_calendar_block_safe(
+    provider_token: str,
+    event_type: str,
+    start_time: datetime,
+    end_time: datetime,
+) -> tuple[bool, str, dict[str, Any] | None]:
+    """Ops vault write — add blackout or soft preference for a provider."""
+    token = str(provider_token or "").strip()
+    if not token:
+        return False, "Provider license or ID is required.", None
+    try:
+        from app.database import SessionLocal
+        from app.services.clinician_schedule import ops_create_schedule_block
+
+        db = SessionLocal()
+        try:
+            row = ops_create_schedule_block(
+                db,
+                provider_token=token,
+                event_type=event_type,
+                start_time=start_time,
+                end_time=end_time,
+            )
+        finally:
+            db.close()
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "schedule_conflict":
+            return False, "Schedule conflict — overlaps an existing commitment or blackout.", None
+        if detail == "provider_not_found":
+            return False, f"No provider found for `{token}`.", None
+        return False, detail.replace("_", " "), None
+    except Exception as exc:  # noqa: BLE001
+        return False, f"Calendar write failed: {exc}", None
+    return True, "Block added to provider time vault.", row
+
+
+def _ops_delete_calendar_block_safe(provider_token: str, event_id: str) -> tuple[bool, str]:
+    """Ops vault delete — remove self-service block by event id."""
+    token = str(provider_token or "").strip()
+    event_token = str(event_id or "").strip()
+    if not token or not event_token:
+        return False, "Provider and event id are required."
+    try:
+        from uuid import UUID
+
+        from app.database import SessionLocal
+        from app.services.clinician_schedule import ops_delete_schedule_block
+
+        db = SessionLocal()
+        try:
+            ops_delete_schedule_block(db, provider_token=token, event_id=UUID(event_token))
+        finally:
+            db.close()
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "provider_not_found":
+            return False, f"No provider found for `{token}`."
+        if detail == "event_not_found":
+            return False, "Calendar event not found for this provider."
+        if detail == "event_not_deletable":
+            return False, "Only blackout and soft-preference blocks can be removed here."
+        return False, detail.replace("_", " ")
+    except Exception as exc:  # noqa: BLE001
+        return False, f"Calendar delete failed: {exc}"
+    return True, "Block removed from provider time vault."
+
+
 def _sentinel_validate_semantic_query(query: str) -> tuple[bool, str, list[str]]:
     """Sentinel pre-flight — pgvector / natural-language intake guard."""
     token = str(query or "").strip()
@@ -1193,6 +1261,94 @@ def main() -> None:
                     _vault_m3.metric("Blackouts", _blackouts)
                     _vault_m4.metric("Soft Preferences", _soft_blocks)
                     st.dataframe(pd.DataFrame(_vault_events), use_container_width=True, hide_index=True)
+
+        st.markdown("##### Ops vault write")
+        st.caption("Add or remove blackout / soft-preference blocks for the provider above (UTC 24h).")
+        _ops_block_col1, _ops_block_col2 = st.columns(2)
+        with _ops_block_col1:
+            _ops_block_type = st.selectbox(
+                "Block type",
+                options=["BLACKOUT_UNAVAILABLE", "SOFT_BLOCK_PREFERENCE"],
+                key="ops_vault_block_type",
+            )
+            _ops_block_start_date = st.date_input(
+                "Block start date",
+                value=_calendar_start_date,
+                key="ops_vault_block_start_date",
+            )
+            _ops_block_start_time = st.time_input(
+                "Block start time (24h UTC)",
+                value=time(0, 0),
+                key="ops_vault_block_start_time",
+            )
+        with _ops_block_col2:
+            _ops_block_end_date = st.date_input(
+                "Block end date",
+                value=_calendar_end_date,
+                key="ops_vault_block_end_date",
+            )
+            _ops_block_end_time = st.time_input(
+                "Block end time (24h UTC)",
+                value=time(23, 59),
+                key="ops_vault_block_end_time",
+            )
+            if st.button("Add vault block", type="primary", key="ops_vault_add_block"):
+                _ops_start = datetime.combine(
+                    _ops_block_start_date,
+                    _ops_block_start_time,
+                    tzinfo=timezone.utc,
+                )
+                _ops_end = datetime.combine(
+                    _ops_block_end_date,
+                    _ops_block_end_time,
+                    tzinfo=timezone.utc,
+                )
+                if _ops_end <= _ops_start:
+                    st.error("Block end must be after block start.")
+                else:
+                    _ok, _msg, _ = _ops_create_calendar_block_safe(
+                        _provider_token,
+                        _ops_block_type,
+                        _ops_start,
+                        _ops_end,
+                    )
+                    if _ok:
+                        st.success(_msg)
+                        _pending, _events = _fetch_provider_calendar_events_safe(_provider_token)
+                        st.session_state["calendar_vault_pending"] = _pending
+                        st.session_state["calendar_vault_events"] = _events
+                        st.session_state["calendar_vault_provider"] = _provider_token
+                    else:
+                        st.error(_msg)
+
+        _deletable = [
+            row
+            for row in list(st.session_state.get("calendar_vault_events") or [])
+            if row.get("event_type") in {"BLACKOUT_UNAVAILABLE", "SOFT_BLOCK_PREFERENCE"}
+        ]
+        if _deletable:
+            _ops_delete_options = {
+                f"{row['event_type']} · {row['start_time']} → {row['end_time']}": row["event_id"]
+                for row in _deletable
+            }
+            _ops_delete_label = st.selectbox(
+                "Remove self-service block",
+                options=list(_ops_delete_options.keys()),
+                key="ops_vault_delete_select",
+            )
+            if st.button("Remove selected block", key="ops_vault_delete_block"):
+                _ok, _msg = _ops_delete_calendar_block_safe(
+                    _provider_token,
+                    _ops_delete_options.get(_ops_delete_label, ""),
+                )
+                if _ok:
+                    st.success(_msg)
+                    _pending, _events = _fetch_provider_calendar_events_safe(_provider_token)
+                    st.session_state["calendar_vault_pending"] = _pending
+                    st.session_state["calendar_vault_events"] = _events
+                    st.session_state["calendar_vault_provider"] = _provider_token
+                else:
+                    st.error(_msg)
 
         onboarding_col, payout_col = st.columns(2)
         default_semantic_query = (
