@@ -555,6 +555,27 @@ def _fetch_provider_calendar_events_safe(
         return True, []
 
 
+def _fetch_provider_fatigue_safe(provider_id: str) -> tuple[float | None, str | None]:
+    """Resolve clinician fatigue score for ops vault context."""
+    token = str(provider_id or "").strip()
+    if not token:
+        return None, None
+    try:
+        from app.database import SessionLocal
+        from app.services.clinician_schedule import resolve_provider_by_calendar_token
+
+        db = SessionLocal()
+        try:
+            provider = resolve_provider_by_calendar_token(db, token)
+            if provider is None:
+                return None, None
+            return float(provider.fatigue_score or 0), str(provider.full_name or "")
+        finally:
+            db.close()
+    except Exception:
+        return None, None
+
+
 def _ops_create_calendar_block_safe(
     provider_token: str,
     event_type: str,
@@ -1232,11 +1253,26 @@ def main() -> None:
         _provider_token = str(_calendar_provider_id or "").strip().upper()
         if _load_vault:
             _vault_pending, _vault_events = _fetch_provider_calendar_events_safe(_provider_token)
+            _fatigue_score, _fatigue_name = _fetch_provider_fatigue_safe(_provider_token)
             st.session_state["calendar_vault_pending"] = _vault_pending
             st.session_state["calendar_vault_events"] = _vault_events
             st.session_state["calendar_vault_provider"] = _provider_token
+            st.session_state["calendar_vault_fatigue"] = _fatigue_score
+            st.session_state["calendar_vault_provider_name"] = _fatigue_name
 
         if st.session_state.get("calendar_vault_provider") == _provider_token and "calendar_vault_events" in st.session_state:
+            _fatigue_score = st.session_state.get("calendar_vault_fatigue")
+            _fatigue_name = st.session_state.get("calendar_vault_provider_name")
+            if _fatigue_score is not None:
+                _fatigue_col1, _fatigue_col2, _fatigue_col3 = st.columns(3)
+                _fatigue_col1.metric("Clinician", _fatigue_name or _provider_token)
+                _fatigue_col2.metric("Fatigue score", f"{float(_fatigue_score):.2f}")
+                if float(_fatigue_score) >= 4.0:
+                    _fatigue_col3.error("Fatigue cap — hard block")
+                elif float(_fatigue_score) >= 2.5:
+                    _fatigue_col3.warning("Fatigue elevated")
+                else:
+                    _fatigue_col3.success("Fatigue clear")
             if st.session_state.get("calendar_vault_pending"):
                 st.info(
                     "ℹ️ Calendar table migration pending. Simulation engine running in localized cleanroom mode."

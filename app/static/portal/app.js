@@ -33,6 +33,7 @@ const els = {
   downloadMatchedCalendarBtn: document.getElementById("download-matched-calendar-btn"),
   showAllShiftsToggle: document.getElementById("show-all-shifts-toggle"),
   downloadPlacementsCalendarBtn: document.getElementById("download-placements-calendar-btn"),
+  downloadScheduleCalendarBtn: document.getElementById("download-schedule-calendar-btn"),
   enablePushBtn: document.getElementById("enable-push-btn"),
   disablePushBtn: document.getElementById("disable-push-btn"),
   pushStatus: document.getElementById("push-status"),
@@ -43,6 +44,7 @@ const els = {
   toast: document.getElementById("toast"),
   demoHintBanner: document.getElementById("demo-hint-banner"),
   demoHintMismatchBanner: document.getElementById("demo-hint-mismatch-banner"),
+  dashboardAlert: document.getElementById("dashboard-alert"),
   blockForm: document.getElementById("block-form"),
   scheduleStats: document.getElementById("schedule-stats"),
   scheduleTable: document.getElementById("schedule-table"),
@@ -262,11 +264,13 @@ function initPortalSectionNav() {
 function renderPushStatus(subscriptions) {
   const enabled = subscriptions.length > 0;
   activePushEndpoint = enabled ? subscriptions[0].endpoint : null;
-  els.enablePushBtn.classList.toggle("hidden", enabled);
-  els.disablePushBtn.classList.toggle("hidden", !enabled);
-  els.pushStatus.textContent = enabled
-    ? `${subscriptions.length} device${subscriptions.length === 1 ? "" : "s"} subscribed`
-    : "Push alerts not enabled on this device";
+  els.enablePushBtn?.classList.toggle("hidden", enabled);
+  els.disablePushBtn?.classList.toggle("hidden", !enabled);
+  if (els.pushStatus) {
+    els.pushStatus.textContent = enabled
+      ? `${subscriptions.length} device${subscriptions.length === 1 ? "" : "s"} subscribed`
+      : "Push alerts not enabled on this device";
+  }
 }
 
 async function refreshPushStatus() {
@@ -326,14 +330,27 @@ async function disablePushAlerts() {
   showToast("Push alerts disabled");
 }
 
+function showDashboardAlert(message, isError = true) {
+  const el = els.dashboardAlert;
+  if (!el) return;
+  if (!message) {
+    el.classList.add("hidden");
+    el.textContent = "";
+    return;
+  }
+  el.textContent = message;
+  el.classList.toggle("error", isError);
+  el.classList.remove("hidden");
+}
+
 function showGate() {
-  els.gate.classList.remove("hidden");
-  els.app.classList.add("hidden");
+  els.gate?.classList.remove("hidden");
+  els.app?.classList.add("hidden");
 }
 
 function showApp() {
-  els.gate.classList.add("hidden");
-  els.app.classList.remove("hidden");
+  els.gate?.classList.add("hidden");
+  els.app?.classList.remove("hidden");
 }
 
 function setAuthTab(mode) {
@@ -777,8 +794,16 @@ function focusOfferFromAlert(offerId) {
 }
 
 async function refreshDashboard() {
-  const [application, placements, shiftFilters, shifts, preferences, safety, schedule] = await Promise.all([
-    api("/api/clinicians/me/application"),
+  showDashboardAlert("");
+  let application;
+  try {
+    application = await api("/api/clinicians/me/application");
+  } catch (error) {
+    showDashboardAlert(`Could not load your profile: ${error.message}`);
+    throw error;
+  }
+
+  const [placements, shiftFilters, shifts, preferences, safety, schedule] = await Promise.all([
     api("/api/clinicians/me/placements").catch(() => []),
     api("/api/shifts/filters").catch(() => ({})),
     loadShifts().catch(() => []),
@@ -789,7 +814,7 @@ async function refreshDashboard() {
 
   populateShiftFilters(shiftFilters);
   const provider = application.provider;
-  els.welcomeName.textContent = provider.full_name;
+  if (els.welcomeName) els.welcomeName.textContent = provider.full_name || "Welcome";
   renderFatigueBanner(provider);
   renderPreferencesForm(preferences);
   renderStats(provider, placements, shifts);
@@ -797,9 +822,9 @@ async function refreshDashboard() {
   renderShifts(shifts);
   renderPlacements(placements);
   renderSchedule(schedule);
-  await refreshPushStatus();
+  await refreshPushStatus().catch(() => {});
 
-  const clinicianMatchesDemoOffer = await refreshDemoHintMismatch(provider);
+  const clinicianMatchesDemoOffer = await refreshDemoHintMismatch(provider).catch(() => true);
   if (clinicianMatchesDemoOffer) {
     focusOfferFromAlert(getOfferIdFromQuery());
   }
@@ -813,8 +838,13 @@ async function login(email, password) {
   setToken(data.access_token);
   showApp();
   setPortalView("overview");
-  await refreshDashboard();
-  showToast("Signed in");
+  try {
+    await refreshDashboard();
+    showToast("Signed in");
+  } catch (error) {
+    showDashboardAlert(`Signed in, but dashboard data failed to load: ${error.message}`);
+    showToast(error.message, true);
+  }
 }
 
 async function apply(formData) {
@@ -835,27 +865,39 @@ async function apply(formData) {
   }
 }
 
+async function purgeStalePortalCache() {
+  if ("serviceWorker" in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map((r) => r.unregister()));
+  }
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((k) => caches.delete(k)));
+  }
+}
+
 async function bootstrap() {
+  await purgeStalePortalCache();
   initPortalSectionNav();
   await registerPortalServiceWorker();
   initApplyForm().catch(() => {});
   await loadDemoHint();
   if (!getToken()) return;
+  showApp();
+  setPortalView("overview");
   try {
-    showApp();
     await refreshDashboard();
   } catch {
-    setToken("");
-    showGate();
+    showDashboardAlert("Session restored but dashboard could not load. Tap Refresh or sign out and back in.");
   }
 }
 
-els.tabLogin.addEventListener("click", () => setAuthTab("login"));
-els.tabApply.addEventListener("click", () => setAuthTab("apply"));
+els.tabLogin?.addEventListener("click", () => setAuthTab("login"));
+els.tabApply?.addEventListener("click", () => setAuthTab("apply"));
 document.getElementById("apply-state")?.addEventListener("change", refreshApplyCredentialOptions);
 document.getElementById("apply-credential")?.addEventListener("change", refreshNpiField);
 
-els.loginForm.addEventListener("submit", async (event) => {
+els.loginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   els.gateError.classList.add("hidden");
   try {
@@ -872,7 +914,7 @@ els.loginForm.addEventListener("submit", async (event) => {
   }
 });
 
-els.applyForm.addEventListener("submit", async (event) => {
+els.applyForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   els.gateError.classList.add("hidden");
   try {
@@ -899,7 +941,7 @@ els.preferencesForm?.addEventListener("submit", (event) => {
 els.blockForm?.addEventListener("submit", (event) => {
   addScheduleBlock(event).catch((error) => showToast(error.message, true));
 });
-els.refreshBtn.addEventListener("click", () => refreshDashboard().catch((e) => showToast(e.message, true)));
+els.refreshBtn?.addEventListener("click", () => refreshDashboard().catch((e) => showToast(e.message, true)));
 els.applyShiftFiltersBtn?.addEventListener("click", async () => {
   try {
     await refreshDashboard();
@@ -933,6 +975,14 @@ els.downloadPlacementsCalendarBtn?.addEventListener("click", async () => {
     showToast(error.message, true);
   }
 });
+els.downloadScheduleCalendarBtn?.addEventListener("click", async () => {
+  try {
+    await downloadFile("/api/clinicians/me/schedule/calendar.ics", "vettedcare-schedule.ics");
+    showToast("Schedule calendar downloaded");
+  } catch (error) {
+    showToast(error.message, true);
+  }
+});
 els.enablePushBtn?.addEventListener("click", () => {
   enablePushAlerts().catch((error) => showToast(error.message, true));
 });
@@ -946,7 +996,7 @@ els.installAppTopBtn?.addEventListener("click", () => {
   installPortalApp().catch((error) => showToast(error.message, true));
 });
 els.dismissInstallBtn?.addEventListener("click", () => hideInstallPrompt(true));
-els.logoutBtn.addEventListener("click", () => {
+els.logoutBtn?.addEventListener("click", () => {
   setToken("");
   els.demoHintMismatchBanner?.classList.add("hidden");
   showGate();

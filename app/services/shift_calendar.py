@@ -158,3 +158,51 @@ def placement_calendar_filename(provider_id: UUID) -> str:
 def open_shifts_calendar_filename(*, prefix: str = "offercare-open-shifts") -> str:
     token = prefix if prefix.endswith(".ics") else f"{prefix}.ics"
     return token
+
+
+def schedule_events_to_ics(rows: list[dict[str, Any]], *, calendar_token: str = "clinician") -> str:
+    events: list[str] = []
+    for row in rows:
+        event_id = row.get("event_id") or row.get("id")
+        event_type = str(row.get("event_type") or "EVENT").upper()
+        start = _as_utc(row.get("start_time"))
+        end = _as_utc(row.get("end_time"))
+        facility = str(row.get("facility_name") or "").strip()
+        role = str(row.get("shift_role") or "").strip()
+
+        if event_type == "SHIFT_COMMITMENT":
+            summary = f"{role or 'Shift'} @ {facility or 'Facility'}"
+            description = "Locked shift commitment on VettedCare.ai"
+            status = "CONFIRMED"
+        elif event_type == "BLACKOUT_UNAVAILABLE":
+            summary = "Blackout — not available"
+            description = "Clinician blackout block"
+            status = "CONFIRMED"
+        elif event_type == "SOFT_BLOCK_PREFERENCE":
+            summary = "Soft preference block"
+            description = "Clinician soft scheduling preference"
+            status = "TENTATIVE"
+        else:
+            summary = event_type.replace("_", " ").title()
+            description = event_type
+            status = "TENTATIVE"
+
+        location = facility or "VettedCare.ai"
+        events.append(
+            build_calendar_event(
+                uid=f"schedule-{event_id}@offercare.ai",
+                summary=summary,
+                description=description,
+                location=location,
+                dtstart=start,
+                dtend=end,
+                status=status,
+            )
+        )
+    safe_token = str(calendar_token or "clinician").replace(" ", "-")[:32]
+    return build_ics_calendar(calendar_name=f"VettedCare.ai Schedule ({safe_token})", events=events)
+
+
+def schedule_calendar_filename(calendar_token: str) -> str:
+    safe = str(calendar_token or "clinician").replace(" ", "-")[:32]
+    return f"offercare-schedule-{safe}.ics"

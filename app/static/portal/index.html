@@ -14,9 +14,9 @@
   <link rel="manifest" href="/portal/manifest.webmanifest" />
   <link rel="icon" href="/portal/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/portal/icon.svg" />
-  <link rel="stylesheet" href="/portal/styles.css?v=portal-step10-2026" />
+  <link rel="stylesheet" href="/portal/styles.css?v=portal-step11-2026" />
 </head>
-<body data-portal-build="portal-step10-2026">
+<body data-portal-build="portal-step11-2026">
   <div id="install-banner" class="install-banner hidden" role="region" aria-label="Install app">
     <div>
       <strong>Install VettedCare</strong>
@@ -95,6 +95,7 @@
     </header>
 
     <div id="demo-hint-mismatch-banner" class="demo-hint-mismatch-banner hidden" role="alert" aria-live="assertive"></div>
+    <div id="dashboard-alert" class="dashboard-alert hidden" role="alert"></div>
 
     <nav id="portal-section-nav" class="section-nav" aria-label="Portal sections">
       <button type="button" class="section-tab active" data-view="overview">Overview</button>
@@ -191,6 +192,9 @@
           <h2>My schedule</h2>
           <p class="muted">Locked shifts, blackouts, and preference blocks. Times are UTC.</p>
         </div>
+        <div class="actions-row">
+          <button id="download-schedule-calendar-btn" class="btn ghost" type="button">Download my schedule (.ics)</button>
+        </div>
         <form id="block-form" class="auth-form schedule-form">
           <label for="block-type">Block type</label>
           <select id="block-type" required>
@@ -223,6 +227,6 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-  <script src="/portal/app.js?v=portal-step10-2026"></script>
+  <script src="/portal/app.js?v=portal-step11-2026"></script>
 </body>
 </html>

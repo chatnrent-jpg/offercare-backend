@@ -50,7 +50,7 @@ from app.services.push_subscriptions import (
     register_push_subscription,
     unregister_push_subscription,
 )
-from app.services.shift_calendar import placement_calendar_filename, placements_to_ics
+from app.services.shift_calendar import placement_calendar_filename, placements_to_ics, schedule_calendar_filename, schedule_events_to_ics
 from app.services.shift_matching import list_matched_shifts_for_provider
 from app.services.shift_lock import lock_shift_for_provider
 from app.services.vms_submission import list_clinician_placements
@@ -291,6 +291,28 @@ def clinician_schedule(
         calendar_token=calendar_token,
         total=len(events),
         events=events,
+    )
+
+
+@router.get("/me/schedule/calendar.ics")
+def clinician_schedule_calendar(
+    limit: int = 100,
+    upcoming_only: bool = True,
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    calendar_token, rows = list_clinician_schedule_events(
+        db,
+        current,
+        limit=limit,
+        upcoming_only=upcoming_only,
+    )
+    content = schedule_events_to_ics(rows, calendar_token=calendar_token)
+    filename = schedule_calendar_filename(calendar_token)
+    return Response(
+        content=content,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
