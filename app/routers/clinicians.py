@@ -15,6 +15,10 @@ from app.schemas import (
     ClinicianLoginRequest,
     ClinicianLoginResponse,
     ClinicianPlacementOut,
+    ClinicianScheduleEventOut,
+    ClinicianScheduleResponse,
+    ClinicianScheduleBlockCreate,
+    ClinicianScheduleBlockDeleteResponse,
     ClinicianPreferencesOut,
     ClinicianPreferencesUpdateRequest,
     ClinicianSafetyStatusResponse,
@@ -29,6 +33,11 @@ from app.schemas import (
     ShiftLockResponse,
 )
 from app.services.clinician_auth import authenticate_clinician, get_clinician_application_status
+from app.services.clinician_schedule import (
+    create_clinician_schedule_block,
+    delete_clinician_schedule_block,
+    list_clinician_schedule_events,
+)
 from app.services.clinician_preferences import clinician_preferences_snapshot, update_clinician_preferences
 from app.services.license_verification import (
     list_pending_clinicians,
@@ -261,6 +270,66 @@ def clinician_placement_calendar(
         media_type="text/calendar; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/me/schedule", response_model=ClinicianScheduleResponse)
+def clinician_schedule(
+    limit: int = 50,
+    upcoming_only: bool = True,
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    calendar_token, rows = list_clinician_schedule_events(
+        db,
+        current,
+        limit=limit,
+        upcoming_only=upcoming_only,
+    )
+    events = [ClinicianScheduleEventOut.model_validate(row) for row in rows]
+    return ClinicianScheduleResponse(
+        provider_id=current.provider_id,
+        calendar_token=calendar_token,
+        total=len(events),
+        events=events,
+    )
+
+
+@router.post("/me/schedule/blocks", response_model=ClinicianScheduleEventOut)
+def clinician_create_schedule_block(
+    payload: ClinicianScheduleBlockCreate,
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    try:
+        row = create_clinician_schedule_block(
+            db,
+            current,
+            event_type=payload.event_type,
+            start_time=payload.start_time,
+            end_time=payload.end_time,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "schedule_conflict":
+            raise HTTPException(status_code=409, detail=detail) from exc
+        raise HTTPException(status_code=400, detail=detail) from exc
+    return ClinicianScheduleEventOut.model_validate(row)
+
+
+@router.delete("/me/schedule/blocks/{event_id}", response_model=ClinicianScheduleBlockDeleteResponse)
+def clinician_delete_schedule_block(
+    event_id: UUID,
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    try:
+        deleted_id = delete_clinician_schedule_block(db, current, event_id=event_id)
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "event_not_found":
+            raise HTTPException(status_code=404, detail=detail) from exc
+        raise HTTPException(status_code=403, detail=detail) from exc
+    return ClinicianScheduleBlockDeleteResponse(event_id=deleted_id)
 
 
 @router.get("/me/push/config", response_model=PushConfigResponse)

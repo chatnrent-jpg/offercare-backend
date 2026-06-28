@@ -143,6 +143,62 @@ select {
   padding: 1rem 1rem 1.5rem;
 }
 
+.section-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(17, 24, 39, 0.94);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.section-tab {
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 0.65rem 0.5rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.section-tab.active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(37, 99, 235, 0.15);
+}
+
+.schedule-form {
+  max-width: 28rem;
+  margin-bottom: 1rem;
+}
+
+.schedule-stats {
+  margin-bottom: 0.75rem;
+}
+
+.schedule-form select,
+.schedule-form input[type="datetime-local"] {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: #0a101c;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.actions-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -314,6 +370,10 @@ th, td {
 
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-nav {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .shift-filters label {

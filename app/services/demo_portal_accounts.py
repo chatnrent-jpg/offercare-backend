@@ -1,7 +1,8 @@
-"""Ensure @offercare.demo clinicians can sign in at /portal."""
+"""Ensure demo and local test clinicians can sign in at /portal."""
 
 from __future__ import annotations
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.auth import hash_password
@@ -10,6 +11,22 @@ from app.services.clinician_auth import create_portal_account
 
 DEMO_PORTAL_PASSWORD = "SecretPass1"
 
+_PORTAL_EMAIL_SUFFIXES = (
+    "%@offercare.demo",
+    "%@vettedcare.slice",
+)
+
+
+def _portal_eligible_providers(db: Session) -> list[MarylandProvider]:
+    return (
+        db.query(MarylandProvider)
+        .filter(
+            or_(*[MarylandProvider.email.like(suffix) for suffix in _PORTAL_EMAIL_SUFFIXES])
+        )
+        .order_by(MarylandProvider.email.asc())
+        .all()
+    )
+
 
 def ensure_demo_portal_accounts(
     db: Session,
@@ -17,12 +34,7 @@ def ensure_demo_portal_accounts(
     password: str = DEMO_PORTAL_PASSWORD,
     commit: bool = True,
 ) -> dict:
-    providers = (
-        db.query(MarylandProvider)
-        .filter(MarylandProvider.email.like("%@offercare.demo"))
-        .order_by(MarylandProvider.email.asc())
-        .all()
-    )
+    providers = _portal_eligible_providers(db)
     created = 0
     updated = 0
     password_hash = hash_password(password)

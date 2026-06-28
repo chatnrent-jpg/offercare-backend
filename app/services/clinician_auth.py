@@ -43,9 +43,10 @@ def create_portal_account(
 
 
 def authenticate_clinician(db: Session, *, email: str, password: str) -> MarylandProvider:
+    normalized_email = str(email).strip().lower()
     provider = (
         db.query(MarylandProvider)
-        .filter(MarylandProvider.email == str(email).strip().lower())
+        .filter(MarylandProvider.email.ilike(normalized_email))
         .first()
     )
     if provider is None:

@@ -620,6 +620,35 @@ class ClinicianPlacementOut(BaseModel):
     outbound_payload_timestamp: datetime | None = None
 
 
+class ClinicianScheduleEventOut(BaseModel):
+    event_id: UUID
+    event_type: str
+    shift_id: str | None = None
+    start_time: datetime
+    end_time: datetime
+    facility_name: str | None = None
+    shift_role: str | None = None
+    created_at: datetime | None = None
+
+
+class ClinicianScheduleResponse(BaseModel):
+    provider_id: UUID
+    calendar_token: str
+    total: int
+    events: list[ClinicianScheduleEventOut]
+
+
+class ClinicianScheduleBlockCreate(BaseModel):
+    event_type: str = Field(min_length=1, max_length=64)
+    start_time: datetime
+    end_time: datetime
+
+
+class ClinicianScheduleBlockDeleteResponse(BaseModel):
+    ok: bool = True
+    event_id: UUID
+
+
 class VmsSubmitResponse(BaseModel):
     placement_id: UUID
     status: str

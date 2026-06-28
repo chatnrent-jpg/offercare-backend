@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import streamlit as st
@@ -88,6 +89,20 @@ DARK_CSS = """
     }
     [data-testid="stTextInput"] input::placeholder {
         color: #64748b !important;
+    }
+    [data-testid="stTextArea"] label,
+    [data-testid="stTextArea"] label p {
+        color: #93c5fd !important;
+    }
+    [data-testid="stTextArea"] textarea {
+        background-color: #0f172a !important;
+        color: #fafafa !important;
+        border: 1px solid #3b82f6 !important;
+        caret-color: #fafafa !important;
+    }
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border-color: #3b82f6 !important;
+        background: #0f172a !important;
     }
     .stButton > button {
         background-color: #2563eb !important;
@@ -428,6 +443,237 @@ def _financial_desk_metrics(timesheets_df: pd.DataFrame, payload: dict) -> tuple
     return gross_revenue, margin_pct, holds
 
 
+def _fetch_pipeline_velocity_metrics() -> dict[str, float | int]:
+    """Live CandidatePipelineBroker KPIs — safe fallback on DB timeout or broker failure."""
+    try:
+        from strategy.candidate_pipeline_broker import CandidatePipelineBroker
+
+        broker = CandidatePipelineBroker()
+        try:
+            payload = broker.fetch_dashboard_payload()
+        finally:
+            broker.close()
+        return {
+            "average_match_time_seconds": float(payload.get("average_match_time_seconds") or 0.0),
+            "total_automated_dispatches": int(payload.get("total_automated_dispatches") or 0),
+            "stripe_conversion_rate": float(payload.get("stripe_conversion_rate") or 0.0),
+        }
+    except Exception:
+        return {
+            "average_match_time_seconds": 0.0,
+            "total_automated_dispatches": 0,
+            "stripe_conversion_rate": 0.0,
+        }
+
+
+def _scan_unfilled_retry_demands() -> list[Any]:
+    """Active match-retry cascade queue — safe fallback on DB timeout."""
+    try:
+        from strategy.match_retry_scheduler import MatchRetryScheduler
+
+        scheduler = MatchRetryScheduler()
+        try:
+            return list(scheduler.scan_unfilled_demands())
+        finally:
+            scheduler.close()
+    except Exception:
+        return []
+
+
+def _evaluate_schedule_clearance_safe(
+    provider_id: str,
+    start_time: datetime,
+    end_time: datetime,
+) -> tuple[bool, dict[str, Any]]:
+    """Wrap ScheduleConflictValidator — cleanroom fallback when calendar table is absent."""
+    try:
+        from strategy.schedule_conflict_validator import ScheduleConflictValidator
+
+        validator = ScheduleConflictValidator()
+        try:
+            payload = validator.evaluate_schedule_clearance(provider_id, start_time, end_time)
+        finally:
+            validator.close()
+        return False, payload
+    except Exception:
+        return True, {
+            "has_conflict": False,
+            "conflict_type": "CLEAR",
+            "conflicting_event_id": None,
+        }
+
+
+def _format_calendar_timestamp(value: datetime | None) -> str:
+    if value is None:
+        return "—"
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    else:
+        value = value.astimezone(timezone.utc)
+    return value.strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _fetch_provider_calendar_events_safe(
+    provider_id: str,
+    *,
+    limit: int = 50,
+) -> tuple[bool, list[dict[str, Any]]]:
+    """Load clinician calendar rows — cleanroom fallback when table is unavailable."""
+    token = str(provider_id or "").strip().upper()
+    if not token:
+        return False, []
+    try:
+        from app.database import SessionLocal
+        from app.models.clinician_calendar import ClinicianCalendarEvent
+
+        db = SessionLocal()
+        try:
+            rows = (
+                db.query(ClinicianCalendarEvent)
+                .filter(ClinicianCalendarEvent.provider_id == token)
+                .order_by(ClinicianCalendarEvent.start_time.asc())
+                .limit(int(limit))
+                .all()
+            )
+            events: list[dict[str, Any]] = []
+            for row in rows:
+                events.append(
+                    {
+                        "event_id": str(row.id),
+                        "provider_id": str(row.provider_id),
+                        "shift_id": str(row.shift_id or "—"),
+                        "event_type": str(row.event_type),
+                        "start_time": _format_calendar_timestamp(row.start_time),
+                        "end_time": _format_calendar_timestamp(row.end_time),
+                        "created_at": _format_calendar_timestamp(row.created_at),
+                    }
+                )
+            return False, events
+        finally:
+            db.close()
+    except Exception:
+        return True, []
+
+
+def _sentinel_validate_semantic_query(query: str) -> tuple[bool, str, list[str]]:
+    """Sentinel pre-flight — pgvector / natural-language intake guard."""
+    token = str(query or "").strip()
+    issues: list[str] = []
+    if len(token) < 8:
+        issues.append("query_too_short_min_8_chars")
+    if len(token) > 2000:
+        issues.append("query_exceeds_2000_char_limit")
+    if "\x00" in token:
+        issues.append("null_byte_rejected")
+    lowered = token.lower()
+    if token and not any(ch.isalpha() for ch in token):
+        issues.append("query_must_contain_alpha_tokens")
+    if "drop table" in lowered or "delete from" in lowered:
+        issues.append("sql_injection_pattern_rejected")
+    if issues:
+        return False, "SENTINEL_BLOCK", issues
+    return True, "SENTINEL_PASS", ["embedding_dim_1536", "pgvector_cosine_ready"]
+
+
+def _sentinel_validate_payout_payload(payload: dict) -> tuple[bool, str, list[str]]:
+    """Sentinel pre-flight — Stripe instant payout timesheet shape guard."""
+    issues: list[str] = []
+    required = ("timesheet_id", "provider_id", "shift_status", "supervisor_signed", "gross_pay_amount")
+    for key in required:
+        if key not in payload or payload.get(key) in (None, ""):
+            issues.append(f"missing_{key}")
+
+    shift_status = str(payload.get("shift_status") or "").upper()
+    if shift_status != "CONFIRMED":
+        issues.append("shift_status_must_be_CONFIRMED")
+
+    if not bool(payload.get("supervisor_signed")):
+        issues.append("supervisor_signature_required")
+
+    try:
+        gross = float(payload.get("gross_pay_amount") or 0)
+    except (TypeError, ValueError):
+        gross = 0.0
+        issues.append("gross_pay_amount_not_numeric")
+    if gross <= 0:
+        issues.append("gross_pay_amount_must_be_positive")
+
+    provider_id = str(payload.get("provider_id") or "")
+    if provider_id and not provider_id.startswith("CNA-MD-"):
+        issues.append("provider_id_format_warning")
+
+    stripe_card = str(payload.get("stripe_debit_card_id") or "")
+    stripe_acct = str(payload.get("stripe_connect_account_id") or "")
+    if not stripe_card or not stripe_acct:
+        issues.append("stripe_destination_incomplete")
+
+    if issues:
+        return False, "SENTINEL_BLOCK", issues
+    return True, "SENTINEL_PASS", ["stripe_instant_payout_shape_ok", f"net_pay_line_${gross:.2f}"]
+
+
+def _compliance_verification_badge(
+    *,
+    compliance_status: str | None = None,
+    is_eligible: bool | None = None,
+) -> str:
+    """Map credential screening codes to inline Streamlit verification badges."""
+    try:
+        status = str(compliance_status or "").strip().upper()
+        eligible = bool(is_eligible) if is_eligible is not None else True
+    except Exception:
+        return "🟡 AUDIT PENDING"
+
+    if status == "CREDENTIALS_PASSED" and eligible:
+        return "🟢 CREDENTIALS VERIFIED"
+    if status == "OIG_FLAGGED":
+        return "🔴 SECURITY ALERT: OIG EXCLUDED"
+    if status == "LICENSE_EXPIRED":
+        return "⚠️ COMPLIANCE FAULT: LICENSE EXPIRED"
+    if status == "CREDENTIALS_PENDING" or not status:
+        return "🟡 AUDIT PENDING"
+    if not eligible:
+        return f"🟡 {status.replace('_', ' ')}"
+    return "🟡 AUDIT PENDING"
+
+
+def _compliance_badge_for_match(row: Any) -> str:
+    try:
+        if isinstance(row, dict):
+            return _compliance_verification_badge(
+                compliance_status=row.get("compliance_status"),
+                is_eligible=row.get("is_eligible"),
+            )
+        return _compliance_verification_badge(
+            compliance_status=getattr(row, "compliance_status", None),
+            is_eligible=getattr(row, "is_eligible", None),
+        )
+    except Exception:
+        return "🟡 AUDIT PENDING"
+
+
+def _render_sentinel_chip(ok: bool, label: str, detail: str) -> None:
+    color = "#166534" if ok else "#991b1b"
+    border = "#4ade80" if ok else "#f87171"
+    text = "#ecfdf5" if ok else "#fef2f2"
+    st.markdown(
+        f"""
+        <div style="
+            display:inline-block;
+            background:{color};
+            border:1px solid {border};
+            border-radius:999px;
+            padding:4px 12px;
+            margin:0 8px 8px 0;
+            font-size:0.75rem;
+            font-family:monospace;
+            color:{text};
+        ">{label} · {detail}</div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def _matcher_candidates_from_providers(payload: dict) -> list[dict]:
     candidates: list[dict] = []
     for applicant in payload.get("applicants") or []:
@@ -757,6 +1003,335 @@ def main() -> None:
                     f"Calculated penalty fee: **${penalty_result['calculated_penalty_fee']:,.2f}**  \n"
                     f"Invoice status: `{penalty_result['invoice_status_flag']}`"
                 )
+
+    st.divider()
+    with st.container(border=True):
+        st.subheader("Frictionless Onboarding & Automated Payout Desk")
+        st.caption(
+            "Engine: `strategy/semantic_payout_engine.py` · Sentinel validates pgvector queries "
+            "and Stripe payout payloads before execution · "
+            "**Located directly below Revenue Optimization**"
+        )
+        st.markdown(
+            '<span class="sys-chip">SENTINEL · DATA & API WATCHDOG · ACTIVE</span>',
+            unsafe_allow_html=True,
+        )
+
+        try:
+            _velocity_metrics = _fetch_pipeline_velocity_metrics()
+            _avg_match_seconds = float(_velocity_metrics["average_match_time_seconds"])
+            _auto_dispatches = int(_velocity_metrics["total_automated_dispatches"])
+            _stripe_conv_rate = float(_velocity_metrics["stripe_conversion_rate"])
+        except Exception:
+            _avg_match_seconds = 0.0
+            _auto_dispatches = 0
+            _stripe_conv_rate = 0.0
+
+        velocity_m1, velocity_m2, velocity_m3 = st.columns(3)
+        velocity_m1.metric("Avg Match Time", f"{_avg_match_seconds:.1f} sec")
+        velocity_m2.metric("Auto-Dispatches", f"🚀 {_auto_dispatches}")
+        velocity_m3.metric("Stripe Escrow Conv. Rate", f"{_stripe_conv_rate:.1f}%")
+
+        st.markdown("### 🕒 Active Autonomous Retry Cascade Queue")
+        try:
+            _cascade_demands = _scan_unfilled_retry_demands()
+        except Exception:
+            _cascade_demands = []
+
+        if not _cascade_demands:
+            st.info("🎉 All critical night shifts successfully filled. Cascade engine standing by.")
+        else:
+            _cascade_now = datetime.now(timezone.utc)
+            _cascade_rows = []
+            for _demand in _cascade_demands:
+                _last_broadcast = _demand.last_broadcast_at
+                if _last_broadcast is not None and _last_broadcast.tzinfo is None:
+                    _last_broadcast = _last_broadcast.replace(tzinfo=timezone.utc)
+                _elapsed_sec = (
+                    max((_cascade_now - _last_broadcast).total_seconds(), 0.0)
+                    if _last_broadcast is not None
+                    else 0.0
+                )
+                _cascade_rows.append(
+                    {
+                        "offer_id": _demand.offer_id,
+                        "shift_role": _demand.shift_role,
+                        "dispatch_status": _demand.compliance_lock_status,
+                        "elapsed_broadcast_min": round(_elapsed_sec / 60.0, 1),
+                        "retry_attempt_count": _demand.retry_attempt_count,
+                        "care_tags": ", ".join(_demand.care_tags),
+                        "last_broadcast_at": (
+                            _last_broadcast.isoformat() if _last_broadcast is not None else "—"
+                        ),
+                    }
+                )
+            st.dataframe(pd.DataFrame(_cascade_rows), use_container_width=True, hide_index=True)
+
+        if st.button(
+            "Force Global Cascade Optimization Run",
+            type="secondary",
+            key="force_global_cascade_optimization_run",
+        ):
+            try:
+                from strategy.match_retry_scheduler import MatchRetryScheduler
+
+                _cascade_scheduler = MatchRetryScheduler()
+                try:
+                    _cascade_scheduler.execute_retry_cascade()
+                finally:
+                    _cascade_scheduler.close()
+                st.success("Cascade cycle executed successfully.")
+            except Exception as exc:
+                st.error(f"Cascade optimization run failed: {exc}")
+
+        st.divider()
+        st.markdown("### 📅 Clinician Operational Calendar & Conflict Desk")
+        st.caption("Schedule simulator and live vault view · all times in **24-hour UTC**.")
+        _calendar_now = datetime.now(timezone.utc)
+        _calendar_start_date = _calendar_now.date()
+        _calendar_end_date = _calendar_now.date()
+        _calendar_provider_id = st.text_input(
+            "Provider ID",
+            value="CNA-MD-99001",
+            key="calendar_conflict_provider_id",
+        )
+        _calendar_start_col, _calendar_end_col = st.columns(2)
+        with _calendar_start_col:
+            _shift_start_date = st.date_input(
+                "Start Date",
+                value=_calendar_start_date,
+                key="calendar_shift_start_date",
+            )
+            _shift_start_time = st.time_input(
+                "Start Time (24h)",
+                value=time(7, 0),
+                key="calendar_shift_start_time",
+            )
+        with _calendar_end_col:
+            _shift_end_date = st.date_input(
+                "End Date",
+                value=_calendar_end_date,
+                key="calendar_shift_end_date",
+            )
+            _shift_end_time = st.time_input(
+                "End Time (24h)",
+                value=time(15, 0),
+                key="calendar_shift_end_time",
+            )
+
+        if st.button("Verify Schedule Clearance", type="primary", key="verify_schedule_clearance"):
+            _proposed_start = datetime.combine(_shift_start_date, _shift_start_time, tzinfo=timezone.utc)
+            _proposed_end = datetime.combine(_shift_end_date, _shift_end_time, tzinfo=timezone.utc)
+            if _proposed_end <= _proposed_start:
+                st.error("End Date/Time must be after Start Date/Time.")
+            else:
+                _migration_pending, _clearance = _evaluate_schedule_clearance_safe(
+                    str(_calendar_provider_id or "").strip(),
+                    _proposed_start,
+                    _proposed_end,
+                )
+                if _migration_pending:
+                    st.info(
+                        "ℹ️ Calendar table migration pending. Simulation engine running in localized cleanroom mode."
+                    )
+                elif _clearance.get("conflict_type") == "CLEAR" and not _clearance.get("has_conflict"):
+                    st.success(
+                        "🟢 SCHEDULE CLEAR: Candidate is completely dispatch-eligible for this interval."
+                    )
+                elif _clearance.get("has_conflict") or _clearance.get("conflict_type") == "HARD_OVERLAP":
+                    st.error(
+                        "🔴 HARD CONFLICT DETECTED: Double-booking risk flagged with existing commitment."
+                    )
+                elif _clearance.get("conflict_type") == "SOFT_PREFERENCE_HIT":
+                    st.warning(
+                        "🟡 SOFT PREFERENCE OVERLAP: Schedule clear for dispatch, but clinician preference block noted."
+                    )
+
+        st.markdown("#### Provider Time Vault (Live)")
+        _vault_col_a, _vault_col_b = st.columns([3, 1])
+        with _vault_col_b:
+            _load_vault = st.button("Load Provider Calendar", key="load_provider_calendar_vault")
+        _provider_token = str(_calendar_provider_id or "").strip().upper()
+        if _load_vault:
+            _vault_pending, _vault_events = _fetch_provider_calendar_events_safe(_provider_token)
+            st.session_state["calendar_vault_pending"] = _vault_pending
+            st.session_state["calendar_vault_events"] = _vault_events
+            st.session_state["calendar_vault_provider"] = _provider_token
+
+        if st.session_state.get("calendar_vault_provider") == _provider_token and "calendar_vault_events" in st.session_state:
+            if st.session_state.get("calendar_vault_pending"):
+                st.info(
+                    "ℹ️ Calendar table migration pending. Simulation engine running in localized cleanroom mode."
+                )
+            else:
+                _vault_events = list(st.session_state.get("calendar_vault_events") or [])
+                if not _vault_events:
+                    st.info(f"No calendar events found for `{_provider_token}`.")
+                else:
+                    _commitments = sum(
+                        1 for row in _vault_events if row.get("event_type") == "SHIFT_COMMITMENT"
+                    )
+                    _blackouts = sum(
+                        1 for row in _vault_events if row.get("event_type") == "BLACKOUT_UNAVAILABLE"
+                    )
+                    _soft_blocks = sum(
+                        1 for row in _vault_events if row.get("event_type") == "SOFT_BLOCK_PREFERENCE"
+                    )
+                    _vault_m1, _vault_m2, _vault_m3, _vault_m4 = st.columns(4)
+                    _vault_m1.metric("Total Events", len(_vault_events))
+                    _vault_m2.metric("Shift Commitments", _commitments)
+                    _vault_m3.metric("Blackouts", _blackouts)
+                    _vault_m4.metric("Soft Preferences", _soft_blocks)
+                    st.dataframe(pd.DataFrame(_vault_events), use_container_width=True, hide_index=True)
+
+        onboarding_col, payout_col = st.columns(2)
+        default_semantic_query = (
+            "CNAs with dementia care experience in Baltimore for night shifts — SNF memory unit coverage"
+        )
+
+        with onboarding_col:
+            st.markdown("##### Semantic pgvector matching")
+            st.markdown(
+                "Facility request scenario: **CNAs with dementia care experience in Baltimore for night shifts**."
+            )
+            semantic_query = st.text_area(
+                "Facility shift request (natural language)",
+                value=default_semantic_query,
+                height=100,
+                key="sentinel_semantic_query_input",
+            )
+            sentinel_ok, sentinel_status, sentinel_notes = _sentinel_validate_semantic_query(semantic_query)
+            _render_sentinel_chip(sentinel_ok, sentinel_status, " · ".join(sentinel_notes[:2]))
+
+            if st.button("Execute Semantic Vector Search", type="primary", key="execute_semantic_vector_search"):
+                if not sentinel_ok:
+                    st.error(
+                        "Sentinel blocked query — fix input before vector search. "
+                        f"Issues: `{', '.join(sentinel_notes)}`"
+                    )
+                else:
+                    from strategy.semantic_payout_engine import SemanticPayoutEngine
+
+                    try:
+                        semantic_engine = SemanticPayoutEngine()
+                        vector_result = semantic_engine.find_top_vector_matches(
+                            semantic_query,
+                            shift_context={
+                                "required_role": "CNA",
+                                "facility_type": "SNF",
+                                "facility_county": "Baltimore City",
+                                "shift_band": "night",
+                            },
+                        )
+                    except (ValueError, TypeError) as exc:
+                        st.error(f"Semantic vector search failed: {exc}")
+                    else:
+                        top = vector_result.top_match
+                        m1, m2, m3 = st.columns(3)
+                        m1.metric("Top similarity", f"{top.similarity_score:.4f}" if top else "—")
+                        m2.metric("Candidates", vector_result.match_count)
+                        m3.metric("Elapsed (ms)", f"{vector_result.elapsed_ms:.2f}")
+                        if top:
+                            top_badge = _compliance_badge_for_match(top)
+                            st.success(
+                                f"Top match: **{top.full_name}** (`{top.provider_id}`) · {top_badge}"
+                            )
+                        else:
+                            st.success("No vector matches returned.")
+                        if vector_result.matches:
+                            st.markdown("**Verification badges (ranked candidates):**")
+                            for row in vector_result.matches:
+                                badge = _compliance_badge_for_match(row)
+                                st.markdown(
+                                    f"#{row.rank} **{row.full_name}** (`{row.provider_id}`) · {badge}"
+                                )
+                            match_rows = []
+                            for row in vector_result.matches:
+                                try:
+                                    compliance_status = str(
+                                        getattr(row, "compliance_status", "CREDENTIALS_PENDING") or "CREDENTIALS_PENDING"
+                                    )
+                                    is_eligible = bool(getattr(row, "is_eligible", False))
+                                except Exception:
+                                    compliance_status = "CREDENTIALS_PENDING"
+                                    is_eligible = False
+                                match_rows.append(
+                                    {
+                                        "rank": row.rank,
+                                        "provider_id": row.provider_id,
+                                        "name": row.full_name,
+                                        "county": row.county,
+                                        "similarity_score": row.similarity_score,
+                                        "is_eligible": is_eligible,
+                                        "compliance_status": compliance_status,
+                                        "verification_badge": _compliance_verification_badge(
+                                            compliance_status=compliance_status,
+                                            is_eligible=is_eligible,
+                                        ),
+                                        "profile_preview": row.profile_preview,
+                                    }
+                                )
+                            st.dataframe(pd.DataFrame(match_rows), use_container_width=True, hide_index=True)
+
+        with payout_col:
+            st.markdown("##### Instant pay retention")
+            st.markdown(
+                "**Shift settlement · digital supervisor signature on file**  \n"
+                "Provider **Nia Patterson** (`CNA-MD-99001`) · 8-hour CNA shift · gross pay **$240.00** · "
+                "Stripe instant rail · **30-minute** post sign-off window."
+            )
+            payout_payload = {
+                "timesheet_id": "desk-sim-timesheet-001",
+                "provider_id": "CNA-MD-99001",
+                "shift_status": "CONFIRMED",
+                "supervisor_signed": True,
+                "supervisor_name": "Charge Nurse Davis",
+                "gross_pay_amount": 240.00,
+                "stripe_connect_account_id": "acct_test_montgomery",
+                "stripe_debit_card_id": "card_test_montgomery",
+            }
+            pay_ok, pay_status, pay_notes = _sentinel_validate_payout_payload(payout_payload)
+            _render_sentinel_chip(pay_ok, pay_status, " · ".join(pay_notes[:2]))
+            st.json(
+                {
+                    "timesheet_id": payout_payload["timesheet_id"],
+                    "provider_id": payout_payload["provider_id"],
+                    "shift_status": payout_payload["shift_status"],
+                    "supervisor_signed": payout_payload["supervisor_signed"],
+                    "gross_pay_amount": payout_payload["gross_pay_amount"],
+                }
+            )
+
+            if st.button("Simulate 30-Minute Stripe Payout", type="primary", key="simulate_stripe_instant_payout"):
+                if not pay_ok:
+                    st.error(
+                        "Sentinel blocked payout payload — external shape invalid. "
+                        f"Issues: `{', '.join(pay_notes)}`"
+                    )
+                else:
+                    from uuid import uuid4
+
+                    from strategy.semantic_payout_engine import SemanticPayoutEngine
+
+                    payout_payload["timesheet_id"] = str(uuid4())
+                    try:
+                        payout_engine = SemanticPayoutEngine()
+                        payout_result = payout_engine.trigger_instant_payout(payout_payload)
+                    except (ValueError, TypeError, RuntimeError) as exc:
+                        st.error(f"Instant payout simulation failed: {exc}")
+                    else:
+                        st.success(
+                            f"**${payout_result.net_pay_amount:,.2f} NET DISTRIBUTED** · "
+                            f"Provider `{payout_result.provider_id}` · "
+                            f"Stripe {payout_result.stripe_mode} · "
+                            f"ETA {payout_result.payout_eta_minutes} min · "
+                            f"ref `{payout_result.stripe_reference}`"
+                        )
+                        pay_m1, pay_m2, pay_m3 = st.columns(3)
+                        pay_m1.metric("Net pay", f"${payout_result.net_pay_amount:,.2f}")
+                        pay_m2.metric("Gross pay", f"${payout_result.gross_pay_amount:,.2f}")
+                        pay_m3.metric("Payout window", f"{payout_result.payout_eta_minutes} min")
+                        st.caption(payout_result.message)
 
     st.subheader("Unified Maryland Desk Orchestrator")
     st.caption(

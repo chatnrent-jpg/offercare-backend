@@ -122,11 +122,36 @@ def test_audit_packet_download(client: TestClient) -> None:
 
 
 def test_geo_matches_within_radius(client: TestClient) -> None:
+    from app.services.geo_matching import haversine_miles
+
     token = uuid4().hex
-    facility_lat = 38.7 + (int(token[:4], 16) % 500) / 10000.0
-    facility_lon = -77.6 - (int(token[4:8], 16) % 500) / 10000.0
+    facility_lat = 38.9 + (int(token[:4], 16) % 500) / 10000.0
+    facility_lon = -77.4 - (int(token[4:8], 16) % 500) / 10000.0
+    near_lat = facility_lat + 0.004
+    near_lon = facility_lon + 0.002
+    far_lat = 39.9500
+    far_lon = -75.1600
+    radius_miles = 15.0
+    near_label = f"GeoRadiusNear-{token[:8]}"
+
+    near_distance = haversine_miles(facility_lat, facility_lon, near_lat, near_lon)
+    far_distance = haversine_miles(facility_lat, facility_lon, far_lat, far_lon)
+    assert near_distance < radius_miles
+    assert far_distance > radius_miles
+
     db = SessionLocal()
+    suspended_snapshot: list[tuple[object, str]] = []
     try:
+        # Strict isolation: sideline all Maryland providers eligible to compete in geo-match.
+        md_providers = db.query(MarylandProvider).filter(MarylandProvider.state == "MD").all()
+        for provider in md_providers:
+            prior_status = str(provider.dispatch_status or "ACTIVE")
+            if prior_status.upper() == "SUSPENDED":
+                continue
+            suspended_snapshot.append((provider.provider_id, prior_status))
+            provider.dispatch_status = "SUSPENDED"
+        db.commit()
+
         facility = MarylandFacility(
             name=f"FutureCare Northpoint {token[:6]}",
             facility_type="NURSING_HOME",
@@ -146,14 +171,15 @@ def test_geo_matches_within_radius(client: TestClient) -> None:
         db.add(offer)
         near = _create_provider(
             db,
-            latitude=facility_lat + 0.004,
-            longitude=facility_lon + 0.002,
+            full_name=near_label,
+            latitude=near_lat,
+            longitude=near_lon,
         )
         far = _create_provider(
             db,
-            full_name="Far Nurse",
-            latitude=39.9500,
-            longitude=-75.1600,
+            full_name=f"GeoRadiusFar-{token[:8]}",
+            latitude=far_lat,
+            longitude=far_lon,
         )
         near_id = str(near.provider_id)
         far_id = str(far.provider_id)
@@ -161,14 +187,29 @@ def test_geo_matches_within_radius(client: TestClient) -> None:
         run_full_credentialing_screen(db, far.provider_id)
         db.commit()
         offer_id = offer.offer_id
-    finally:
-        db.close()
 
-    response = client.get(f"/api/compliance/offers/{offer_id}/geo-matches?radius_miles=15")
-    assert response.status_code == 200
-    ids = {row["provider_id"] for row in response.json()}
-    assert near_id in ids
-    assert far_id not in ids
+        response = client.get(
+            f"/api/compliance/offers/{offer_id}/geo-matches"
+            f"?radius_miles={radius_miles:.0f}&limit=25"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        scoped_rows = [row for row in body if row.get("full_name", "").startswith("GeoRadius")]
+        assert len(scoped_rows) >= 1
+        ids = {row["provider_id"] for row in scoped_rows}
+        assert near_id in ids
+        assert far_id not in ids
+        near_row = next(row for row in scoped_rows if row["provider_id"] == near_id)
+        assert near_row["distance_miles"] is not None
+        assert near_row["distance_miles"] < radius_miles
+    finally:
+        if suspended_snapshot:
+            for provider_id, prior_status in suspended_snapshot:
+                row = db.query(MarylandProvider).filter(MarylandProvider.provider_id == provider_id).first()
+                if row is not None:
+                    row.dispatch_status = prior_status
+            db.commit()
+        db.close()
 
 
 def test_vms_ingest_dry_run(client: TestClient) -> None:
@@ -222,3 +263,77 @@ def test_crisis_scan_creates_signals_when_enough_open_shifts(client: TestClient)
     assert response.status_code == 200
     listed = client.get("/api/compliance/crisis/signals?limit=5").json()
     assert isinstance(listed, list)
+
+
+def _parse_sentinel_block_message(message: str) -> dict:
+    import json
+
+    assert "SENTINEL_BLOCK" in message
+    payload_raw = message.split("SENTINEL_BLOCK:", 1)[1]
+    payload = json.loads(payload_raw)
+    assert payload["ok"] is False
+    assert payload["sentinel"] == "VALIDATION_BLOCK"
+    assert payload["error_count"] >= 1
+    assert isinstance(payload["errors"], list)
+    assert payload["errors"]
+    return payload
+
+
+def test_semantic_engine_sentinel_blocks_excessive_search_radius() -> None:
+    from strategy.semantic_payout_engine import SemanticPayoutEngine
+
+    engine = SemanticPayoutEngine(prefer_live_db=False)
+    query = "Dementia care Baltimore night shift SNF memory unit coverage"
+    with pytest.raises(ValueError) as excinfo:
+        engine.find_top_vector_matches(
+            query,
+            shift_context={
+                "latitude": 39.29,
+                "longitude": -76.61,
+                "search_radius_miles": 150.0,
+            },
+        )
+
+    payload = _parse_sentinel_block_message(str(excinfo.value))
+    fields = {err["field"] for err in payload["errors"]}
+    assert "search_radius_miles" in fields
+
+
+def test_semantic_engine_sentinel_blocks_illegal_latitude() -> None:
+    from strategy.semantic_payout_engine import SemanticPayoutEngine
+
+    engine = SemanticPayoutEngine(prefer_live_db=False)
+    query = "Night shift CNA dementia care Baltimore SNF memory unit"
+    with pytest.raises(ValueError) as excinfo:
+        engine.find_top_vector_matches(
+            query,
+            shift_context={
+                "latitude": 91.5,
+                "longitude": -76.61,
+                "search_radius_miles": 25.0,
+            },
+        )
+
+    payload = _parse_sentinel_block_message(str(excinfo.value))
+    fields = {err["field"] for err in payload["errors"]}
+    assert "latitude" in fields
+
+
+def test_semantic_engine_sentinel_blocks_illegal_longitude() -> None:
+    from strategy.semantic_payout_engine import SemanticPayoutEngine
+
+    engine = SemanticPayoutEngine(prefer_live_db=False)
+    query = "Night shift CNA dementia care Baltimore SNF memory unit"
+    with pytest.raises(ValueError) as excinfo:
+        engine.find_top_vector_matches(
+            query,
+            shift_context={
+                "latitude": 39.29,
+                "longitude": -181.0,
+                "search_radius_miles": 25.0,
+            },
+        )
+
+    payload = _parse_sentinel_block_message(str(excinfo.value))
+    fields = {err["field"] for err in payload["errors"]}
+    assert "longitude" in fields

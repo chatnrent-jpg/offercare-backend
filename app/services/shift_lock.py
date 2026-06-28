@@ -51,6 +51,43 @@ def _compliance_token(provider: MarylandProvider) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:64]
 
 
+def _schedule_conflict_blocks_lock(
+    db: Session,
+    *,
+    provider: MarylandProvider,
+    offer: OfferCareJobOffer,
+) -> ShiftLockResult | None:
+    try:
+        from strategy.clinician_calendar_writer import _provider_calendar_token, _shift_interval_for_offer
+        from strategy.schedule_conflict_validator import ScheduleConflictValidator
+
+        start_time, end_time = _shift_interval_for_offer(offer)
+        validator = ScheduleConflictValidator(db=db)
+        clearance = validator.evaluate_schedule_clearance(
+            _provider_calendar_token(provider),
+            start_time,
+            end_time,
+        )
+        if clearance.get("has_conflict"):
+            return ShiftLockResult(
+                status="schedule_conflict",
+                message="Schedule conflict detected. You already have a commitment during this interval.",
+                offer_id=offer.offer_id,
+                provider_id=provider.provider_id,
+            )
+    except Exception as exc:  # noqa: BLE001
+        log_ops_event(
+            db,
+            event_type="SCHEDULE_CLEARANCE_SKIPPED",
+            actor=provider.full_name,
+            entity_type="offer",
+            entity_id=offer.offer_id,
+            summary=f"Schedule clearance skipped during lock: {exc}",
+            metadata={"provider_id": str(provider.provider_id), "error": str(exc)},
+        )
+    return None
+
+
 def _finalize_shift_lock(
     db: Session,
     *,
@@ -78,6 +115,19 @@ def _finalize_shift_lock(
         vms_submission_status="PENDING",
     )
     db.add(placement)
+    db.flush()
+
+    from strategy.clinician_calendar_writer import record_shift_commitment_safe
+
+    record_shift_commitment_safe(
+        db,
+        provider=provider,
+        offer=offer,
+        facility=facility,
+        channel=channel,
+        placement_id=placement.placement_id,
+    )
+
     db.commit()
     db.refresh(placement)
     refresh_provider_sniper_scores(db, provider.provider_id)
@@ -224,6 +274,10 @@ def lock_shift_from_sms_reply(
             provider_id=provider.provider_id,
         )
 
+    conflict = _schedule_conflict_blocks_lock(db, provider=provider, offer=offer)
+    if conflict is not None:
+        return conflict
+
     return _finalize_shift_lock(db, provider=provider, offer=offer, channel="sms")
 
 
@@ -271,6 +325,10 @@ def lock_shift_for_provider(
             offer_id=offer.offer_id,
             provider_id=provider.provider_id,
         )
+
+    conflict = _schedule_conflict_blocks_lock(db, provider=provider, offer=offer)
+    if conflict is not None:
+        return conflict
 
     return _finalize_shift_lock(db, provider=provider, offer=offer, channel="portal")
 

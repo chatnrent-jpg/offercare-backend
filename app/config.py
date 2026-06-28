@@ -143,6 +143,7 @@ class Settings(BaseSettings):
     PUSH_ALERTS_ENABLED: bool = True
     PUSH_DRY_RUN: bool = True
     MATCHED_SHIFT_PUSH_ON_AUTO_CREATE: bool = True
+    UNIFIED_MATCH_MATRIX_BROKER_ENABLED: bool = True
     VAPID_PUBLIC_KEY: str = ""
     VAPID_PRIVATE_KEY: str = ""
     VAPID_SUBJECT: str = "mailto:alerts@offercare.ai"

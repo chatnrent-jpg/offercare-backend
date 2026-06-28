@@ -1,9 +1,11 @@
 const STORAGE_KEY = "vettedcare_clinician_token";
 const INSTALL_DISMISS_KEY = "vettedcare_install_dismissed";
+const PORTAL_VIEWS = ["overview", "shifts", "schedule", "placements"];
 
 const els = {
   gate: document.getElementById("gate"),
   app: document.getElementById("app"),
+  portalSectionNav: document.getElementById("portal-section-nav"),
   tabLogin: document.getElementById("tab-login"),
   tabApply: document.getElementById("tab-apply"),
   loginForm: document.getElementById("login-form"),
@@ -39,12 +41,16 @@ const els = {
   toast: document.getElementById("toast"),
   demoHintBanner: document.getElementById("demo-hint-banner"),
   demoHintMismatchBanner: document.getElementById("demo-hint-mismatch-banner"),
+  blockForm: document.getElementById("block-form"),
+  scheduleStats: document.getElementById("schedule-stats"),
+  scheduleTable: document.getElementById("schedule-table"),
 };
 
 let activePushEndpoint = null;
 let deferredInstallPrompt = null;
 let careTaxonomy = null;
 let showAllOpenShifts = false;
+let activeView = "overview";
 
 function credentialsForState(state) {
   const gnaStates = new Set(careTaxonomy?.state_credential_rules?.gna_license_states || ["MD", "DC"]);
@@ -79,11 +85,9 @@ function refreshApplyCredentialOptions() {
 
   const gnaStates = new Set(careTaxonomy?.state_credential_rules?.gna_license_states || ["MD", "DC"]);
   if (hint) {
-    if (gnaStates.has(state)) {
-      hint.textContent = "Maryland and DC license GNA as a distinct credential.";
-    } else {
-      hint.textContent = "GNA is not licensed in this state — select CNA for skilled nursing shifts.";
-    }
+    hint.textContent = gnaStates.has(state)
+      ? "Maryland and DC license GNA as a distinct credential."
+      : "GNA is not licensed in this state — select CNA for skilled nursing shifts.";
     hint.classList.remove("hidden");
   }
   refreshNpiField();
@@ -182,7 +186,7 @@ async function api(path, options = {}) {
   if (options.body && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
-  const response = await fetch(path, { ...options, headers });
+  const response = await fetch(path, { ...options, headers, cache: "no-store" });
   const text = await response.text();
   let data = null;
   try {
@@ -200,9 +204,9 @@ async function api(path, options = {}) {
 function badge(status) {
   const token = String(status || "").toUpperCase();
   let cls = "pending";
-  if (["VERIFIED", "SUBMITTED", "LOCKED", "BROADCASTING", "OPEN"].includes(token)) cls = "ok";
-  if (["REJECTED", "FAILED", "EXPIRED"].includes(token)) cls = "fail";
-  return `<span class="badge ${cls}">${token}</span>`;
+  if (["VERIFIED", "SUBMITTED", "LOCKED", "BROADCASTING", "OPEN", "CLEAR"].includes(token)) cls = "ok";
+  if (["REJECTED", "FAILED", "EXPIRED", "BLOCKED"].includes(token)) cls = "fail";
+  return `<span class="badge ${cls}">${token.replace(/_/g, " ")}</span>`;
 }
 
 function fmtShiftTime(value) {
@@ -210,6 +214,14 @@ function fmtShiftTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtUtc(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
 }
 
 function fmtPct(value) {
@@ -223,6 +235,25 @@ function urlBase64ToUint8Array(base64String) {
   const output = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; i += 1) output[i] = raw.charCodeAt(i);
   return output;
+}
+
+function setPortalView(view) {
+  const safe = PORTAL_VIEWS.includes(view) ? view : "overview";
+  activeView = safe;
+  PORTAL_VIEWS.forEach((id) => {
+    document.getElementById(`view-${id}`)?.classList.toggle("hidden", id !== safe);
+  });
+  els.portalSectionNav?.querySelectorAll(".section-tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.view === safe);
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function initPortalSectionNav() {
+  els.portalSectionNav?.querySelectorAll(".section-tab").forEach((btn) => {
+    btn.addEventListener("click", () => setPortalView(btn.dataset.view));
+  });
+  setPortalView("overview");
 }
 
 function renderPushStatus(subscriptions) {
@@ -339,9 +370,7 @@ function collectServiceLinesFromForm() {
   const checked = Array.from(els.prefServiceLines?.querySelectorAll("input:checked") || []).map(
     (input) => input.value,
   );
-  if (!checked.length) {
-    throw new Error("Select at least one care setting.");
-  }
+  if (!checked.length) throw new Error("Select at least one care setting.");
   if (checked.includes("ALL")) return "ALL";
   return checked.join(",");
 }
@@ -378,8 +407,7 @@ function renderStats(provider, placements, shifts) {
     <div class="stat-card"><span class="muted">Response H</span><strong>${fmtPct(provider.response_propensity)}</strong></div>
     <div class="stat-card"><span class="muted">Fatigue T</span><strong>${Number(provider.fatigue_score).toFixed(2)}</strong></div>
     <div class="stat-card"><span class="muted">Placements</span><strong>${placements.length}</strong></div>
-    <div class="stat-card"><span class="muted">${shiftLabel}</span><strong>${shifts.length}</strong></div>
-  `;
+    <div class="stat-card"><span class="muted">${shiftLabel}</span><strong>${shifts.length}</strong></div>`;
 }
 
 function safetyBadge(status) {
@@ -403,19 +431,22 @@ function renderStatus(application, safety) {
     ${safetyBlock}
     <strong>${provider.full_name}</strong>
     <p class="muted">${provider.email} · ${provider.phone_number}</p>
-    <p class="muted">License ${provider.md_license_number} · NPI ${provider.npi_number}</p>
-    <p class="muted">Portal ${application.portal_enabled ? "enabled" : "disabled"} · License status ${provider.license_status}</p>
-  `;
+    <p class="muted">License ${provider.md_license_number} · NPI ${provider.npi_number || "—"}</p>
+    <p class="muted">Portal ${application.portal_enabled ? "enabled" : "disabled"} · License status ${provider.license_status}</p>`;
   const history = application.verification_history || [];
   if (!history.length) {
     els.historyList.innerHTML = `<p class="empty">No verification events yet.</p>`;
     return;
   }
-  els.historyList.innerHTML = history.map((row) => `
+  els.historyList.innerHTML = history
+    .map(
+      (row) => `
     <div class="history-item">
       <strong>${row.event_type}</strong>
       <span class="muted">${row.check_result || ""}${row.notes ? ` — ${row.notes}` : ""}</span>
-    </div>`).join("");
+    </div>`,
+    )
+    .join("");
 }
 
 function buildShiftQuery() {
@@ -474,7 +505,9 @@ function populateShiftFilters(options) {
   if (els.shiftFacilityTypeFilter) {
     els.shiftFacilityTypeFilter.innerHTML =
       `<option value="">All settings</option>` +
-      (options.facility_types || []).map((row) => `<option value="${row}">${row.replaceAll("_", " ")}</option>`).join("");
+      (options.facility_types || [])
+        .map((row) => `<option value="${row}">${row.replaceAll("_", " ")}</option>`)
+        .join("");
     els.shiftFacilityTypeFilter.value = facilityTypeValue;
   }
   if (els.shiftRoleFilter) {
@@ -502,7 +535,9 @@ function renderShifts(rows) {
     <table>
       <thead><tr><th>Facility</th><th>Setting</th><th>State</th><th>County</th><th>Role</th><th>Starts</th><th>Pay</th>${matchedView ? "<th>+$ vs min</th>" : ""}<th>Status</th>${matchedView ? "<th></th>" : ""}</tr></thead>
       <tbody>
-        ${rows.map((row) => `
+        ${rows
+          .map(
+            (row) => `
           <tr>
             <td>${row.facility_name}</td>
             <td>${row.facility_type_label || row.facility_type || ""}</td>
@@ -514,7 +549,9 @@ function renderShifts(rows) {
             ${matchedView ? `<td>$${Number(row.rate_delta ?? 0).toFixed(2)}</td>` : ""}
             <td>${badge(row.compliance_lock_status)}</td>
             ${matchedView ? `<td>${row.compliance_lock_status === "BROADCASTING" ? `<button class="btn ghost lock-shift-btn" type="button" data-offer-id="${row.offer_id}">Lock</button>` : ""}</td>` : ""}
-          </tr>`).join("")}
+          </tr>`,
+          )
+          .join("")}
       </tbody>
     </table>`;
   if (matchedView) {
@@ -543,16 +580,94 @@ function renderPlacements(rows) {
     <table>
       <thead><tr><th>Facility</th><th>Unit</th><th>Starts</th><th>Rate</th><th>VMS</th></tr></thead>
       <tbody>
-        ${rows.map((row) => `
+        ${rows
+          .map(
+            (row) => `
           <tr>
             <td>${row.facility_name}</td>
             <td>${row.clinical_unit}</td>
             <td>${fmtShiftTime(row.shift_starts_at)}</td>
             <td>$${Number(row.hourly_bill_rate).toFixed(2)}/hr</td>
             <td>${badge(row.vms_submission_status)} ${row.vms_external_ref ? `<br><span class="muted">${row.vms_external_ref}</span>` : ""}</td>
-          </tr>`).join("")}
+          </tr>`,
+          )
+          .join("")}
       </tbody>
     </table>`;
+}
+
+function renderSchedule(data) {
+  const rows = data?.events || [];
+  if (els.scheduleStats) {
+    els.scheduleStats.innerHTML = `<div class="stat-card"><span class="muted">Upcoming</span><strong>${data?.total ?? rows.length}</strong></div>`;
+  }
+  if (!els.scheduleTable) return;
+  if (!rows.length) {
+    els.scheduleTable.innerHTML = `<p class="empty">No schedule events yet.</p>`;
+    return;
+  }
+  els.scheduleTable.innerHTML = `
+    <table>
+      <thead><tr><th>Type</th><th>Facility</th><th>Start</th><th>End</th><th></th></tr></thead>
+      <tbody>
+        ${rows
+          .map(
+            (row) => `
+          <tr>
+            <td>${badge(row.event_type)}</td>
+            <td>${row.facility_name || "—"}</td>
+            <td>${fmtUtc(row.start_time)}</td>
+            <td>${fmtUtc(row.end_time)}</td>
+            <td>${["BLACKOUT_UNAVAILABLE", "SOFT_BLOCK_PREFERENCE"].includes(row.event_type) ? `<button class="btn ghost del-block-btn" type="button" data-event-id="${row.event_id}">Remove</button>` : ""}</td>
+          </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>`;
+  els.scheduleTable.querySelectorAll(".del-block-btn").forEach((button) => {
+    button.addEventListener("click", () => deleteScheduleBlock(button.dataset.eventId));
+  });
+}
+
+async function deleteScheduleBlock(eventId) {
+  try {
+    await api(`/api/clinicians/me/schedule/blocks/${encodeURIComponent(eventId)}`, { method: "DELETE" });
+    showToast("Block removed");
+    await refreshDashboard();
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+async function addScheduleBlock(event) {
+  event.preventDefault();
+  const start = document.getElementById("block-start")?.value;
+  const end = document.getElementById("block-end")?.value;
+  if (!start || !end) {
+    showToast("Start and end required.", true);
+    return;
+  }
+  const startIso = new Date(`${start}:00Z`).toISOString();
+  const endIso = new Date(`${end}:00Z`).toISOString();
+  if (new Date(endIso) <= new Date(startIso)) {
+    showToast("End must be after start.", true);
+    return;
+  }
+  try {
+    await api("/api/clinicians/me/schedule/blocks", {
+      method: "POST",
+      body: JSON.stringify({
+        event_type: document.getElementById("block-type")?.value,
+        start_time: startIso,
+        end_time: endIso,
+      }),
+    });
+    els.blockForm?.reset();
+    showToast("Block added");
+    await refreshDashboard();
+  } catch (error) {
+    showToast(error.message, true);
+  }
 }
 
 async function downloadFile(path, filename) {
@@ -625,8 +740,9 @@ function clearOfferQueryParam() {
 }
 
 function focusOfferFromAlert(offerId) {
-  if (!offerId || !els.shiftsTable) return;
-  const lockButton = els.shiftsTable.querySelector(`.lock-shift-btn[data-offer-id="${offerId}"]`);
+  if (!offerId) return;
+  setPortalView("shifts");
+  const lockButton = els.shiftsTable?.querySelector(`.lock-shift-btn[data-offer-id="${offerId}"]`);
   const row = lockButton?.closest("tr");
   if (!row) return;
   row.classList.add("shift-highlight");
@@ -636,14 +752,16 @@ function focusOfferFromAlert(offerId) {
 }
 
 async function refreshDashboard() {
-  const [application, placements, shiftFilters, shifts, preferences, safety] = await Promise.all([
+  const [application, placements, shiftFilters, shifts, preferences, safety, schedule] = await Promise.all([
     api("/api/clinicians/me/application"),
-    api("/api/clinicians/me/placements"),
-    api("/api/shifts/filters"),
-    loadShifts(),
-    loadPreferences(),
+    api("/api/clinicians/me/placements").catch(() => []),
+    api("/api/shifts/filters").catch(() => ({})),
+    loadShifts().catch(() => []),
+    loadPreferences().catch(() => ({})),
     api("/api/clinicians/me/safety").catch(() => null),
+    api("/api/clinicians/me/schedule").catch(() => ({ total: 0, events: [] })),
   ]);
+
   populateShiftFilters(shiftFilters);
   const provider = application.provider;
   els.welcomeName.textContent = provider.full_name;
@@ -652,7 +770,9 @@ async function refreshDashboard() {
   renderStatus(application, safety);
   renderShifts(shifts);
   renderPlacements(placements);
+  renderSchedule(schedule);
   await refreshPushStatus();
+
   const clinicianMatchesDemoOffer = await refreshDemoHintMismatch(provider);
   if (clinicianMatchesDemoOffer) {
     focusOfferFromAlert(getOfferIdFromQuery());
@@ -666,21 +786,31 @@ async function login(email, password) {
   });
   setToken(data.access_token);
   showApp();
+  setPortalView("overview");
   await refreshDashboard();
   showToast("Signed in");
 }
 
 async function apply(formData) {
-  const data = await api("/api/clinicians/apply", {
-    method: "POST",
-    body: JSON.stringify(formData),
-  });
-  showToast(data.message || "Application submitted");
-  setAuthTab("login");
-  document.getElementById("login-email").value = formData.email;
+  try {
+    const data = await api("/api/clinicians/apply", {
+      method: "POST",
+      body: JSON.stringify(formData),
+    });
+    showToast(data.message || "Application submitted");
+    setAuthTab("login");
+    document.getElementById("login-email").value = formData.email;
+  } catch (error) {
+    if (String(error.message).includes("use_join_landing")) {
+      window.location.href = "/join";
+      return;
+    }
+    throw error;
+  }
 }
 
 async function bootstrap() {
+  initPortalSectionNav();
   await registerPortalServiceWorker();
   initApplyForm().catch(() => {});
   await loadDemoHint();
@@ -708,7 +838,10 @@ els.loginForm.addEventListener("submit", async (event) => {
       document.getElementById("login-password").value,
     );
   } catch (error) {
-    els.gateError.textContent = error.message;
+    const msg = String(error.message || "");
+    els.gateError.textContent = msg.includes("invalid_credentials")
+      ? "Wrong email or password. Demo: @offercare.demo / SecretPass1"
+      : msg;
     els.gateError.classList.remove("hidden");
   }
 });
@@ -736,6 +869,9 @@ els.applyForm.addEventListener("submit", async (event) => {
 
 els.preferencesForm?.addEventListener("submit", (event) => {
   savePreferences(event).catch((error) => showToast(error.message, true));
+});
+els.blockForm?.addEventListener("submit", (event) => {
+  addScheduleBlock(event).catch((error) => showToast(error.message, true));
 });
 els.refreshBtn.addEventListener("click", () => refreshDashboard().catch((e) => showToast(e.message, true)));
 els.applyShiftFiltersBtn?.addEventListener("click", async () => {

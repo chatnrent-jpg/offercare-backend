@@ -3,7 +3,8 @@ import asyncio
 import logging
 from pathlib import Path
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -55,6 +56,9 @@ from api.instant_pay_retention import (
     start_instant_pay_worker,
     stop_instant_pay_worker,
 )
+from app.api.webhooks.stripe_escrow import router as stripe_escrow_webhook_router
+from strategy.database_schema_healer import DatabaseSchemaHealer
+from strategy.system_pulse_daemon import SystemPulseDaemon
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +66,8 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
+    schema_heal_status = DatabaseSchemaHealer().verify_and_heal_audit_tables()
+    logger.info("Database schema healer bootstrap: %s", schema_heal_status)
     register_asgi_app(app)
     try:
         run_migrations(engine)
@@ -72,9 +78,16 @@ async def lifespan(app: FastAPI):
     scheduler_stop = await start_staffing_scheduler()
     compliance_stop = await start_compliance_scheduler()
     instant_pay_stop = await start_instant_pay_worker()
+    system_pulse_daemon = SystemPulseDaemon()
+    try:
+        system_pulse_daemon.start_pulse_loop()
+        logger.info("System pulse daemon heartbeat started.")
+    except Exception as exc:
+        logger.warning("System pulse daemon failed to start — API remains online: %s", exc)
     try:
         yield
     finally:
+        system_pulse_daemon.stop_pulse_loop()
         await stop_instant_pay_worker(instant_pay_stop)
         await stop_compliance_scheduler(compliance_stop)
         await stop_staffing_scheduler(scheduler_stop)
@@ -84,6 +97,18 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
+
+
+@app.middleware("http")
+async def portal_static_no_cache(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/portal"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+    return response
+
+
 app.include_router(core_router)
 app.include_router(deploy_router)
 app.include_router(ops_router)
@@ -101,14 +126,65 @@ app.include_router(vettedcare_router)
 register_intake_webhooks(app)
 register_vector_match_engine(app)
 register_instant_pay_retention(app)
+app.include_router(stripe_escrow_webhook_router)
 
 ADMIN_STATIC_DIR = Path(__file__).resolve().parent / "static" / "admin"
 if ADMIN_STATIC_DIR.is_dir():
     app.mount("/admin", StaticFiles(directory=ADMIN_STATIC_DIR, html=True), name="admin")
 
 PORTAL_STATIC_DIR = Path(__file__).resolve().parent / "static" / "portal"
+PORTAL_BUILD_ID = "portal-rebuild-2026"
+
+
+def _portal_asset_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "X-Portal-Build": PORTAL_BUILD_ID,
+    }
+
+
 if PORTAL_STATIC_DIR.is_dir():
-    app.mount("/portal", StaticFiles(directory=PORTAL_STATIC_DIR, html=True), name="portal")
+
+    @app.get("/portal", include_in_schema=False)
+    def portal_root_redirect() -> RedirectResponse:
+        return RedirectResponse(url="/portal/", status_code=307)
+
+    @app.get("/portal/", include_in_schema=False)
+    @app.get("/portal/index.html", include_in_schema=False)
+    def portal_index() -> FileResponse:
+        return FileResponse(
+            PORTAL_STATIC_DIR / "index.html",
+            media_type="text/html",
+            headers=_portal_asset_headers(),
+        )
+
+    @app.get("/portal/app.js", include_in_schema=False)
+    def portal_app_js() -> FileResponse:
+        return FileResponse(
+            PORTAL_STATIC_DIR / "app.js",
+            media_type="application/javascript",
+            headers=_portal_asset_headers(),
+        )
+
+    @app.get("/portal/styles.css", include_in_schema=False)
+    def portal_styles_css() -> FileResponse:
+        return FileResponse(
+            PORTAL_STATIC_DIR / "styles.css",
+            media_type="text/css",
+            headers=_portal_asset_headers(),
+        )
+
+    @app.get("/portal/sw.js", include_in_schema=False)
+    def portal_sw_js() -> FileResponse:
+        return FileResponse(
+            PORTAL_STATIC_DIR / "sw.js",
+            media_type="application/javascript",
+            headers=_portal_asset_headers(),
+        )
+
+    app.mount("/portal", StaticFiles(directory=PORTAL_STATIC_DIR, html=False), name="portal")
 
 LANDING_STATIC_DIR = Path(__file__).resolve().parent / "static" / "landing"
 if LANDING_STATIC_DIR.is_dir():
@@ -128,6 +204,7 @@ def read_root():
         "safety_first": True,
         "region": grid_region_label(),
         "admin": "/admin",
+        "portal": "/portal/",
         "manus": {
             "config": "/api/vettedcare/manus/config",
             "work_queue": "/api/vettedcare/manus/work-queue",

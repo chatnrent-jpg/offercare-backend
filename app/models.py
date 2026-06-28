@@ -536,3 +536,32 @@ class ShiftTimesheetPayout(Base):
     failure_reason = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     paid_at = Column(DateTime(timezone=True), nullable=True)
+
+
+def _load_clinician_calendar_module():
+    """Register clinician calendar ORM once (file lives under app/models/ but app.models is models.py)."""
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    module_name = "app._models_clinician_calendar"
+    cached = sys.modules.get(module_name)
+    if cached is not None:
+        return cached
+
+    module_path = Path(__file__).resolve().parent / "models" / "clinician_calendar.py"
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError("clinician_calendar model module unavailable")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+_clinician_calendar = _load_clinician_calendar_module()
+ClinicianCalendarEvent = _clinician_calendar.ClinicianCalendarEvent
+CALENDAR_EVENT_TYPES = _clinician_calendar.CALENDAR_EVENT_TYPES
+EVENT_TYPE_SHIFT_COMMITMENT = _clinician_calendar.EVENT_TYPE_SHIFT_COMMITMENT
+EVENT_TYPE_SOFT_BLOCK_PREFERENCE = _clinician_calendar.EVENT_TYPE_SOFT_BLOCK_PREFERENCE
+EVENT_TYPE_BLACKOUT_UNAVAILABLE = _clinician_calendar.EVENT_TYPE_BLACKOUT_UNAVAILABLE
