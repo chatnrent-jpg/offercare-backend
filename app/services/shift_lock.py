@@ -69,6 +69,14 @@ def _schedule_conflict_blocks_lock(
             end_time,
         )
         if clearance.get("has_conflict"):
+            conflict_type = str(clearance.get("conflict_type") or "")
+            if conflict_type == "FATIGUE_CAP_EXCEEDED":
+                return ShiftLockResult(
+                    status="schedule_conflict",
+                    message="Fatigue cap exceeded. Rest before accepting another shift.",
+                    offer_id=offer.offer_id,
+                    provider_id=provider.provider_id,
+                )
             return ShiftLockResult(
                 status="schedule_conflict",
                 message="Schedule conflict detected. You already have a commitment during this interval.",

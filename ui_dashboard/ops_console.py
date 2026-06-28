@@ -1146,6 +1146,16 @@ def main() -> None:
                     st.warning(
                         "🟡 SOFT PREFERENCE OVERLAP: Schedule clear for dispatch, but clinician preference block noted."
                     )
+                elif _clearance.get("conflict_type") == "FATIGUE_ELEVATED":
+                    st.warning(
+                        f"🟡 FATIGUE ELEVATED: Dispatch allowed, but fatigue score "
+                        f"{_clearance.get('fatigue_score', '—')} is above the soft warn threshold."
+                    )
+                elif _clearance.get("conflict_type") == "FATIGUE_CAP_EXCEEDED":
+                    st.error(
+                        f"🔴 FATIGUE CAP EXCEEDED: Hard block — fatigue score "
+                        f"{_clearance.get('fatigue_score', '—')} is too high for new dispatch."
+                    )
 
         st.markdown("#### Provider Time Vault (Live)")
         _vault_col_a, _vault_col_b = st.columns([3, 1])

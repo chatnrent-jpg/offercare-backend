@@ -6,6 +6,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from uuid import UUID
+
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,8 @@ logger = logging.getLogger(__name__)
 _CONFLICT_CLEAR = "CLEAR"
 _CONFLICT_HARD = "HARD_OVERLAP"
 _CONFLICT_SOFT = "SOFT_PREFERENCE_HIT"
+_CONFLICT_FATIGUE_HARD = "FATIGUE_CAP_EXCEEDED"
+_CONFLICT_FATIGUE_SOFT = "FATIGUE_ELEVATED"
 
 _HARD_BLOCK_EVENT_TYPES = frozenset({"SHIFT_COMMITMENT", "BLACKOUT_UNAVAILABLE"})
 _SOFT_BLOCK_EVENT_TYPE = "SOFT_BLOCK_PREFERENCE"
@@ -106,6 +110,81 @@ class ScheduleConflictValidator:
                 overlapping.append(row)
         return overlapping
 
+    def _resolve_provider(self, provider_token: str) -> Any | None:
+        from app.models import MarylandProvider
+
+        token = str(provider_token or "").strip()
+        if not token:
+            return None
+        try:
+            provider_uuid = UUID(token)
+        except ValueError:
+            provider_uuid = None
+        if provider_uuid is not None:
+            row = (
+                self.db.query(MarylandProvider)
+                .filter(MarylandProvider.provider_id == provider_uuid)
+                .first()
+            )
+            if row is not None:
+                return row
+        return (
+            self.db.query(MarylandProvider)
+            .filter(MarylandProvider.md_license_number.ilike(token))
+            .first()
+        )
+
+    def _evaluate_fatigue_clearance(self, provider_token: str) -> dict[str, Any]:
+        from app.config import settings
+
+        if not settings.SCHEDULE_FATIGUE_CAP_ENABLED:
+            return {
+                "fatigue_blocked": False,
+                "fatigue_warn": False,
+                "fatigue_score": None,
+            }
+
+        provider = self._resolve_provider(provider_token)
+        if provider is None:
+            return {
+                "fatigue_blocked": False,
+                "fatigue_warn": False,
+                "fatigue_score": None,
+            }
+
+        score = float(provider.fatigue_score or 0)
+        hard_threshold = float(settings.SCHEDULE_FATIGUE_HARD_BLOCK_THRESHOLD)
+        soft_threshold = float(settings.SCHEDULE_FATIGUE_SOFT_WARN_THRESHOLD)
+        if score >= hard_threshold:
+            logger.warning(
+                "HIVE_TIME_SENTINEL: fatigue hard cap provider=%s score=%.2f threshold=%.2f",
+                provider_token,
+                score,
+                hard_threshold,
+            )
+            return {
+                "fatigue_blocked": True,
+                "fatigue_warn": False,
+                "fatigue_score": score,
+            }
+        if score >= soft_threshold:
+            logger.info(
+                "HIVE_TIME_SENTINEL: fatigue elevated provider=%s score=%.2f threshold=%.2f",
+                provider_token,
+                score,
+                soft_threshold,
+            )
+            return {
+                "fatigue_blocked": False,
+                "fatigue_warn": True,
+                "fatigue_score": score,
+            }
+        return {
+            "fatigue_blocked": False,
+            "fatigue_warn": False,
+            "fatigue_score": score,
+        }
+
     def is_provider_conflicted(
         self,
         provider_id: str,
@@ -172,22 +251,42 @@ class ScheduleConflictValidator:
     ) -> dict[str, Any]:
         """Return structured schedule clearance payload for dispatch routing."""
         scan = self.is_provider_conflicted(provider_id, start_time, end_time)
+        fatigue = self._evaluate_fatigue_clearance(provider_id)
+        fatigue_score = fatigue.get("fatigue_score")
+
         if scan["hard_conflict"]:
             return {
                 "has_conflict": True,
                 "conflict_type": _CONFLICT_HARD,
                 "conflicting_event_id": scan["conflicting_event_id"],
+                "fatigue_score": fatigue_score,
+            }
+        if fatigue["fatigue_blocked"]:
+            return {
+                "has_conflict": True,
+                "conflict_type": _CONFLICT_FATIGUE_HARD,
+                "conflicting_event_id": None,
+                "fatigue_score": fatigue_score,
             }
         if scan["soft_conflict"]:
             return {
                 "has_conflict": False,
                 "conflict_type": _CONFLICT_SOFT,
                 "conflicting_event_id": scan["conflicting_event_id"],
+                "fatigue_score": fatigue_score,
+            }
+        if fatigue["fatigue_warn"]:
+            return {
+                "has_conflict": False,
+                "conflict_type": _CONFLICT_FATIGUE_SOFT,
+                "conflicting_event_id": None,
+                "fatigue_score": fatigue_score,
             }
         return {
             "has_conflict": False,
             "conflict_type": _CONFLICT_CLEAR,
             "conflicting_event_id": None,
+            "fatigue_score": fatigue_score,
         }
 
 

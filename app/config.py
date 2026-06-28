@@ -144,6 +144,9 @@ class Settings(BaseSettings):
     PUSH_DRY_RUN: bool = True
     MATCHED_SHIFT_PUSH_ON_AUTO_CREATE: bool = True
     UNIFIED_MATCH_MATRIX_BROKER_ENABLED: bool = True
+    SCHEDULE_FATIGUE_CAP_ENABLED: bool = True
+    SCHEDULE_FATIGUE_SOFT_WARN_THRESHOLD: float = 2.5
+    SCHEDULE_FATIGUE_HARD_BLOCK_THRESHOLD: float = 4.0
     VAPID_PUBLIC_KEY: str = ""
     VAPID_PRIVATE_KEY: str = ""
     VAPID_SUBJECT: str = "mailto:alerts@offercare.ai"
