@@ -11,7 +11,7 @@ from app.config import settings
 from app.models import MarylandFacility, MarylandProvider, OfferCareJobOffer
 from app.services.compliance_monitor import provider_dispatch_eligible
 from app.services.postgis_geo import postgis_geo_ready, query_provider_geo_candidates
-from app.services.shift_matching import shift_matches_provider
+from app.services.shift_matching import open_shift_row_from_offer, provider_matches_open_shift
 
 
 def haversine_miles(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -54,17 +54,12 @@ def _list_geo_matches_python(
 ) -> list[dict]:
     facility_coords = _coords(facility)
     candidates: list[dict] = []
+    shift_row = open_shift_row_from_offer(facility=facility, offer=offer)
 
     for provider in db.query(MarylandProvider).filter(MarylandProvider.state == facility.state).all():
         if not provider_dispatch_eligible(db, provider):
             continue
-        if not shift_matches_provider(
-            provider=provider,
-            facility_state=facility.state,
-            facility_type=facility.facility_type,
-            shift_role=offer.shift_role,
-            hourly_pay_rate=float(offer.hourly_pay_rate),
-        ):
+        if not provider_matches_open_shift(db, provider, shift_row):
             continue
         provider_coords = _coords(provider)
         if facility_coords and provider_coords:
@@ -96,6 +91,7 @@ def _list_geo_matches_postgis(
         return _list_geo_matches_python(db, facility=facility, offer=offer, max_radius=max_radius)
 
     candidates: list[dict] = []
+    shift_row = open_shift_row_from_offer(facility=facility, offer=offer)
     for row in query_provider_geo_candidates(
         db,
         facility_longitude=facility_coords[1],
@@ -112,13 +108,7 @@ def _list_geo_matches_postgis(
             continue
         if not provider_dispatch_eligible(db, provider):
             continue
-        if not shift_matches_provider(
-            provider=provider,
-            facility_state=facility.state,
-            facility_type=facility.facility_type,
-            shift_role=offer.shift_role,
-            hourly_pay_rate=float(offer.hourly_pay_rate),
-        ):
+        if not provider_matches_open_shift(db, provider, shift_row):
             continue
         distance = float(row["distance_miles"]) if row["distance_miles"] is not None else None
         _append_candidate(candidates, provider, distance)

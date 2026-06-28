@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -43,6 +44,47 @@ def shift_matches_provider(
     if not provider_supports_facility_type(provider.service_lines, facility_type):
         return False
     return float(hourly_pay_rate) >= float(provider.min_hourly_rate or 0)
+
+
+def open_shift_row_from_offer(
+    *,
+    facility: Any,
+    offer: Any,
+    county: str | None = None,
+    facility_name: str | None = None,
+) -> dict:
+    """Build an open-shift row dict for broker clearance from ORM objects."""
+    starts_at = getattr(offer, "shift_starts_at", None)
+    ends_at = getattr(offer, "shift_ends_at", None)
+    return {
+        "offer_id": str(getattr(offer, "offer_id", "") or ""),
+        "facility_id": str(getattr(facility, "facility_id", "") or ""),
+        "facility_name": facility_name or str(getattr(facility, "name", "") or ""),
+        "county": county or str(getattr(facility, "county", "") or ""),
+        "state": str(getattr(facility, "state", "") or ""),
+        "facility_type": str(getattr(facility, "facility_type", "") or ""),
+        "shift_role": str(getattr(offer, "shift_role", "") or ""),
+        "hourly_pay_rate": float(getattr(offer, "hourly_pay_rate", 0) or 0),
+        "shift_starts_at": starts_at,
+        "shift_ends_at": ends_at,
+    }
+
+
+def provider_matches_open_shift(
+    db: Session,
+    provider: MarylandProvider,
+    row: dict,
+) -> bool:
+    """Rule gate plus optional UnifiedMatchMatrixBroker schedule/compliance clearance."""
+    if not shift_matches_provider(
+        provider=provider,
+        facility_state=str(row["state"]),
+        facility_type=str(row["facility_type"]),
+        shift_role=str(row["shift_role"]),
+        hourly_pay_rate=float(row["hourly_pay_rate"]),
+    ):
+        return False
+    return _broker_confirms_provider_match(db, provider, row)
 
 
 def _shift_context_from_open_shift(row: dict) -> dict:
@@ -137,15 +179,7 @@ def list_matched_shifts_for_provider(
     )
     matched: list[dict] = []
     for row in rows:
-        if not shift_matches_provider(
-            provider=provider,
-            facility_state=str(row["state"]),
-            facility_type=str(row["facility_type"]),
-            shift_role=str(row["shift_role"]),
-            hourly_pay_rate=float(row["hourly_pay_rate"]),
-        ):
-            continue
-        if not _broker_confirms_provider_match(db, provider, row):
+        if not provider_matches_open_shift(db, provider, row):
             continue
         pay_delta = rate_delta(
             shift_pay=float(row["hourly_pay_rate"]),
@@ -167,15 +201,7 @@ def get_matched_shift_for_provider(
     row = get_open_shift_by_id(db, offer_id)
     if row is None:
         return None
-    if not shift_matches_provider(
-        provider=provider,
-        facility_state=str(row["state"]),
-        facility_type=str(row["facility_type"]),
-        shift_role=str(row["shift_role"]),
-        hourly_pay_rate=float(row["hourly_pay_rate"]),
-    ):
-        return None
-    if not _broker_confirms_provider_match(db, provider, row):
+    if not provider_matches_open_shift(db, provider, row):
         return None
     pay_delta = rate_delta(
         shift_pay=float(row["hourly_pay_rate"]),

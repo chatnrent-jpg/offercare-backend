@@ -10,7 +10,7 @@ from app.config import settings
 from app.models import MarylandProvider, OfferCareJobOffer, ShiftNotificationLog
 from app.services.push_alerts import build_matched_shift_alert_push, send_shift_push
 from app.services.push_subscriptions import list_push_subscriptions_for_provider, touch_push_subscription
-from app.services.shift_matching import shift_matches_provider
+from app.services.shift_matching import provider_matches_open_shift
 from app.services.shift_offer_generator import get_open_shift_by_id
 from app.services.shift_schedule import format_shift_window_et, resolve_offer_shift_window
 from app.services.sniper_learning import refresh_provider_sniper_scores
@@ -35,13 +35,7 @@ def list_matched_providers_for_offer(db: Session, offer_id: UUID) -> list[Maryla
     )
     matched: list[MarylandProvider] = []
     for provider in providers:
-        if not shift_matches_provider(
-            provider=provider,
-            facility_state=str(row["state"]),
-            facility_type=str(row["facility_type"]),
-            shift_role=str(row["shift_role"]),
-            hourly_pay_rate=float(row["hourly_pay_rate"]),
-        ):
+        if not provider_matches_open_shift(db, provider, row):
             continue
         if not list_push_subscriptions_for_provider(db, provider.provider_id):
             continue

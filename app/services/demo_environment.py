@@ -25,7 +25,7 @@ from app.services.demo_push_subscriptions import ensure_demo_push_subscriptions
 from app.services.matched_shift_alerts import notify_matched_clinicians_for_offer, notify_matched_clinicians_for_offers
 from app.services.push_subscriptions import list_push_subscriptions_for_provider
 from app.services.shift_lock import lock_shift_for_provider
-from app.services.shift_matching import shift_matches_provider
+from app.services.shift_matching import provider_matches_open_shift
 from app.services.shift_offer_generator import get_open_shift_by_id
 from app.services.states import normalize_state
 
@@ -150,13 +150,7 @@ def find_demo_clinician_for_shift(db: Session, row: dict) -> MarylandProvider | 
         .all()
     )
     for provider in providers:
-        if shift_matches_provider(
-            provider=provider,
-            facility_state=str(row["state"]),
-            facility_type=str(row["facility_type"]),
-            shift_role=str(row["shift_role"]),
-            hourly_pay_rate=float(row["hourly_pay_rate"]),
-        ):
+        if provider_matches_open_shift(db, provider, row):
             return provider
     return None
 
@@ -276,13 +270,7 @@ def _count_matched_clinicians(db: Session, row: dict) -> tuple[int, int]:
     matched = 0
     push_ready = 0
     for provider in providers:
-        if not shift_matches_provider(
-            provider=provider,
-            facility_state=str(row["state"]),
-            facility_type=str(row["facility_type"]),
-            shift_role=str(row["shift_role"]),
-            hourly_pay_rate=float(row["hourly_pay_rate"]),
-        ):
+        if not provider_matches_open_shift(db, provider, row):
             continue
         matched += 1
         if list_push_subscriptions_for_provider(db, provider.provider_id):
