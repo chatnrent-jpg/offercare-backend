@@ -37,6 +37,7 @@ def test_worker_inflow_summary_counts_opt_in_applicants(client: TestClient) -> N
             "consent_sms_dispatch": True,
             "consent_privacy_policy": True,
             "consent_terms_of_service": True,
+            "consent_aedt_30_day": True,
         },
     )
     summary = client.get("/api/landing/maryland/inflow-summary").json()

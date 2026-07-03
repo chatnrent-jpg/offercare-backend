@@ -1,0 +1,72 @@
+.aedt-disclosure-box {
+  margin: 1.25rem 0 0.5rem;
+  padding: 1rem 1.1rem;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.04) 100%);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15);
+}
+
+.aedt-disclosure-box__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.aedt-disclosure-box__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.aedt-disclosure-box__body {
+  margin: 0 0 0.85rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: inherit;
+}
+
+.aedt-disclosure-box__check {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.aedt-disclosure-box__check input {
+  margin-top: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  accent-color: #f59e0b;
+}
+
+.aedt-disclosure-box.is-invalid {
+  border-color: #f87171;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.35);
+}
+
+.aedt-disclosure-box__error {
+  margin: 0.65rem 0 0;
+  color: #f87171;
+  font-size: 0.88rem;
+}
+
+.aedt-disclosure-status {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  font-size: 0.9rem;
+}
+
+.aedt-disclosure-status.is-pending {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.35);
+}

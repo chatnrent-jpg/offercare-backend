@@ -146,6 +146,7 @@ def test_api_apply_and_verify_flow(client: TestClient) -> None:
             "consent_sms_dispatch": True,
             "consent_privacy_policy": True,
             "consent_terms_of_service": True,
+            "consent_aedt_30_day": True,
         },
     )
     assert apply_resp.status_code == 200

@@ -1,0 +1,234 @@
+{
+  "template_id": "vettedcare-md-don-ohcq-heyreach",
+  "template_version": "2026-07-03",
+  "description": "HeyReach multi-channel outreach — Maryland DONs at OHCQ staffing-cited facilities (Clay-enriched import).",
+  "manus_instructions": [
+    "1. Complete Clay enrichment → leads/ohcq_staffing_citation_enriched_md.csv.",
+    "2. Copy this file to integrations/heyreach/md_don_ohcq_outreach.json and set HEYREACH_* env vars.",
+    "3. Run scripts/heyreach_build_ohcq_sequence.py --dry-run to preview copy + import CSV.",
+    "4. Import leads/heyreach_md_don_ohcq_import.csv into HeyReach (Lead Lists → Import CSV).",
+    "5. Create campaign from md_don_sequence.sequence_tree or POST UpdateSequence with generated JSON.",
+    "6. Map custom fields: county, facility_name, flag_reason, county_phrase, compliance_hook.",
+    "7. Start campaign via HeyReach UI or API (StartCampaign) after sender accounts are linked."
+  ],
+  "input": {
+    "primary_source": {
+      "path": "leads/ohcq_staffing_citation_enriched_md.csv",
+      "description": "Clay.com export — DON LinkedIn, email, phone"
+    },
+    "fallback_source": {
+      "path": "leads/ohcq_staffing_citation_flags_md.csv",
+      "description": "OHCQ citation flags when Clay export not ready (LinkedIn/email may be blank)"
+    },
+    "target_role": "don",
+    "required_for_live_send": ["don_linkedin_url"],
+    "preferred_fields": ["don_full_name", "don_verified_email", "facility_name", "county"]
+  },
+  "conditional_logic": {
+    "county_phrase": {
+      "description": "Insert cited county dynamically when present on the lead row.",
+      "rules": [
+        {
+          "when": "county equals 'Baltimore City' (case insensitive)",
+          "output_field": "county_phrase",
+          "value": "in Baltimore City"
+        },
+        {
+          "when": "county is non-empty",
+          "output_field": "county_phrase",
+          "value": "in {{county}} County"
+        },
+        {
+          "when": "county is empty",
+          "output_field": "county_phrase",
+          "value": "across Maryland"
+        }
+      ]
+    },
+    "compliance_hook": {
+      "description": "Tailored opener based on OHCQ/CMS staffing flag reason.",
+      "rules": [
+        {
+          "when": "flag_reason contains 'insufficient_staffing_citation'",
+          "output_field": "compliance_hook",
+          "value": "recent OHCQ/CMS staffing citation"
+        },
+        {
+          "when": "flag_reason contains 'below_state_mandated'",
+          "output_field": "compliance_hook",
+          "value": "state-mandated nurse hour shortfall"
+        },
+        {
+          "when": "flag_reason contains 'low_staffing_rating'",
+          "output_field": "compliance_hook",
+          "value": "CMS staffing rating pressure"
+        },
+        {
+          "when": "default",
+          "output_field": "compliance_hook",
+          "value": "staffing compliance pressure"
+        }
+      ]
+    }
+  },
+  "personalization_tokens": {
+    "first_name": "{{don_first_name}}",
+    "facility_name": "{{facility_name}}",
+    "county": "{{county}}",
+    "county_phrase": "{{county_phrase}}",
+    "compliance_hook": "{{compliance_hook}}",
+    "company_name": "{{facility_name}}",
+    "sender_name": "{{OUTREACH_SENDER_NAME}}",
+    "agency_name": "{{OUTREACH_AGENCY_NAME}}"
+  },
+  "campaign": {
+    "name": "MD OHCQ Staffing — DON LinkedIn + Email",
+    "timezone": "America/New_York",
+    "schedule": {
+      "dailyStartTime": "09:00:00",
+      "dailyEndTime": "17:00:00",
+      "timeZoneId": "America/New_York",
+      "allowedWeekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    },
+    "exclusions": {
+      "exclude_contacted_other_campaigns": true,
+      "exclude_other_conversations": true,
+      "exclude_sender_contacted": true
+    }
+  },
+  "sequence_steps": [
+    {
+      "step": 1,
+      "channel": "linkedin",
+      "action": "CONNECTION_REQUEST",
+      "delay_hours": 0,
+      "message_template": "linkedin_connection_request",
+      "note": "HeyReach minimum actionDelay on downstream nodes is 3 hours."
+    },
+    {
+      "step": 2,
+      "channel": "linkedin",
+      "action": "MESSAGE",
+      "trigger": "connection_accepted",
+      "delay_days": 1,
+      "message_template": "linkedin_follow_up_message"
+    },
+    {
+      "step": 3,
+      "channel": "email",
+      "action": "SEND_EMAIL",
+      "trigger": "after_linkedin_connection_request",
+      "delay_days": 3,
+      "message_template": "email_follow_up",
+      "note": "Send only when don_verified_email is populated from Clay."
+    }
+  ],
+  "message_templates": {
+    "linkedin_connection_request": {
+      "subject": null,
+      "body": "Hi {{first_name}},\n\nI'm reaching out because {{facility_name}} {{county_phrase}} has been flagged for {{compliance_hook}} — and DON teams are feeling it on the floor.\n\nVettedCare.ai instantly routes MBON-verified, active Maryland GNAs and LPNs to open shifts within 15 minutes — credentialed staff only, no compliance surprises.\n\nWould you be open to connecting? Happy to show how we clear staffing gaps fast.\n\n— {{sender_name}}, {{agency_name}}",
+      "fallback_body": "Hi there — VettedCare.ai routes credentialed Maryland GNAs and LPNs to open shifts within 15 minutes. Would love to connect."
+    },
+    "linkedin_follow_up_message": {
+      "subject": null,
+      "body": "Thanks for connecting, {{first_name}}.\n\nQuick context: we work with SNF/ALF operators {{county_phrase}} who need credentialed coverage yesterday — not next week.\n\nVettedCare.ai's compliance gate (MBON + HB 1106 + fresh license checks) means every GNA/LPN we dispatch is active and floor-ready. Most facilities see matched clinicians in under 15 minutes once a shift is posted.\n\nIf {{facility_name}} is still carrying a staffing citation or hour shortfall, I can walk your team through a same-week coverage plan.\n\nWorth a 15-minute call this week?",
+      "fallback_body": "Thanks for connecting — VettedCare.ai places MBON-verified Maryland GNAs/LPNs on open shifts within 15 minutes. Open to a quick call?"
+    },
+    "email_follow_up": {
+      "subject": "{{facility_name}} {{county_phrase}} — credentialed GNA/LPN coverage in 15 minutes",
+      "body": "Hi {{first_name}},\n\nFollowing up on my LinkedIn note — I'm {{sender_name}} with {{agency_name}}.\n\n{{facility_name}} {{county_phrase}} was flagged for {{compliance_hook}}. When survey pressure hits, the last thing your DON desk needs is unverified agency send-backs.\n\nVettedCare.ai is built for Maryland operators under OHCQ scrutiny:\n\n• MBON-verified GNAs & LPNs — active license, GNA endorsement where required\n• Compliance sentinel blocks staff with stale credentials or missing HB 1106 consent\n• Instant shift routing — matched, credentialed clinicians in ~15 minutes\n• County-aware dispatch — we prioritize {{county}} coverage first\n\nIf you're clearing a staffing citation or mandated hour gap, reply with your next open shift window and I'll share a live match preview for {{facility_name}}.\n\n— {{sender_name}}\n{{agency_name}}\nMaryland SNF/ALF instant staffing · MBON-gated dispatch",
+      "fallback_subject": "Maryland credentialed GNA/LPN coverage — 15-minute routing",
+      "fallback_body": "Hi there — VettedCare.ai routes MBON-verified Maryland GNAs and LPNs to open shifts within 15 minutes. Reply if you'd like a coverage walkthrough."
+    }
+  },
+  "sequence_tree": {
+    "nodeType": "CONNECTION_REQUEST",
+    "actionDelay": 3,
+    "actionDelayUnit": "HOUR",
+    "payload": {
+      "messages": ["{{linkedin_connection_request.body}}"],
+      "fallbackMessage": "{{linkedin_connection_request.fallback_body}}"
+    },
+    "conditionalNode": {
+      "nodeType": "MESSAGE",
+      "actionDelay": 1,
+      "actionDelayUnit": "DAY",
+      "payload": {
+        "messages": ["{{linkedin_follow_up_message.body}}"],
+        "fallbackMessage": "{{linkedin_follow_up_message.fallback_body}}"
+      },
+      "conditionalNode": {
+        "nodeType": "SEND_EMAIL",
+        "actionDelay": 2,
+        "actionDelayUnit": "DAY",
+        "payload": {
+          "subject": "{{email_follow_up.subject}}",
+          "body": "{{email_follow_up.body}}",
+          "fallbackSubject": "{{email_follow_up.fallback_subject}}",
+          "fallbackBody": "{{email_follow_up.fallback_body}}"
+        },
+        "conditionalNode": { "nodeType": "END", "actionDelay": 3, "actionDelayUnit": "HOUR" },
+        "unconditionalNode": { "nodeType": "END", "actionDelay": 3, "actionDelayUnit": "HOUR" }
+      },
+      "unconditionalNode": { "nodeType": "END", "actionDelay": 3, "actionDelayUnit": "HOUR" }
+    },
+    "unconditionalNode": { "nodeType": "END", "actionDelay": 3, "actionDelayUnit": "HOUR" }
+  },
+  "heyreach_import_csv": {
+    "path": "leads/heyreach_md_don_ohcq_import.csv",
+    "columns": [
+      { "heyreach_field": "linkedin_url", "source": "don_linkedin_url" },
+      { "heyreach_field": "first_name", "source": "don_first_name" },
+      { "heyreach_field": "last_name", "source": "don_last_name" },
+      { "heyreach_field": "email", "source": "don_verified_email" },
+      { "heyreach_field": "company", "source": "facility_name" },
+      { "heyreach_field": "custom_county", "source": "county" },
+      { "heyreach_field": "custom_county_phrase", "source": "county_phrase" },
+      { "heyreach_field": "custom_compliance_hook", "source": "compliance_hook" },
+      { "heyreach_field": "custom_facility_name", "source": "facility_name" },
+      { "heyreach_field": "custom_flag_reason", "source": "flag_reason" },
+      { "heyreach_field": "custom_linkedin_connection", "source": "linkedin_connection_message" },
+      { "heyreach_field": "custom_linkedin_followup", "source": "linkedin_follow_up_message" },
+      { "heyreach_field": "custom_email_subject", "source": "email_subject" },
+      { "heyreach_field": "custom_email_body", "source": "email_body" }
+    ]
+  },
+  "api_mappings": {
+    "base_url": "https://api.heyreach.io/api/public",
+    "auth_header": "X-API-KEY",
+    "auth_env": "HEYREACH_API_KEY",
+    "create_campaign": {
+      "method": "POST",
+      "path": "/campaign/Create",
+      "body_fields": {
+        "name": "{{campaign.name}}",
+        "listId": "{{HEYREACH_LIST_ID}}",
+        "linkedInAccountIds": "{{HEYREACH_SENDER_ACCOUNT_IDS}}",
+        "schedule": "{{campaign.schedule}}",
+        "sequence": "{{resolved_sequence_tree}}"
+      }
+    },
+    "update_sequence": {
+      "method": "POST",
+      "path": "/campaign/UpdateSequence",
+      "body_fields": {
+        "campaignId": "{{HEYREACH_CAMPAIGN_ID}}",
+        "sequence": "{{resolved_sequence_tree}}"
+      }
+    },
+    "start_campaign": {
+      "method": "POST",
+      "path": "/campaign/StartCampaign",
+      "query": { "campaignId": "{{HEYREACH_CAMPAIGN_ID}}" }
+    },
+    "add_leads": {
+      "method": "POST",
+      "path": "/campaign/AddLeadsToCampaignV2",
+      "note": "Prefer CSV import to Lead List first; use API for incremental adds."
+    }
+  },
+  "export": {
+    "sequence_json_path": "leads/heyreach_md_don_ohcq_sequence.json",
+    "import_csv_path": "leads/heyreach_md_don_ohcq_import.csv"
+  }
+}

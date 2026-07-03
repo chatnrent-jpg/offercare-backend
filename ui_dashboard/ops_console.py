@@ -1179,11 +1179,35 @@ def main() -> None:
         _calendar_now = datetime.now(timezone.utc)
         _calendar_start_date = _calendar_now.date()
         _calendar_end_date = _calendar_now.date()
+        _qp_provider = str(st.query_params.get("provider_id") or "").strip()
+        _qp_start = str(st.query_params.get("shift_start") or "").strip()
+        _qp_end = str(st.query_params.get("shift_end") or "").strip()
         _calendar_provider_id = st.text_input(
             "Provider ID",
-            value="CNA-MD-99001",
+            value=_qp_provider or "CNA-MD-99001",
             key="calendar_conflict_provider_id",
         )
+        _default_start = time(7, 0)
+        _default_end = time(15, 0)
+        if _qp_start:
+            try:
+                _parsed_start = datetime.fromisoformat(_qp_start.replace("Z", "+00:00"))
+                _calendar_start_date = _parsed_start.date()
+                _default_start = _parsed_start.time().replace(tzinfo=None)
+            except ValueError:
+                pass
+        if _qp_end:
+            try:
+                _parsed_end = datetime.fromisoformat(_qp_end.replace("Z", "+00:00"))
+                _calendar_end_date = _parsed_end.date()
+                _default_end = _parsed_end.time().replace(tzinfo=None)
+            except ValueError:
+                pass
+        if _qp_provider:
+            st.info(
+                f"Portal conflict desk deep link — provider `{_qp_provider}`"
+                + (f" · shift {_qp_start} → {_qp_end}" if _qp_start and _qp_end else "")
+            )
         _calendar_start_col, _calendar_end_col = st.columns(2)
         with _calendar_start_col:
             _shift_start_date = st.date_input(
@@ -1193,7 +1217,7 @@ def main() -> None:
             )
             _shift_start_time = st.time_input(
                 "Start Time (24h)",
-                value=time(7, 0),
+                value=_default_start,
                 key="calendar_shift_start_time",
             )
         with _calendar_end_col:
@@ -1204,7 +1228,7 @@ def main() -> None:
             )
             _shift_end_time = st.time_input(
                 "End Time (24h)",
-                value=time(15, 0),
+                value=_default_end,
                 key="calendar_shift_end_time",
             )
 
@@ -1489,6 +1513,7 @@ def main() -> None:
                 "supervisor_signed": True,
                 "supervisor_name": "Charge Nurse Davis",
                 "gross_pay_amount": 240.00,
+                "maryland_residence_county": "Montgomery",
                 "stripe_connect_account_id": "acct_test_montgomery",
                 "stripe_debit_card_id": "card_test_montgomery",
             }

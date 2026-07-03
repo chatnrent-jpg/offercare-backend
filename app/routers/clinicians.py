@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app.auth import create_access_token, get_current_clinician, require_admin_api_key
+from app.auth import get_current_clinician, require_admin_api_key
 from app.config import settings
 from app.database import get_db
 from app.models import MarylandProvider
@@ -16,6 +16,14 @@ from app.schemas import (
     ClinicianLoginRequest,
     ClinicianLoginResponse,
     ClinicianPlacementOut,
+    ClinicianPaymentOut,
+    ClinicianPaymentReceiptOut,
+    ClinicianActivityOut,
+    ClinicianEarningsOut,
+    ClinicianAlertOut,
+    ClinicianJourneyStatusOut,
+    ClinicianJourneyExportOut,
+    DemoPortalAutopilotOut,
     ClinicianScheduleEventOut,
     ClinicianScheduleResponse,
     ClinicianScheduleBlockCreate,
@@ -34,7 +42,7 @@ from app.schemas import (
     ShiftLockResponse,
 )
 from app.services.clinician_auth import get_clinician_application_status
-from app.services.demo_portal_accounts import authenticate_demo_aware_clinician
+from app.services.portal_login import portal_email_password_login
 from app.services.clinician_schedule import (
     create_clinician_schedule_block,
     delete_clinician_schedule_block,
@@ -60,9 +68,35 @@ from app.services.shift_calendar import (
     unified_calendar_filename,
     unified_clinician_calendar_to_ics,
 )
-from app.services.shift_matching import list_matched_shifts_for_provider, list_open_shifts_for_clinician
+from app.services.clinician_payment_receipt import get_clinician_payment_receipt
+from app.services.clinician_payments import (
+    complete_demo_portal_payouts,
+    ensure_demo_portal_payments,
+    list_clinician_payments,
+)
+from app.services.clinician_activity import list_clinician_activity
+from app.services.clinician_earnings import summarize_clinician_earnings
+from app.services.clinician_alerts import ensure_demo_portal_alerts, list_clinician_alerts
+from app.services.clinician_journey_status import build_clinician_journey_status
+from app.services.clinician_journey_export import build_clinician_journey_export
+from app.services.demo_portal_autopilot import run_demo_portal_autopilot
+from app.services.demo_portal_lockable import (
+    ensure_demo_portal_lockable_shift,
+    ensure_demo_replenish_after_payout,
+    repair_demo_portal_placements,
+)
+from app.services.shift_matching import (
+    count_portal_lockable_shifts,
+    is_demo_walkthrough_provider,
+    list_matched_shifts_for_provider,
+    list_open_shifts_for_clinician,
+)
+from app.services.lock_journey_handoff import lock_journey_handoff_steps
 from app.services.shift_lock import lock_shift_for_provider
-from app.services.vms_submission import list_clinician_placements
+from app.services.vms_submission import (
+    list_clinician_placements,
+    submit_demo_clinician_placements_to_vms,
+)
 from app.services.vetted_alerts import build_clinician_safety_message
 from app.services.vetted_status import build_provider_vetted_profile
 
@@ -82,7 +116,7 @@ def clinician_apply(db: Session = Depends(get_db)):
 @router.post("/login", response_model=ClinicianLoginResponse)
 def clinician_login(payload: ClinicianLoginRequest, db: Session = Depends(get_db)):
     try:
-        provider = authenticate_demo_aware_clinician(
+        provider, token = portal_email_password_login(
             db,
             email=str(payload.email),
             password=payload.password,
@@ -90,7 +124,7 @@ def clinician_login(payload: ClinicianLoginRequest, db: Session = Depends(get_db
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     return ClinicianLoginResponse(
-        access_token=create_access_token(provider.provider_id),
+        access_token=token,
         provider=ProviderRead.model_validate(provider),
     )
 
@@ -156,8 +190,144 @@ def clinician_placements(
     db: Session = Depends(get_db),
     current: MarylandProvider = Depends(get_current_clinician),
 ):
+    if is_demo_walkthrough_provider(current):
+        repair_demo_portal_placements(db, current)
+        submit_demo_clinician_placements_to_vms(db, current)
+        ensure_demo_portal_payments(db, current)
+        complete_demo_portal_payouts(db, current)
     rows = list_clinician_placements(db, current.provider_id)
     return [ClinicianPlacementOut.model_validate(row) for row in rows]
+
+
+@router.get("/me/payments", response_model=list[ClinicianPaymentOut])
+def clinician_payments(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if is_demo_walkthrough_provider(current):
+        repair_demo_portal_placements(db, current)
+        submit_demo_clinician_placements_to_vms(db, current)
+        ensure_demo_portal_payments(db, current)
+        complete_demo_portal_payouts(db, current)
+        ensure_demo_replenish_after_payout(db, current)
+    rows = list_clinician_payments(db, current.provider_id)
+    return [ClinicianPaymentOut.model_validate(row) for row in rows]
+
+
+@router.post("/me/demo-finalize-payouts")
+def clinician_demo_finalize_payouts(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if not is_demo_walkthrough_provider(current):
+        raise HTTPException(status_code=404, detail="demo_only")
+    repair_demo_portal_placements(db, current)
+    submit_demo_clinician_placements_to_vms(db, current)
+    ensure_demo_portal_payments(db, current)
+    payouts_completed = complete_demo_portal_payouts(db, current)
+    rows = list_clinician_payments(db, current.provider_id)
+    return {
+        "payouts_completed": payouts_completed,
+        "payments": [ClinicianPaymentOut.model_validate(row).model_dump(mode="json") for row in rows],
+    }
+
+
+@router.get("/me/payments/{payout_id}/receipt", response_model=ClinicianPaymentReceiptOut)
+def clinician_payment_receipt(
+    payout_id: UUID,
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if is_demo_walkthrough_provider(current):
+        complete_demo_portal_payouts(db, current)
+    receipt = get_clinician_payment_receipt(db, current.provider_id, payout_id)
+    if receipt is None:
+        raise HTTPException(status_code=404, detail="receipt_not_found")
+    return ClinicianPaymentReceiptOut.model_validate(receipt)
+
+
+@router.get("/me/activity", response_model=list[ClinicianActivityOut])
+def clinician_activity(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if is_demo_walkthrough_provider(current):
+        repair_demo_portal_placements(db, current)
+        submit_demo_clinician_placements_to_vms(db, current)
+        ensure_demo_portal_payments(db, current)
+        complete_demo_portal_payouts(db, current)
+        ensure_demo_replenish_after_payout(db, current)
+    lockable = count_portal_lockable_shifts(db, current, limit=50)
+    rows = list_clinician_activity(db, current.provider_id, lockable_count=lockable)
+    return [ClinicianActivityOut.model_validate(row) for row in rows]
+
+
+@router.get("/me/earnings", response_model=ClinicianEarningsOut)
+def clinician_earnings(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if is_demo_walkthrough_provider(current):
+        repair_demo_portal_placements(db, current)
+        submit_demo_clinician_placements_to_vms(db, current)
+        ensure_demo_portal_payments(db, current)
+        complete_demo_portal_payouts(db, current)
+    summary = summarize_clinician_earnings(db, current.provider_id)
+    return ClinicianEarningsOut.model_validate(summary)
+
+
+@router.get("/me/alerts", response_model=list[ClinicianAlertOut])
+def clinician_alerts(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if is_demo_walkthrough_provider(current):
+        repair_demo_portal_placements(db, current)
+        submit_demo_clinician_placements_to_vms(db, current)
+        ensure_demo_portal_payments(db, current)
+        complete_demo_portal_payouts(db, current)
+        ensure_demo_replenish_after_payout(db, current)
+        ensure_demo_portal_alerts(db, current)
+    lockable = count_portal_lockable_shifts(db, current, limit=50)
+    rows = list_clinician_alerts(db, current.provider_id, lockable_count=lockable)
+    return [ClinicianAlertOut.model_validate(row) for row in rows]
+
+
+@router.get("/me/journey-status", response_model=ClinicianJourneyStatusOut)
+def clinician_journey_status(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if is_demo_walkthrough_provider(current):
+        repair_demo_portal_placements(db, current)
+        submit_demo_clinician_placements_to_vms(db, current)
+        ensure_demo_portal_payments(db, current)
+        complete_demo_portal_payouts(db, current)
+        ensure_demo_replenish_after_payout(db, current)
+    status = build_clinician_journey_status(db, current)
+    return ClinicianJourneyStatusOut.model_validate(status)
+
+
+@router.post("/me/demo-autopilot", response_model=DemoPortalAutopilotOut)
+def clinician_demo_autopilot(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    result = run_demo_portal_autopilot(db, current)
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result.get("reason") or "demo_only")
+    return DemoPortalAutopilotOut.model_validate(result)
+
+
+@router.get("/me/journey-export", response_model=ClinicianJourneyExportOut)
+def clinician_journey_export(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if is_demo_walkthrough_provider(current):
+        run_demo_portal_autopilot(db, current)
+    payload = build_clinician_journey_export(db, current)
+    return ClinicianJourneyExportOut.model_validate(payload)
 
 
 @router.get("/me/preferences", response_model=ClinicianPreferencesOut)
@@ -190,6 +360,31 @@ def clinician_update_preferences(
     return ClinicianPreferencesOut.model_validate(snapshot)
 
 
+@router.post("/me/demo-shift-bootstrap")
+def clinician_demo_shift_bootstrap(
+    db: Session = Depends(get_db),
+    current: MarylandProvider = Depends(get_current_clinician),
+):
+    if not is_demo_walkthrough_provider(current):
+        raise HTTPException(status_code=404, detail="demo_only")
+    payload = ensure_demo_portal_lockable_shift(db, email=str(current.email))
+    repaired_placements = repair_demo_portal_placements(db, current)
+    vms_dispatched = submit_demo_clinician_placements_to_vms(db, current)
+    payments_created = ensure_demo_portal_payments(db, current)
+    payouts_completed = complete_demo_portal_payouts(db, current)
+    shifts_replenished = ensure_demo_replenish_after_payout(db, current)
+    lockable = count_portal_lockable_shifts(db, current, limit=50)
+    return {
+        **payload,
+        "lockable_count": lockable,
+        "repaired_placements": repaired_placements,
+        "vms_dispatched": vms_dispatched,
+        "payments_created": payments_created,
+        "payouts_completed": payouts_completed,
+        "shifts_replenished": shifts_replenished,
+    }
+
+
 @router.get("/me/matched-shifts", response_model=list[MatchedShiftOut])
 def clinician_matched_shifts(
     limit: int = 50,
@@ -201,6 +396,8 @@ def clinician_matched_shifts(
     db: Session = Depends(get_db),
     current: MarylandProvider = Depends(get_current_clinician),
 ):
+    if is_demo_walkthrough_provider(current):
+        ensure_demo_portal_lockable_shift(db, email=str(current.email))
     rows = list_matched_shifts_for_provider(
         db,
         current,
@@ -282,12 +479,28 @@ def clinician_lock_matched_shift(
 ):
     result = lock_shift_for_provider(db, provider=current, offer_id=offer_id)
     if result.status == "locked":
+        vms_done = False
+        if is_demo_walkthrough_provider(current):
+            repair_demo_portal_placements(db, current)
+            vms_done = submit_demo_clinician_placements_to_vms(db, current) > 0
+        handoff_message = result.message
+        if vms_done:
+            handoff_message = (
+                f"{result.message} VMS dispatch confirmed — payroll and instant pay are next."
+            )
         return ShiftLockResponse(
             status=result.status,
-            message=result.message,
+            message=handoff_message,
             offer_id=result.offer_id,
             provider_id=result.provider_id,
             placement_id=result.placement_id,
+            facility_name=result.facility_name,
+            shift_role=result.shift_role,
+            shift_starts_at=result.shift_starts_at,
+            shift_ends_at=result.shift_ends_at,
+            hourly_pay_rate=result.hourly_pay_rate,
+            provider_license=result.provider_license,
+            journey_steps=lock_journey_handoff_steps(vms_done=vms_done),
         )
     if result.status in {"rejected", "schedule_conflict"}:
         raise HTTPException(status_code=403, detail=result.message) from None

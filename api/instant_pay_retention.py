@@ -17,6 +17,7 @@ from app.auth import require_admin_api_key
 from app.config import settings
 from app.database import SessionLocal, get_db
 from app.models import MarylandProvider, ProviderStripePayoutAccount, ShiftTimesheetPayout
+from app.services.payroll_tax_intercept_bridge import apply_instant_payout_tax_intercept
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,8 @@ class SupervisorSignoffIn(BaseModel):
     gross_pay_amount: Decimal = Field(..., gt=0)
     supervisor_name: str = Field(..., min_length=2, max_length=255)
     supervisor_signature_token: str = Field(..., min_length=8, max_length=256)
+    hours_worked: float | None = Field(default=None, gt=0)
+    caregiver_hourly_pay_rate: float | None = Field(default=None, gt=0)
 
 
 class SupervisorSignoffResponse(BaseModel):
@@ -102,6 +105,24 @@ def record_supervisor_signoff(db: Session, payload: SupervisorSignoffIn) -> Shif
         payout_status="PENDING",
     )
     db.add(payout)
+    try:
+        from app.services.b2b_invoicing_engine import calculate_and_log_facility_invoice_on_shift_complete
+
+        calculate_and_log_facility_invoice_on_shift_complete(
+            db,
+            timesheet_id=payload.timesheet_id,
+            provider_id=payload.provider_id,
+            gross_pay_amount=payload.gross_pay_amount,
+            hours_worked=payload.hours_worked,
+            caregiver_hourly_pay_rate=payload.caregiver_hourly_pay_rate,
+            commit=False,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "B2B facility invoice audit fail-open timesheet=%s error=%s",
+            payload.timesheet_id,
+            exc,
+        )
     db.commit()
     db.refresh(payout)
     logger.info(
@@ -202,7 +223,12 @@ def process_due_instant_payouts(db: Session) -> ProcessPayoutsResponse:
             )
             continue
 
-        amount_cents = int(Decimal(payout.gross_pay_amount) * 100)
+        net_pay, tax_breakdown = apply_instant_payout_tax_intercept(
+            payout.gross_pay_amount,
+            db=db,
+            provider_id=payout.provider_id,
+        )
+        amount_cents = int(net_pay * 100)
         if amount_cents <= 0:
             payout.payout_status = "FAILED"
             payout.failure_reason = "invalid_payout_amount"
@@ -233,7 +259,10 @@ def process_due_instant_payouts(db: Session) -> ProcessPayoutsResponse:
                     "payout_id": str(payout.payout_id),
                     "status": "PAID",
                     "stripe_payout_id": stripe_payout_id,
+                    "gross_pay_amount": float(payout.gross_pay_amount),
+                    "net_pay_amount": float(net_pay),
                     "amount_cents": amount_cents,
+                    "tax_withholding": tax_breakdown.to_dict() if tax_breakdown else None,
                     "mode": mode,
                 }
             )

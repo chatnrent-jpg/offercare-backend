@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -28,6 +29,12 @@ class ShiftLockResult:
     offer_id: UUID | None = None
     provider_id: UUID | None = None
     placement_id: UUID | None = None
+    facility_name: str | None = None
+    shift_role: str | None = None
+    shift_starts_at: datetime | None = None
+    shift_ends_at: datetime | None = None
+    hourly_pay_rate: float | None = None
+    provider_license: str | None = None
 
 
 def normalize_phone(phone: str) -> str:
@@ -51,6 +58,25 @@ def _compliance_token(provider: MarylandProvider) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:64]
 
 
+def _offer_lock_context(db: Session, *, provider: MarylandProvider, offer: OfferCareJobOffer) -> dict:
+    facility = (
+        db.query(MarylandFacility)
+        .filter(MarylandFacility.facility_id == offer.facility_id)
+        .first()
+    )
+    facility_name = facility.name if facility else "Maryland facility"
+    return {
+        "facility_name": facility_name,
+        "shift_role": offer.shift_role,
+        "shift_starts_at": offer.shift_starts_at,
+        "shift_ends_at": offer.shift_ends_at,
+        "hourly_pay_rate": float(offer.hourly_pay_rate) if offer.hourly_pay_rate is not None else None,
+        "provider_license": provider.md_license_number,
+        "offer_id": offer.offer_id,
+        "provider_id": provider.provider_id,
+    }
+
+
 def _schedule_conflict_blocks_lock(
     db: Session,
     *,
@@ -70,18 +96,17 @@ def _schedule_conflict_blocks_lock(
         )
         if clearance.get("has_conflict"):
             conflict_type = str(clearance.get("conflict_type") or "")
+            ctx = _offer_lock_context(db, provider=provider, offer=offer)
             if conflict_type == "FATIGUE_CAP_EXCEEDED":
                 return ShiftLockResult(
                     status="schedule_conflict",
                     message="Fatigue cap exceeded. Rest before accepting another shift.",
-                    offer_id=offer.offer_id,
-                    provider_id=provider.provider_id,
+                    **ctx,
                 )
             return ShiftLockResult(
                 status="schedule_conflict",
                 message="Schedule conflict detected. You already have a commitment during this interval.",
-                offer_id=offer.offer_id,
-                provider_id=provider.provider_id,
+                **ctx,
             )
     except Exception as exc:  # noqa: BLE001
         log_ops_event(
@@ -156,9 +181,8 @@ def _finalize_shift_lock(
     return ShiftLockResult(
         status="locked",
         message=f"Shift locked at {facility_name}. You're confirmed for {offer.shift_role}.",
-        offer_id=offer.offer_id,
-        provider_id=provider.provider_id,
         placement_id=placement.placement_id,
+        **_offer_lock_context(db, provider=provider, offer=offer),
     )
 
 

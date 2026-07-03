@@ -10,6 +10,7 @@ from data_engine.md_lead_schema import MD_OPTIONAL_LEAD_FIELDS, MD_REQUIRED_LEAD
 from data_engine.paths import (
     INCOMING_CONTRACTS_DIR,
     INCOMING_SHIFTS_DIR,
+    LEADS_DIR,
     RAW_LEADS_DIR,
     ensure_data_engine_dirs,
 )
@@ -26,6 +27,7 @@ def build_manus_recruitment_config() -> dict:
     prefix = f"{base}/api/vettedcare/manus/recruitment"
     repo = Path(__file__).resolve().parents[2]
     md_leads_path = RAW_LEADS_DIR / "md_facilities.csv"
+    ohcq_citation_csv = LEADS_DIR / "ohcq_staffing_citation_flags_md.csv"
     return {
         "product": "VettedCare.ai Maryland LTC Recruitment Engine",
         "architecture": "Manus acts (OHCQ/RFP/VMS) · VettedCare decides (parse, MBON gate, dispatch)",
@@ -53,6 +55,8 @@ def build_manus_recruitment_config() -> dict:
         "filesystem_handoff": {
             "raw_leads_csv": str(RAW_LEADS_DIR),
             "md_facilities_csv": str(md_leads_path),
+            "ohcq_staffing_citation_csv": str(ohcq_citation_csv),
+            "leads_dir": str(LEADS_DIR),
             "incoming_contracts": str(INCOMING_CONTRACTS_DIR),
             "incoming_shifts_json": str(INCOMING_SHIFTS_DIR),
             "md_outreach_queue_json": str(repo / "logs" / "manus" / "md_outreach_queue.json"),
@@ -82,6 +86,108 @@ def build_manus_recruitment_config() -> dict:
                 ],
                 "output": f"CSV -> {md_leads_path}",
                 "required_columns": list(MD_REQUIRED_LEAD_FIELDS),
+            },
+            {
+                "id": "ohcq-staffing-citation-tracker",
+                "title": "Maryland OHCQ staffing citation tracker",
+                "targets": [
+                    "MDH Office of Health Care Quality (OHCQ) licensee directories",
+                    "OHCQ long-term care and assisted living portal pages",
+                    "CMS Nursing Home Health Citations (MD) — insufficient staffing tags",
+                    "CMS Provider Info — below Maryland mandated nurse HPRD (3.76)",
+                ],
+                "command": "scripts/run-ohcq-citation-tracker.bat",
+                "output": f"CSV -> {ohcq_citation_csv}",
+                "required_columns": [
+                    "facility_name",
+                    "county",
+                    "facility_type",
+                    "flag_reason",
+                    "deficiency_tag",
+                    "deficiency_summary",
+                    "survey_date",
+                    "reported_nurse_hprd",
+                    "state_mandated_hprd",
+                    "source_portal",
+                    "source_url",
+                ],
+                "manus_instructions": (
+                    "Run the OHCQ citation tracker weekly. Sweep MDH OHCQ portals for SNF and ALF "
+                    "licensee listings, cross-reference CMS health citations for insufficient staffing "
+                    "shortages, and flag facilities below Maryland mandated care hours. Drop the CSV "
+                    f"at {ohcq_citation_csv} for B2B outreach prioritization."
+                ),
+            },
+            {
+                "id": "clay-ohcq-don-hr-enrichment",
+                "title": "Clay.com DON + HR Staffing Coordinator enrichment",
+                "targets": [
+                    "leads/ohcq_staffing_citation_flags_md.csv",
+                    "Clay table webhook or api.clay.com/v3",
+                    "LinkedIn person enrichment",
+                    "Apollo / ZoomInfo corporate contact databases",
+                ],
+                "command": "scripts/clay_push_ohcq_leads.py",
+                "config": "integrations/clay/ohcq_citation_enrichment.template.json",
+                "output": f"CSV -> {LEADS_DIR / 'ohcq_staffing_citation_enriched_md.csv'}",
+                "manus_instructions": (
+                    "Copy integrations/clay/ohcq_citation_enrichment.template.json to "
+                    "ohcq_citation_enrichment.json, set CLAY_TABLE_WEBHOOK_URL (or CLAY_TABLE_ID + "
+                    "CLAY_SESSION_COOKIE + field IDs), then run scripts/clay_push_ohcq_leads.py. "
+                    "Clay template auto-searches LinkedIn and corporate DBs for Director of Nursing "
+                    "and HR Staffing Coordinator verified emails and direct phones per cited facility."
+                ),
+            },
+            {
+                "id": "md-ohcq-leads-pipeline-offline",
+                "title": "MD OHCQ leads pipeline (offline build — no keys)",
+                "targets": [
+                    "leads/ohcq_staffing_citation_flags_md.csv",
+                    "Clay staging enriched CSV",
+                    "HeyReach import + sequence JSON",
+                    "logs/manus/md_ohcq_leads_pipeline_manifest.json",
+                ],
+                "command": "scripts/run-md-ohcq-leads-pipeline.bat",
+                "manus_instructions": (
+                    "Run scripts/run-md-ohcq-leads-pipeline.bat to rebuild all offline artifacts. "
+                    "Assign CLAY_* and HEYREACH_* keys on keys day; manifest tracks readiness."
+                ),
+            },
+            {
+                "id": "workstream-baltimore-cna-distribute",
+                "title": "Workstream Baltimore CNA job distribution (Indeed + ZipRecruiter)",
+                "targets": [
+                    "/baltimore-instant-pay-cna/",
+                    "Indeed + ZipRecruiter text-to-apply posts",
+                    "caregiver_intake_queue webhook",
+                ],
+                "command": "scripts/workstream_distribute_baltimore_cna.py",
+                "config": "integrations/workstream/baltimore_instant_pay_cna.template.json",
+                "output": f"JSON -> {LEADS_DIR / 'workstream_baltimore_cna_job_posts.json'}",
+                "manus_instructions": (
+                    "Run scripts/run-workstream-baltimore-cna-distribute.bat --dry-run to preview. "
+                    "Set WORKSTREAM_* credentials on keys day. Webhook /api/v1/webhooks/workstream/text-apply "
+                    "routes Indeed/ZipRecruiter text replies into caregiver_intake_queue."
+                ),
+            },
+            {
+                "id": "heyreach-md-don-ohcq-sequence",
+                "title": "HeyReach DON LinkedIn + email outreach (OHCQ staffing)",
+                "targets": [
+                    "leads/ohcq_staffing_citation_enriched_md.csv",
+                    "HeyReach Lead List CSV import",
+                    "LinkedIn connection request → message → email follow-up",
+                ],
+                "command": "scripts/heyreach_build_ohcq_sequence.py",
+                "config": "integrations/heyreach/md_don_ohcq_outreach.template.json",
+                "output": f"CSV -> {LEADS_DIR / 'heyreach_md_don_ohcq_import.csv'}",
+                "manus_instructions": (
+                    "Run scripts/run-heyreach-ohcq-sequence.bat after Clay enrichment. "
+                    "Import heyreach_md_don_ohcq_import.csv into HeyReach, apply "
+                    "heyreach_md_don_ohcq_sequence.json via UpdateSequence, and start campaign. "
+                    "Copy dynamically inserts cited Maryland county names and focuses on "
+                    "VettedCare.ai routing credentialed GNAs/LPNs to open shifts within 15 minutes."
+                ),
             },
             {
                 "id": "b2b-executive-profiling",

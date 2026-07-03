@@ -310,6 +310,7 @@ class InstantPayoutResponse:
     stripe_reference: str | None
     payout_eta_minutes: int
     message: str
+    tax_withholding: dict[str, Any] | None = None
 
 
 class SemanticPayoutEngine:
@@ -489,8 +490,18 @@ class SemanticPayoutEngine:
         if gross_pay_amount <= 0:
             raise ValueError("gross_pay_amount must be positive")
 
-        # 100% net pay distribution line — no platform withhold on instant retention rail.
-        net_pay_amount = round(gross_pay_amount, 2)
+        from app.services.payroll_tax_intercept_bridge import apply_instant_payout_tax_intercept
+
+        net_pay_decimal, tax_breakdown = apply_instant_payout_tax_intercept(
+            gross_pay_amount,
+            db=None,
+            provider_id=provider_id,
+            maryland_residence_county=signed_timesheet.get("maryland_residence_county"),
+            employee_external_id=signed_timesheet.get("employee_external_id"),
+        )
+        net_pay_amount = float(net_pay_decimal)
+        tax_payload = tax_breakdown.to_dict() if tax_breakdown else None
+
         dry_run = str(os.getenv("STRIPE_INSTANT_PAYOUT_DRY_RUN", "true")).strip().lower() in {
             "1",
             "true",
@@ -518,7 +529,14 @@ class SemanticPayoutEngine:
         eligible_at = signed_at + timedelta(minutes=self.instant_pay_window_minutes)
         message = (
             f"Instant payout staged for {provider_id}: ${net_pay_amount:,.2f} net pay "
-            f"via {stripe_mode}. Funds routed to registered debit card; "
+            f"(gross ${gross_pay_amount:,.2f}"
+            + (
+                f", withheld ${tax_breakdown.total_withholding:,.2f} "
+                f"MD county {tax_breakdown.maryland_residence_county}"
+                if tax_breakdown
+                else ""
+            )
+            + f") via {stripe_mode}. Funds routed to registered debit card; "
             f"ETA {self.instant_pay_window_minutes} minutes after supervisor sign-off "
             f"(eligible at {eligible_at.isoformat()})."
         )
@@ -534,6 +552,7 @@ class SemanticPayoutEngine:
             stripe_reference=stripe_reference,
             payout_eta_minutes=self.instant_pay_window_minutes,
             message=message,
+            tax_withholding=tax_payload,
         )
 
     def _stripe_instant_network_call(
@@ -630,6 +649,7 @@ if __name__ == "__main__":
             "supervisor_signed": True,
             "supervisor_name": "Charge Nurse Davis",
             "gross_pay_amount": 240.00,
+            "maryland_residence_county": "Montgomery",
             "stripe_connect_account_id": "acct_test_montgomery",
             "stripe_debit_card_id": "card_test_montgomery",
         }

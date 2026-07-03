@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -29,6 +30,19 @@ CONSENT_SMS_DISPATCH = (
     "I agree to receive automated shift-offer text messages at the mobile number I provided. "
     "Message and data rates may apply. Reply STOP to opt out or YES to accept a shift."
 )
+CONSENT_HB1106_AUTOMATED_HIRING_ANTI_BIAS = (
+    "Under Maryland HB 1106, I acknowledge that VettedCare.ai may use automated tools in "
+    "hiring and shift-matching decisions. I consent to the 10-day automated hiring anti-bias "
+    "disclosure and authorize storage of this consent for Maryland compliance reporting."
+)
+
+CONSENT_MARYLAND_AEDT_30_DAY = (
+    "Maryland Automated Employment Decision Tool (AEDT) — 30-day notice: I understand that "
+    "VettedCare.ai uses an automated AI tool to process my Maryland license credentials, "
+    "geographic proximity to open shifts, and experience parameters solely for per-diem shift "
+    "routing. I consent to this automated processing and authorize VettedCare.ai to store a "
+    "timestamped record of this disclosure for Maryland compliance reporting."
+)
 
 CONSENT_EVENT_TYPES: tuple[tuple[str, str], ...] = (
     ("CONSENT_CREDENTIAL_SCREENING", CONSENT_CREDENTIAL_SCREENING),
@@ -53,6 +67,8 @@ def build_consent_disclosures() -> dict:
         "privacy_policy_version": privacy["version"],
         "privacy_policy_effective_date": privacy["effective_date"],
         "privacy_policy_url": "/api/landing/maryland/privacy-policy",
+        "hb1106_automated_hiring_anti_bias": CONSENT_HB1106_AUTOMATED_HIRING_ANTI_BIAS,
+        "maryland_aedt_30_day": CONSENT_MARYLAND_AEDT_30_DAY,
     }
 
 
@@ -111,6 +127,87 @@ def provider_has_sms_dispatch_consent(
         .first()
     )
     return consent_row is not None
+
+
+def provider_has_hb1106_automated_hiring_consent(
+    db: Session,
+    provider_id: UUID,
+) -> LicenseVerificationLog | None:
+    return (
+        db.query(LicenseVerificationLog)
+        .filter(
+            LicenseVerificationLog.provider_id == provider_id,
+            LicenseVerificationLog.event_type.in_(
+                ("CONSENT_HB1106_ANTI_BIAS", "CONSENT_MARYLAND_AEDT_30_DAY")
+            ),
+            LicenseVerificationLog.check_result == "PASS",
+        )
+        .order_by(LicenseVerificationLog.created_at.desc())
+        .first()
+    )
+
+
+def resolve_provider_consent_signed_at(
+    db: Session,
+    provider_id: UUID,
+) -> datetime | None:
+    """Authoritative AEDT consent timestamp — profile column first, audit log fallback."""
+    provider = db.query(MarylandProvider).filter(MarylandProvider.provider_id == provider_id).first()
+    if provider is not None and provider.consent_signed_at is not None:
+        value = provider.consent_signed_at
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+    consent_row = provider_has_hb1106_automated_hiring_consent(db, provider_id)
+    if consent_row is None or consent_row.created_at is None:
+        return None
+    value = consent_row.created_at
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def record_maryland_aedt_consent(
+    db: Session,
+    provider_id: UUID,
+    *,
+    consent_version: str,
+    client_ip: str | None = None,
+    signed_at: datetime | None = None,
+    commit: bool = False,
+) -> datetime:
+    """Persist mandatory Maryland AEDT disclosure — profile consent_signed_at + audit logs."""
+    provider = db.query(MarylandProvider).filter(MarylandProvider.provider_id == provider_id).first()
+    if provider is None:
+        raise ValueError("provider_not_found")
+
+    signed = signed_at or datetime.now(timezone.utc)
+    if signed.tzinfo is None:
+        signed = signed.replace(tzinfo=timezone.utc)
+    else:
+        signed = signed.astimezone(timezone.utc)
+
+    provider.consent_signed_at = signed
+    for event_type, disclosure in (
+        ("CONSENT_MARYLAND_AEDT_30_DAY", CONSENT_MARYLAND_AEDT_30_DAY),
+        ("CONSENT_HB1106_ANTI_BIAS", CONSENT_HB1106_AUTOMATED_HIRING_ANTI_BIAS),
+    ):
+        db.add(
+            LicenseVerificationLog(
+                provider_id=provider_id,
+                event_type=event_type,
+                check_result="PASS",
+                notes=_consent_note(
+                    consent_version=consent_version,
+                    disclosure=disclosure,
+                    client_ip=client_ip,
+                ),
+                reviewer="maryland_aedt_disclosure",
+            )
+        )
+    if commit:
+        db.commit()
+    return signed
 
 
 def build_worker_inflow_summary(db: Session) -> dict:

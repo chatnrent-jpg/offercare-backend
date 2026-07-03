@@ -733,7 +733,7 @@ def seed_nj_nursing_home_demo(db: Session) -> dict[str, str]:
     offer = _upsert_demo_offer(
         db,
         facility_id=facility.facility_id,
-        shift_role="GNA",
+        shift_role="CNA",
         hourly_pay_rate=24.0,
     )
     db.commit()

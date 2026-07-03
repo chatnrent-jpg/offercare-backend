@@ -1,0 +1,316 @@
+# Check API Documentation
+
+> Welcome to the API specification for Check! Get started with our Quickstart guide and start processing payroll for your users.
+
+## Guides
+- [Metadata](https://docs.checkhq.com/docs/metadata-1.md)
+- [Rate limiting](https://docs.checkhq.com/docs/rate-limiting.md)
+- [Request logs](https://docs.checkhq.com/docs/request-logs.md)
+- [Batching edits](https://docs.checkhq.com/docs/batching-edits.md): How to operate on many resources efficiently.
+- [Fetching multiple resources](https://docs.checkhq.com/docs/bulk-resource-get-requests.md): Fetch many resources at once
+- [Idempotent requests](https://docs.checkhq.com/docs/idempotent-requests.md)
+- [Pagination](https://docs.checkhq.com/docs/pagination.md): Handle paginated responses from Check's API
+- [Sensitive Data API](https://docs.checkhq.com/docs/sensitive-data-api.md)
+- [Understanding Sandbox and Production Environments](https://docs.checkhq.com/docs/understanding-sandbox-and-production-environments.md)
+- [Webhooks](https://docs.checkhq.com/docs/webhooks-1.md): Working with Check's webhooks
+- [Receiving webhooks](https://docs.checkhq.com/docs/the-shape-of-your-webhook-endpoint.md): Configuring your webhook endpoint
+- [Webhook Event Types](https://docs.checkhq.com/docs/webhook-event-types.md): A list of Check supported webhook events
+- [Working with Webhooks](https://docs.checkhq.com/docs/working-with-webhooks.md): What to do with Check webhooks
+- [Check CLI](https://docs.checkhq.com/docs/check-command-line-interface-cli.md): Leverage the full power of Check's platform from the command line.
+- [Hosted (Remote)](https://docs.checkhq.com/docs/hosted-remote.md): Connect to the Check MCP Server without managing any infrastructure.
+- [Check MCP Server](https://docs.checkhq.com/docs/overview-1.md): Connect your AI tools to the Check Payroll API using the Model Context Protocol.
+- [Self-Hosted](https://docs.checkhq.com/docs/self-hosted.md): Run the Check MCP Server locally for full control over your configuration and environment.
+- [Check Component Library](https://docs.checkhq.com/docs/check-component-library.md)
+- [Live Component Example](https://docs.checkhq.com/docs/live-component-example.md)
+- [Overview](https://docs.checkhq.com/docs/check-components.md)
+- [Embedding Check Onboard](https://docs.checkhq.com/docs/adding-check-onboard-to-your-application.md)
+- [Check Onboard](https://docs.checkhq.com/docs/check-onboard.md): Automated onboarding for companies, employees, and contractors
+- [Customizing Components](https://docs.checkhq.com/docs/customizing-components.md)
+- [Embedding a Component](https://docs.checkhq.com/docs/embedding-a-component.md)
+- [Handling Component Events](https://docs.checkhq.com/docs/handling-component-events.md)
+- [Working with Check Components](https://docs.checkhq.com/docs/working-with-check-components.md)
+- [Check + Layer Accounting Integration Guide](https://docs.checkhq.com/docs/check-layer-integration-guide.md)
+- [Check + Next Workers' Compensation Integration Guide](https://docs.checkhq.com/docs/v2-check-next-workers-compensation-integration-guide.md)
+- [Check Ecosystem Overview](https://docs.checkhq.com/docs/check-ecosystem-overview.md): What the Check Ecosystem is, why it matters, and how partners use it to offer payroll-adjacent products.
+- [Ecosystem Partner Guide](https://docs.checkhq.com/docs/check-oauth-integrations.md): Learn how to integrate with Check's API as an Ecosystem Partner.
+- [Check + Clair Earned Wage Access Integration Guide](https://docs.checkhq.com/docs/check-clair-api-integration-guide.md)
+- [Check + Benbase Integration Guide](https://docs.checkhq.com/docs/check-benbase-integration-guide.md)
+- [Check + SimplyInsured Integration Guide](https://docs.checkhq.com/docs/check-simplyinsured-component-integration-guide.md)
+- [Check + Vestwell 401(k) Integration Guide](https://docs.checkhq.com/docs/check-guideline-integration-guide.md)
+- [Check + Human Interest Integration Guide](https://docs.checkhq.com/docs/check-human-interest-integration-guide.md)
+- [API Logs](https://docs.checkhq.com/docs/api-logs.md): Understand the requests you're making to Check's API
+- [Working with Check Console](https://docs.checkhq.com/docs/check-console.md): Learn about using Console to operate your payroll product
+- [Overview](https://docs.checkhq.com/docs/overview.md): Welcome to Check’s API documentation!
+- [Status Page](https://docs.checkhq.com/docs/status-page.md)
+- [Managing Employer & Worker Communications](https://docs.checkhq.com/docs/managing-check-to-employer-worker-communication.md)
+- [Notification & Communication Library](https://docs.checkhq.com/docs/supported-notifications.md)
+- [Address Validation](https://docs.checkhq.com/docs/address-validation.md)
+- [Company Enrollment](https://docs.checkhq.com/docs/company-enrollment.md): Guide to enrolling a company in Check's payroll services
+- [2% Shareholders](https://docs.checkhq.com/docs/2-shareholders.md): Paying employees who are 2% shareholders of an S Corporation or a Single Member LLC.
+- [Collecting Employee Information From Employers](https://docs.checkhq.com/docs/collecting-employee-information-from-employers.md)
+- [Custom Employee Onboarding](https://docs.checkhq.com/docs/employee-onboarding-api.md): Manually capturing employee onboarding requirements
+- [SSN Validation](https://docs.checkhq.com/docs/ssn-validation.md)
+- [External Payrolls Validations](https://docs.checkhq.com/docs/external-payrolls-validations.md): This guide provides a comprehensive overview of errors that can occur when working with the External Payrolls API, organized by the operation where they may be encountered.
+- [External Payrolls](https://docs.checkhq.com/docs/external-payrolls.md)
+- [Implementation Status](https://docs.checkhq.com/docs/implementation-status.md)
+- [Onboard Status](https://docs.checkhq.com/docs/onboard-status.md): See what's blocking payroll for your companies, employees, and contractors
+- [Bank Account Verification Document Requests](https://docs.checkhq.com/docs/bank-account-verification-document-requests.md): Find out which companies have bank account ownership verification requests and the current status of these requirements.
+- [Requirements API](https://docs.checkhq.com/docs/requirements-api.md): Discover what required inputs are missing from your end-users.
+- [Resolve Funding Failures](https://docs.checkhq.com/docs/resolve-funding-failures.md)
+- [Taxes, Agencies, and Jurisdictions](https://docs.checkhq.com/docs/taxes-and-agencies.md): How Check models payroll taxes, the agencies that administer them, and the jurisdictions they belong to
+- [Jurisdictions](https://docs.checkhq.com/docs/jurisdictions.md): The canonical jurisdiction code used across Check's tax resources
+- [Employee Tax Statements and Tax Packages](https://docs.checkhq.com/docs/employee-tax-statements.md): Learn how to use Check's Employee Tax Statements and Tax Packages APIs to generate W-2 and W-2C documents asynchronously and download tax packages for multiple employees.
+- [Tax Deposits](https://docs.checkhq.com/docs/tax-deposits.md): Gain visibility into the status of payments for tax liabilities.
+- [Filings API Integration Guide](https://docs.checkhq.com/docs/filings-api-integration-guide.md): This guide walks through how to build filing health into your product using the Filings API — from surfacing and resolving blocked filings in real time through to housing year-end documents.
+- [Tax Filings](https://docs.checkhq.com/docs/tax-filings.md)
+- [Migrating from the Legacy Tax Filings API](https://docs.checkhq.com/docs/migrating-from-the-legacy-tax-filings-api.md): A comprehensive guide for migrating from the legacy Tax Filings API to the new Filings API, including status mappings, event changes, and webhook updates.
+- [Tax Filings: Sandbox Testing](https://docs.checkhq.com/docs/tax-filings-sandbox-testing-guide.md): Learn how to create and simulate tax filings in Check's sandbox environment, including testing filing lifecycles, failures, and resolutions.
+- [Billing customers](https://docs.checkhq.com/docs/usage.md): With the Usage API, you can determine which entities and events are billable each month.
+- [Courtesy Withholdings](https://docs.checkhq.com/docs/courtesy-withholdings.md)
+- [Handling Negative Net Pay](https://docs.checkhq.com/docs/handling-negative-net-pay.md)
+- [Calculating Payroll Taxes](https://docs.checkhq.com/docs/calculating-payroll-taxes.md)
+- [Multi-State Withholdings](https://docs.checkhq.com/docs/multi-state-taxation-and-reciprocity.md): Paying employees who live and work in different states.
+- [Overriding Withholding Taxes](https://docs.checkhq.com/docs/overriding-withholding-taxes.md): Override Federal and State Income Taxes to desired amounts on individual pay runs.
+- [Reciprocity](https://docs.checkhq.com/docs/reciprocity.md)
+- [Advanced Payroll Reporting Breakdowns](https://docs.checkhq.com/docs/advanced-payroll-reporting-breakdowns.md)
+- [Payroll Reporting](https://docs.checkhq.com/docs/check-payroll-reports.md): Generate reports on your payrolls
+- [Payroll Journal with Workplace Breakdown](https://docs.checkhq.com/docs/payroll-journal-with-workplace-breakdown.md)
+- [Structuring Earnings](https://docs.checkhq.com/docs/earnings.md): Earnings types and custom Earning Codes
+- [Working with Piece Rate Pay](https://docs.checkhq.com/docs/working-with-piece-rate-pay.md)
+- [Working with Reimbursements](https://docs.checkhq.com/docs/working-with-reimbursements.md)
+- [Bank Account Validation](https://docs.checkhq.com/docs/bank-account-verification.md)
+- [Notifications of Change (NOCs)](https://docs.checkhq.com/docs/notifications-of-change-nocs.md)
+- [Fund By Wire](https://docs.checkhq.com/docs/fund-by-wire.md)
+- [Handling Failed Payments](https://docs.checkhq.com/docs/handling-failed-payments.md): You can recover failed payments using the Payments API
+- [Payments Overview](https://docs.checkhq.com/docs/payments.md): Gain visibility into employer payroll debits and refunds, employee credit payments, and employer tax collections & refunds using the Payments API
+- [Net Pay Splits](https://docs.checkhq.com/docs/net-pay-splits.md): Split worker net pay into multiple bank accounts
+- [Testing Payments in Sandbox](https://docs.checkhq.com/docs/testing-payments-in-sandbox.md)
+- [Balancing Payrolls & Fulfillment Receipts](https://docs.checkhq.com/docs/balancing-payrolls-fulfillment-guide.md): This guide walks through how to build quarter-end balancing transparency into your product using the Fulfillments API — so each employer understands what's being collected or refunded, and has their tax receipt, before any money moves.
+- [Defining Benefits](https://docs.checkhq.com/docs/defining-benefits.md): Defining employee benefit types and timing
+- [Core Concepts](https://docs.checkhq.com/docs/working-with-payroll.md): Defining and reporting on payroll cycles
+- [Payroll Status](https://docs.checkhq.com/docs/life-of-a-payroll.md): Stages in the lifecycle of a Payroll
+- [Off-cycle Payrolls](https://docs.checkhq.com/docs/off-cycle-payroll.md): Scheduling off-cycle payments to employees
+- [Overrides](https://docs.checkhq.com/docs/overrides.md): Adjust calculated benefit, post-tax deduction, and tax amounts on a single payroll without changing ongoing configuration.
+- [Pay Schedules](https://docs.checkhq.com/docs/pay-frequency.md): Defining payroll timelines
+- [Payroll Preview and Approval](https://docs.checkhq.com/docs/payroll-preview-and-approval.md): Creating, previewing, and approving payrolls.
+- [Generating Paystubs](https://docs.checkhq.com/docs/paystubs.md): Generating paystubs for your employees
+- [Creating Post-Tax Deductions](https://docs.checkhq.com/docs/post-tax-deductions.md): Working with garnishments and other post-tax deductions
+- [Voiding a Payroll Item](https://docs.checkhq.com/docs/voiding-a-payroll-item.md): Correcting mistakes in processed payroll
+- [Defining Workplaces](https://docs.checkhq.com/docs/workplaces.md): Setting Workplaces for payroll taxes, authorization forms, and reporting agencies
+
+## API Reference
+- [Validate address](https://docs.checkhq.com/reference/validate-address.md): Validate an address using Check's address validation engine.
+- [Get an agency](https://docs.checkhq.com/reference/get-an-agency.md): Returns a single agency by ID.
+- [List agencies](https://docs.checkhq.com/reference/list-agencies.md): Returns the list of agencies.
+- [The Agency object](https://docs.checkhq.com/reference/the-agency-object.md): The operational counterparty Check transacts with for remittances and filings. Global reference data: read-only and stable across environments.
+- [Create a bank account](https://docs.checkhq.com/reference/create-a-bank-account.md): Defines a bank account, and associates it with an existing company, contractor, or employee.  One of `employee`, `company`, or `contractor` is required.
+- [Delete a bank account](https://docs.checkhq.com/reference/delete-a-bank-account.md): Deletes the specified bank account.
+- [List bank accounts](https://docs.checkhq.com/reference/list-bank-accounts.md): Lists all bank accounts.
+- [Reveal account number](https://docs.checkhq.com/reference/reveal-account-number.md): Reveal the unmasked account number of both raw and plaid bank accounts. Reach out to Check to get support for this feature
+- [The bank account object](https://docs.checkhq.com/reference/the-bank-account-object.md): Represents a checking or savings account at a U.S. bank.
+- [Update a bank account](https://docs.checkhq.com/reference/update-a-bank-account.md): Updates a bank account.  **Note: **Only “raw” bank accounts may be updated with this call. Plaid processor token-based bank accounts may not be updated.
+- [Delete a benefit](https://docs.checkhq.com/reference/delete-an-employee-benefit.md): Deletes the specified benefit.
+- [List benefits](https://docs.checkhq.com/reference/list-benefits.md): Returns a list of benefits.
+- [The benefit object](https://docs.checkhq.com/reference/the-employee-benefit-object.md): Represents benefits available to employees.
+- [Types of benefits](https://docs.checkhq.com/reference/types-of-benefits.md): Values available for the `benefit` parameter.
+- [Get a communication](https://docs.checkhq.com/reference/get-a-communication.md)
+- [List communications](https://docs.checkhq.com/reference/list-communications.md)
+- [The email object](https://docs.checkhq.com/reference/communications-email.md): Represents an email associated with a communication
+- [The communication object](https://docs.checkhq.com/reference/the-communication-object.md)
+- [Get child support payments report](https://docs.checkhq.com/reference/get-child-support-payments-report.md)
+- [Get payroll journal](https://docs.checkhq.com/reference/get-payroll-journal.md): Returns the specified payroll journal.
+- [Company reports](https://docs.checkhq.com/reference/company-reports-1.md)
+- [The company object](https://docs.checkhq.com/reference/company.md): Represents an employer.
+- [Credit Limits](https://docs.checkhq.com/reference/credit-limits.md): Returns current credit limit usage, configured limits, and remaining capacity for a company within the active weekly window.
+- [Get company paydays](https://docs.checkhq.com/reference/get-company-paydays.md): Returns a list of paydays and their corresponding `approval_deadline` specific to the processing period of the specified company. Results span one year of dates. If the `approval_deadline` was impacted by a bank holiday, then `impacted_by_holiday` will be true, otherwise false.
+- [Implementation](https://docs.checkhq.com/reference/implementation.md): Implementation actions available on the company object.
+- [Request Embedded Setup](https://docs.checkhq.com/reference/request-embedded-setup.md): Request that Check manage setting up all of a Company's data necessary to begin running payroll.
+- [List active funding strikes ](https://docs.checkhq.com/reference/list-active-funding-strikes.md): Returns a list of active funding failure strikes for a company. Strikes   represent funding failure offenses that    factor into Check's processing period demotion and termination decisions.
+- [List companies](https://docs.checkhq.com/reference/list-companies.md): Returns a list of all companies.
+- [List tax deposits](https://docs.checkhq.com/reference/list-tax-deposits.md): Returns a list of tax deposits for a company. See the [Tax Deposits guide](https://docs.checkhq.com/docs/tax-deposits) for more information.
+- [Create the enrollment profile](https://docs.checkhq.com/reference/create-the-enrollment-profile.md): Create the enrollment profile for the company
+- [The Enrollment Profile object](https://docs.checkhq.com/reference/the-enrollment-profile-object.md)
+- [Update the enrollment profile](https://docs.checkhq.com/reference/update-the-enrollment-profile.md): Update the existing enrollment profile for the company
+- [Update a company](https://docs.checkhq.com/reference/update-a-company.md): Updates the specified company.
+- [Delete a company benefit](https://docs.checkhq.com/reference/delete-a-company-benefit.md): Deletes the specified company benefit.
+- [List company benefits](https://docs.checkhq.com/reference/list-company-benefits.md): List company benefits
+- [Get a filing](https://docs.checkhq.com/reference/get-a-company-filing.md)
+- [Filings](https://docs.checkhq.com/reference/company-filings.md)
+- [List filings](https://docs.checkhq.com/reference/list-company-filings.md): List all filings
+- [The filing object](https://docs.checkhq.com/reference/the-filing-object.md)
+- [Create a company provided document](https://docs.checkhq.com/reference/create-a-company-provided-document.md): Creates a company provided document in a `pending` state.
+- [The company provided document object](https://docs.checkhq.com/reference/the-company-provided-document-object.md)
+- [Create a contractor payment](https://docs.checkhq.com/reference/create-a-contractor-payment.md): Creates a contractor payment.
+- [Delete a contractor payment](https://docs.checkhq.com/reference/delete-a-contractor-payment.md)
+- [Get a contractor payment](https://docs.checkhq.com/reference/get-a-contractor-payment.md): Returns the specified contractor payment.
+- [Get a paper check](https://docs.checkhq.com/reference/get-a-paper-check-2.md): Returns a paper check for the specified contractor payment.  Use an `Accept: application/pdf` request header to download the paper check as a PDF document.
+- [The contractor payment object](https://docs.checkhq.com/reference/the-contractor-payment-object.md): Represents a payment from a company to a contractor for work performed.
+- [Get a contractor pay statement](https://docs.checkhq.com/reference/get-a-contractor-pay-statement.md): Returns the specified pay statement for the given contractor and payroll.  By default get the response as JSON. Use an `Accept: application/pdf` request header to download the paystub as a PDF document.
+- [List contractor forms](https://docs.checkhq.com/reference/list-contractor-forms.md): Returns a list of contractor forms for the specified contractor.  **Note: **Contractor forms are normally configured when contractors go through [Contractor Onboard](https://docs.checkhq.com/reference/generate-contractor-onboard-link). Use the Contractor Forms API only if you're building a custom integration for contractor onboarding.
+- [List contractor payments](https://docs.checkhq.com/reference/list-contractor-payments.md): Returns a list of all payments for the specified contractor.
+- [List contractors](https://docs.checkhq.com/reference/list-contractors.md): Returns a list of all contractors.
+- [Reveal contractor SSN](https://docs.checkhq.com/reference/reveal-contractor-ssn.md): Reveal the unmasked SSN of a contractor. Reach out to Check to get support for this feature.
+- [Submit a contractor form](https://docs.checkhq.com/reference/submit-a-contractor-form.md): Submits an contractor form.  **Note: **Contractor forms are normally configured when contractors go through [Contractor Onboard](https://docs.checkhq.com/reference/generate-contractor-onboard-link). Use the Contractor Forms API only if you're building a custom integration for contractor onboarding.
+- [The contractor object](https://docs.checkhq.com/reference/the-contractor-object.md): Represents an individual or a business that receives non-employee compensation from a company.
+- [Company tax document labels and descriptions](https://docs.checkhq.com/reference/company-tax-document-labels-and-descriptions.md): Jurisdictions, labels, and descriptions returned in the Company Tax Documents API.
+- [Download a setup document](https://docs.checkhq.com/reference/download-a-setup-document.md): Downloads the binary document
+- [Get a Setup Document](https://docs.checkhq.com/reference/get-a-setup-document.md): Returns a setup document
+- [List company authorization documents](https://docs.checkhq.com/reference/list-company-authorization-documents.md): Returns a list of company authorization documents.
+- [List company tax documents](https://docs.checkhq.com/reference/list-company-tax-documents.md): Returns a list of company tax documents.
+- [List contractor tax documents](https://docs.checkhq.com/reference/list-contractor-tax-documents.md): Returns contractor tax documents
+- [List employee tax documents](https://docs.checkhq.com/reference/list-employee-tax-documents.md): Returns a list of employee tax documents.
+- [List setup documents](https://docs.checkhq.com/reference/list-setup-documents.md): List all setup documents
+- [The document object](https://docs.checkhq.com/reference/the-document-object.md)
+- [Create an earning code](https://docs.checkhq.com/reference/create-an-earning-code.md)
+- [Get an earning code](https://docs.checkhq.com/reference/get-an-earning-code.md)
+- [List earning codes](https://docs.checkhq.com/reference/list-earning-codes.md): Returns a list of earning codes.
+- [The earning code object](https://docs.checkhq.com/reference/the-earning-code-object.md): Represents a custom earning code for a company, which can be used while creating payroll items through the API.
+- [Create an earning rate](https://docs.checkhq.com/reference/create-an-earning-rate.md)
+- [Get an earning rate](https://docs.checkhq.com/reference/get-an-earning-rate.md)
+- [List earning rates](https://docs.checkhq.com/reference/list-earning-rates.md): Returns a list of earning rates
+- [The earning rate object](https://docs.checkhq.com/reference/the-earning-rate-object.md): Represents a custom earning rate for an employee, which can be used while creating payroll items through the API.
+- [Update an earning rate](https://docs.checkhq.com/reference/update-an-earning-rate.md)
+- [Get an employee tax statement](https://docs.checkhq.com/reference/employee-tax-statements-1.md)
+- [List employee tax statements](https://docs.checkhq.com/reference/list-employee-tax-statements.md)
+- [The employee tax statement object](https://docs.checkhq.com/reference/the-employee-tax-statement-object.md)
+- [List employee paystubs](https://docs.checkhq.com/reference/get-an-employees-paystubs.md): Returns a list of paystubs for the specified employee.
+- [List employees](https://docs.checkhq.com/reference/list-employees.md): Returns a list of all employees. Employees will be returned from the list endpoint in alphabetical order, sorted by last name, first name.
+- [Reveal employee SSN](https://docs.checkhq.com/reference/reveal-employee-ssn.md): Reveal unmasked SSN. Reach out to Check to get support for this feature.
+- [The employee object](https://docs.checkhq.com/reference/the-employee-object.md): Represents a person who receives compensation for a job performed at a company.
+- [Approve an external payroll](https://docs.checkhq.com/reference/approve-an-external-payroll.md): Approves an external payroll.
+- [Create an external payroll](https://docs.checkhq.com/reference/create-an-external-payroll.md): Creates an external payroll.
+- [Delete an external payroll](https://docs.checkhq.com/reference/delete-a-payroll-copy-1.md): Deletes an external payroll.
+- [The external payroll item object](https://docs.checkhq.com/reference/external-payroll-item-object.md): Represents an external payment to an employee from a company.
+- [The external payroll object](https://docs.checkhq.com/reference/external-payroll-object.md): Represents a payroll paid outside of Check
+- [The external payroll contractor payment](https://docs.checkhq.com/reference/the-external-payroll-contractor-payment-object.md): Represents a contractor payment paid outside of Check
+- [Get an external payroll](https://docs.checkhq.com/reference/get-an-external-payroll.md)
+- [List external payrolls](https://docs.checkhq.com/reference/list-external-payrolls.md)
+- [Preview an external payroll](https://docs.checkhq.com/reference/preview-an-external-payroll.md)
+- [Reopen an external payroll](https://docs.checkhq.com/reference/reopen-a-pending-payroll.md): Moves an approved external payroll's status to draft, allowing you to make further edits to the payroll or its items.
+- [Update an external payroll](https://docs.checkhq.com/reference/update-an-external-payroll.md): Updates an external payroll.
+- [Get a form](https://docs.checkhq.com/reference/get-a-form.md)
+- [List forms](https://docs.checkhq.com/reference/list-forms.md)
+- [The fulfillment object](https://docs.checkhq.com/reference/fulfillments-object.md): Track the fulfillment of tax liability adjustments — including cash requirements, agency refunds, and waivers.
+- [Get a fulfillment receipt](https://docs.checkhq.com/reference/get-a-fulfillment-receipt-2.md): Download a PDF representation of a fulfillment
+- [Get a fulfillment](https://docs.checkhq.com/reference/get-a-fulfillment.md)
+- [Fulfillments](https://docs.checkhq.com/reference/fulfillments.md): Track the outcomes of tax liability adjustments resolved by Check on behalf of an employer.
+- [List fulfillments](https://docs.checkhq.com/reference/list-fulfillments.md)
+- [Get an Integration Partner](https://docs.checkhq.com/reference/get-an-integration-partner-copy.md)
+- [Integrations](https://docs.checkhq.com/reference/integrations.md)
+- [Authorize an Integration Partner](https://docs.checkhq.com/reference/integration-partners-copy.md)
+- [List Integration Partners](https://docs.checkhq.com/reference/integration-partners.md)
+- [List Integration Accesses](https://docs.checkhq.com/reference/list-integration-accesses-1.md): Returns a list of Integration Access objects, optionally filtered by company.
+- [Get an Integration Permission](https://docs.checkhq.com/reference/list-integration-permissions-copy.md)
+- [List Integration Permissions](https://docs.checkhq.com/reference/list-integration-permissions.md)
+- [Create a net pay split](https://docs.checkhq.com/reference/create-net-pay-split.md): Creates a net pay split.  One of `employee` or `contractor` is required.
+- [List net pay splits](https://docs.checkhq.com/reference/list-net-pay-splits.md): Returns a list of net pay splits.  One of `employee` or `contractor` is required.
+- [The net pay split object](https://docs.checkhq.com/reference/the-net-pay-split-object.md): Represents the way employee or contractor net pay is split into multiple bank accounts.
+- [Get a notification](https://docs.checkhq.com/reference/get-a-notification.md)
+- [List notifications](https://docs.checkhq.com/reference/list-notifications.md)
+- [The notification object](https://docs.checkhq.com/reference/the-notification-object.md)
+- [Types of notification topics](https://docs.checkhq.com/reference/notification-topics.md): Valid input for the `topic` parameter of the `notification` object.
+- [Create a pay schedule](https://docs.checkhq.com/reference/create-a-pay-schedule.md): Creates a new pay schedule.
+- [Delete a pay schedule](https://docs.checkhq.com/reference/delete-a-pay-schedule.md): Deletes the specified pay schedule.
+- [Get a pay schedule](https://docs.checkhq.com/reference/get-a-pay-schedule.md): Returns the specified pay schedule.
+- [Get paydays](https://docs.checkhq.com/reference/get-paydays.md): Returns a list of paydays and their corresponding period_start, period_end, and approval_deadline dates for the specified pay schedule. Results span one year of dates. If the payday or approval_deadline was impacted by a weekend or a bank holiday, then impacted_by_weekend_or_holiday will be true, otherwise false.
+- [List pay schedules](https://docs.checkhq.com/reference/list-pay-schedules.md): Returns a list of pay schedules.
+- [Cancel a payment](https://docs.checkhq.com/reference/cancel-a-payment.md)
+- [List payments](https://docs.checkhq.com/reference/list-payments.md)
+- [Refund a payment](https://docs.checkhq.com/reference/refund-a-payment.md)
+- [Retry a payment](https://docs.checkhq.com/reference/retry-a-payment.md)
+- [The payments and payment attempts objects](https://docs.checkhq.com/reference/the-payments-object.md): Represents payments and their corresponding attempts for completion initiated by Check on behalf of a company
+- [Create a payroll item](https://docs.checkhq.com/reference/create-a-payroll-item.md): Creates a payroll item.
+- [Delete payroll items (bulk)](https://docs.checkhq.com/reference/delete-a-payroll-item-1.md): Delete up to 500 payroll items at once.
+- [Delete a payroll item](https://docs.checkhq.com/reference/delete-a-payroll-item.md)
+- [Get a paper check](https://docs.checkhq.com/reference/get-a-paper-check.md): Returns a paper check for the specified payroll item.   Use an `Accept: application/pdf` request header to download the paper check as a PDF document.
+- [List payroll items](https://docs.checkhq.com/reference/list-payroll-items.md): Return a list of payroll items.
+- [The payroll item object](https://docs.checkhq.com/reference/the-payroll-item-object.md): Represents a payment to an employee from a company.
+- [The earning object](https://docs.checkhq.com/reference/the-earning-object.md): The Earning object represents an amount of money earned by an employee for work performed at a specific location. Please see our <a href="https://docs.checkhq.com/docs/earnings">Guide on Structuring Earnings</a> for more information about use cases.
+- [Types of earnings](https://docs.checkhq.com/reference/types-of-earnings.md): Valid input for the `type` parameter of the `earnings` object.
+- [Update a payroll item](https://docs.checkhq.com/reference/update-a-payroll-item.md): Updates the specified payroll item.
+- [Update payroll items (bulk)](https://docs.checkhq.com/reference/update-payroll-items.md): Update up to 500 payroll items in bulk.
+- [Approve a payroll](https://docs.checkhq.com/reference/approve-payroll.md): Approves a payroll.
+- [Create a payroll](https://docs.checkhq.com/reference/create-payroll.md): Creates a payroll.
+- [Delete a payroll](https://docs.checkhq.com/reference/delete-a-payroll.md): Deletes a payroll.
+- [Get Paper Checks Report](https://docs.checkhq.com/reference/get-paper-checks-report.md)
+- [Get paper checks](https://docs.checkhq.com/reference/get-paper-checks.md): Generate paper checks for the specified payroll.
+- [Get a payroll](https://docs.checkhq.com/reference/get-payroll.md): Returns the specified payroll.
+- [List payrolls](https://docs.checkhq.com/reference/list-payrolls.md): Returns a list of payrolls.
+- [The payroll object](https://docs.checkhq.com/reference/payroll.md)
+- [The off-cycle options object](https://docs.checkhq.com/reference/payroll-off-cycle-options.md): Represents benefits and deductions applicable to the off-cycle payroll.
+- [The totals object](https://docs.checkhq.com/reference/payroll-totals.md): Represents the total payroll item amounts for a given pay period.
+- [The warnings object](https://docs.checkhq.com/reference/payroll-warnings.md)
+- [The preview object](https://docs.checkhq.com/reference/the-preview-object.md): The status of the most recent preview for a payroll.
+- [Preview a payroll](https://docs.checkhq.com/reference/preview-payroll.md): Returns a preview of an approved version of the input payroll
+- [Reopen a pending payroll](https://docs.checkhq.com/reference/reopen-payroll.md): Moves a pending payroll's status to draft, allowing you to make further edits to the payroll or its items.
+- [[Sandbox] Complete disbursements](https://docs.checkhq.com/reference/sandbox-complete-disbursements.md): Complete disbursements for a payroll. Sandbox-only.
+- [[Sandbox] Complete funding](https://docs.checkhq.com/reference/sandbox-complete-funding.md): Complete funding for a payroll. Sandbox-only.
+- [[Sandbox] Fail funding](https://docs.checkhq.com/reference/sandbox-fail-funding.md): Fail funding for a payroll. Sandbox-only.
+- [[Sandbox] Start processing](https://docs.checkhq.com/reference/sandbox-start-processing.md): Start processing for a payroll. Sandbox-only.
+- [Update a payroll](https://docs.checkhq.com/reference/update-payroll.md): Updates the specified payroll.
+- [Create a post-tax deduction](https://docs.checkhq.com/reference/create-a-post-tax-deduction.md): Creates a post-tax deduction.
+- [Delete a post-tax deduction](https://docs.checkhq.com/reference/delete-a-post-tax-deduction.md): Deletes the specified post-tax deduction.
+- [List post-tax deductions](https://docs.checkhq.com/reference/list-post-tax-deductions.md): Lists post-tax deductions.
+- [The post-tax deduction object](https://docs.checkhq.com/reference/the-post-tax-deduction-object.md): Represents deductions that are withheld from an employee’s after-tax wages.
+- [Requirement guidance](https://docs.checkhq.com/reference/requirement-guidance.md): Guidance on how to fulfill a requirement.
+- [The requirement object](https://docs.checkhq.com/reference/the-requirement-object.md): Represents the data or documentation required from a company to perform certain actions, such as run payroll or file quarterly tax returns.
+- [Requirement categories](https://docs.checkhq.com/reference/types-of-requirements.md): Represents the different groupings of requirements for an employer, employee, or contractor.
+- [Get a setup](https://docs.checkhq.com/reference/get-a-setup.md): Returns the setup of the specified ID.
+- [Setup](https://docs.checkhq.com/reference/setup.md): The Setup resource represents a company's progress through embedded setup.
+- [List setups](https://docs.checkhq.com/reference/list-setups.md): Returns setups in the most recently created order. You can additionally filter setups by company.
+- [The setup object](https://docs.checkhq.com/reference/the-setup-object.md): Represents a company's setups on Check
+- [Create company tax elections](https://docs.checkhq.com/reference/create-company-tax-elections.md)
+- [Company Tax Elections](https://docs.checkhq.com/reference/company-tax-elections.md)
+- [List company tax elections](https://docs.checkhq.com/reference/list-company-tax-elections.md)
+- [Update company tax elections](https://docs.checkhq.com/reference/update-company-tax-elections.md)
+- [Employee Tax Elections](https://docs.checkhq.com/reference/employee-tax-elections.md)
+- [List employee tax elections](https://docs.checkhq.com/reference/list-employee-tax-elections.md)
+- [Update employee tax elections](https://docs.checkhq.com/reference/update-employee-tax-elections.md)
+- [The tax election object](https://docs.checkhq.com/reference/the-tax-election-object.md)
+- [Get a tax package](https://docs.checkhq.com/reference/get-a-tax-package.md)
+- [Request a tax package](https://docs.checkhq.com/reference/request-a-tax-package.md)
+- [The tax package object](https://docs.checkhq.com/reference/the-tax-package-object.md)
+- [List a company's tax parameter settings](https://docs.checkhq.com/reference/list-company-tax-parameter-settings.md): Get a paginated list of a company’s tax parameters details which include a list of effective dated values
+- [List a company's tax parameters](https://docs.checkhq.com/reference/list-company-tax-parameters.md): Get a paginated list of a company’s tax parameters
+- [Bulk get employee tax parameter settings](https://docs.checkhq.com/reference/bulk-get-employee-tax-parameter-settings.md)
+- [Bulk get employee tax parameters](https://docs.checkhq.com/reference/bulk-get-employee-tax-params.md)
+- [Bulk update employee tax parameters](https://docs.checkhq.com/reference/bulk-update-employee-tax-parameters.md)
+- [List an employee's tax parameter settings](https://docs.checkhq.com/reference/list-employee-tax-parameter-settings.md): Get a paginated list of an employee’s tax parameter details which include a list of effective dated values
+- [List an employee's tax parameters](https://docs.checkhq.com/reference/list-employees-tax-parameters.md): Get a paginated list of an employee’s tax parameters
+- [Get a tax](https://docs.checkhq.com/reference/get-a-tax.md): Returns a single payroll tax by ID.
+- [List taxes](https://docs.checkhq.com/reference/list-taxes.md): Returns the catalog of payroll taxes Check tracks — both taxes Check supports and in-domain taxes it does not support (see [the Tax object](https://docs.checkhq.com/reference/the-tax-object)).  By default the list includes only taxes whose obligation is currently in effect; pass `effective=false` to list repealed or lapsed taxes instead.  Results are ordered with federal taxes first, then by `jurisdiction`, then by `label`. Pages contain 25 results by default and at most 500 (`limit`).
+- [The Tax object](https://docs.checkhq.com/reference/the-tax-object.md): A Tax represents a specific payroll levy. Taxes are global reference data: read-only, identical across companies, and stable across environments.
+- [List usage records](https://docs.checkhq.com/reference/list-usage-records.md)
+- [List usage summaries](https://docs.checkhq.com/reference/list-usage-summaries.md)
+- [Delete a webhook config](https://docs.checkhq.com/reference/delete-a-webhook-config.md): Deletes the specified webhook config. Note that we recommend setting the active field to False in a PATCH request rather than deleting the config.
+- [List webhook configs](https://docs.checkhq.com/reference/list-a-webhook-config.md): Returns a list of webhook configs.
+- [The webhook config object](https://docs.checkhq.com/reference/the-webhook-config-object.md): Defines the URL to which Check will send webhook requests for events that pertain to your organization.
+- [Update a webhook config](https://docs.checkhq.com/reference/update-a-webhook-config.md): Updates the specified webhook config.
+- [Create a workplace](https://docs.checkhq.com/reference/create-a-workplace.md): Creates a new workplace.
+- [List workplaces](https://docs.checkhq.com/reference/list-workplaces.md): Returns a list of workplaces.
+- [The workplace object](https://docs.checkhq.com/reference/the-workplace-object.md): Represents the location where an employee works.
+- [Update a workplace](https://docs.checkhq.com/reference/update-a-workplace.md): Updates the specified workplace.
+- [Authentication](https://docs.checkhq.com/reference/authentication.md)
+- [Error codes](https://docs.checkhq.com/reference/error-codes.md)
+- [Errors during payroll preview](https://docs.checkhq.com/reference/errors-during-payroll-preview.md)
+- [Filing Preparation Checklist Component](https://docs.checkhq.com/reference/company-checklist-component.md): Generates a link to a filing preparation checklist component, which can be embedded into your product. Check out our <a href="https://docs.checkhq.com/docs/adding-check-onboard-to-your-application" target="_blank">guide</a> on how to embed components.
+- [Company-Defined Employee Setup](https://docs.checkhq.com/reference/company-employee-setup.md): This component allows employers to define company-defined employee attributes for federal and state tax jurisdictions.
+- [Company Filing Authorization](https://docs.checkhq.com/reference/company-filing-authorization.md): This Component enables employers to review, sign, and submit the tax authorization forms required during onboarding.
+- [Company Payment Setup](https://docs.checkhq.com/reference/company-payment-setup.md): Approve debit authorization and link a company bank account to Check via Plaid. <img style="margin-top: 30px; margin-bottom: 0px; width: 500px;   display: block;   margin-left: auto;   margin-right: auto;" src="https://public-component-assets.s3.amazonaws.com/er_payment_setup.svg" /> Learn how to embed Components in our <a target="_blank" href="https://docs.checkhq.com/docs/embedding-a-component">guide</a>.
+- [Company Tax Setup](https://docs.checkhq.com/reference/company-tax-setup.md): This Component allows employers to configure their federal and state tax setup based on the company’s location.<img style="margin-top: 30px; margin-bottom: 20px;" src="https://public-onboard-assets.s3.amazonaws.com/tax-setup-component.png" />Learn how to embed Components in our <a target="_blank" href="https://docs.checkhq.com/docs/embedding-a-component">guide</a>.
+- [Company Terms of Service](https://docs.checkhq.com/reference/company-terms-of-service.md): This Component allows employers to sign Check's Terms of Service agreement  <img style="margin-top: 20px; border-radius: 10px;  border: 1px solid #E2E8F0;" src="https://public-component-assets.s3.amazonaws.com/er_terms_of_service.svg" />  This Component emits two events: - When the TOS is accepted: `check-component-company-terms-of-service-complete`:  - If the TOS has already been accepted: `check-component-company-terms-of-service-already-complete`  <div>Learn how to embed Components in our <a target="_blank" href="https://docs.checkhq.com/docs/embedding-a-component">guide</a>.</div>
+- [Filing Preview Component](https://docs.checkhq.com/reference/filing-preview-component.md): The filing preview component enables employers to preview tax returns before they are filed.
+- [Company Onboard](https://docs.checkhq.com/reference/generate-onboard-link.md): Generates a link to Onboard a Company.  Onboard links can also be embedded like Components. Check out our <a href="https://docs.checkhq.com/docs/adding-check-onboard-to-your-application" target="_blank">guide</a> on how to embed them into your app.
+- [Run Payroll](https://docs.checkhq.com/reference/run-payroll.md): Run payroll using our white-labeled Run Payroll Component. Set up worker pay, add earnings, and preview payrolls all within one Component. In order to run payroll with the Component, the company must have:<li>At least one employee or contractor associated with it</li><li>At least one pay schedule associated with it (<a href="https://docs.checkhq.com/reference/create-a-pay-schedule">Pay Schedule API</a>)</li><li>Company Onboarding status in "completed" state</li><img style="margin-top: 20px; border-radius: 10px;  border: 1px solid #E2E8F0;"  src="https://public-component-assets.s3.amazonaws.com/run_payroll_v2.svg" />Learn how to embed Components in our <a target="_blank" href="https://docs.checkhq.com/docs/embedding-a-component">guide</a>.
+- [Overview of Components](https://docs.checkhq.com/reference/components-overview.md)
+- [Employee Withholdings Setup](https://docs.checkhq.com/reference/employee-withholdings-setup.md): This Component allows an employee to complete and sign state and federal withholding forms (i.e. W-4). <img style="width: 500px;   display: block;   margin-left: auto;   margin-right: auto;" src="https://public-component-assets.s3.amazonaws.com/ee_tax_withholding.svg" /> Learn how to embed Components in our <a target="_blank" href="https://docs.checkhq.com/docs/embedding-a-component">guide</a>.
+- [Company Business Details Component](https://docs.checkhq.com/reference/company-business-details.md): This Component allows an employer to provide Check with core details about their business.
+- [Company Connect Bank Account](https://docs.checkhq.com/reference/company-connect-bank-account.md): This Component allows an employer's signatory to connect their bank account to fund payroll.
+- [Company Pay History](https://docs.checkhq.com/reference/company-pay-history.md): This Component allows an employer to input their year-to-date pay history as part of the Embedded Setup process.
+- [Company Progress Tracker Component](https://docs.checkhq.com/reference/company-progress-tracker.md): Generates a Full Service Setup Progress Tracker component used to monitor Check's progress in setting up a Full Service Setup Company and allows users to resolve potential blocking issues raised by Check operators during the setup process.
+- [Company Signatory Agreements](https://docs.checkhq.com/reference/company-signatory-agreements.md): This Component allows an employer's signatory to sign Check's Terms of Service and Debit Authorization.
+- [Company Team Setup](https://docs.checkhq.com/reference/company-team-setup.md): This Component allows an employer to set up and manage their workplaces, employees, and contractors.
+- [Company Verification Documents](https://docs.checkhq.com/reference/company-verification-documents.md): Generates a Verification Documents component used to request more information from the company.
+- [Employee Tax Setup Component](https://docs.checkhq.com/reference/employee-tax-setup.md): This Component allows an employer admin to provide information about a specific employee's tax profile
+- [Company Full Service Setup Submission Component](https://docs.checkhq.com/reference/full-service-setup-submission.md): This Component allows an employer to submit themselves to Check for Full Service Embedded Setup.
+- [Company Previous Payroll Provider Access](https://docs.checkhq.com/reference/previous-payroll-provider-access.md): Generates a Previous Payroll Provider Access component used to gain access to a company's previous provider for migration.

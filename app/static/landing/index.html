@@ -6,7 +6,8 @@
   <meta name="description" content="Maryland CNA and LPN per-diem shifts for nursing homes. W-2 employment, weekly pay, instant MBON verification." />
   <meta name="theme-color" content="#0d9488" />
   <title>VettedCare — Maryland CNA & LPN Shifts</title>
-  <link rel="stylesheet" href="/join/styles.css?v=5" />
+  <link rel="stylesheet" href="/shared/aedt_disclosure.css?v=1" />
+  <link rel="stylesheet" href="/join/styles.css?v=6" />
 </head>
 <body>
   <header class="hero">
@@ -81,6 +82,7 @@
             <input id="apply-password" type="password" minlength="8" autocomplete="new-password" required />
           </label>
         </div>
+        <div id="aedt-disclosure-mount" aria-live="polite"></div>
         <fieldset id="consent-fieldset" class="consent-fieldset">
           <legend>Required consents</legend>
           <label class="consent-check">
@@ -171,6 +173,7 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-  <script src="/join/app.js?v=6"></script>
+  <script src="/shared/aedt_disclosure.js?v=1"></script>
+  <script src="/join/app.js?v=7"></script>
 </body>
 </html>

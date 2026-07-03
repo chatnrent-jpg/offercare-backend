@@ -290,7 +290,7 @@ class UnifiedMatchMatrixBroker:
             self._match_retry_scheduler = MatchRetryScheduler(db=self.db)
         return self._match_retry_scheduler
 
-    def _compliance_authority_anchor(self) -> Any:
+    def _get_compliance_authority_anchor(self) -> Any:
         if self._compliance_authority_anchor is None:
             try:
                 from strategy.compliance_authority_anchor import ComplianceAuthorityAnchor
@@ -492,6 +492,24 @@ class UnifiedMatchMatrixBroker:
             )
             return False
 
+    def _evaluate_compliance_sentinel(
+        self,
+        candidate: dict[str, Any],
+        *,
+        shift_id: str | None = None,
+        shift_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.middleware.compliance_sentinel import evaluate_compliance_sentinel_for_candidate_dict
+
+        verdict = evaluate_compliance_sentinel_for_candidate_dict(
+            self.db,
+            candidate,
+            shift_context=shift_context,
+            shift_id=shift_id,
+            persist_audit=True,
+        )
+        return verdict.to_dict()
+
     def _screen_and_anchor_candidates(
         self,
         candidates: list[dict[str, Any]],
@@ -503,7 +521,7 @@ class UnifiedMatchMatrixBroker:
             return []
 
         checker = self._credential_check_engine()
-        anchor = self._compliance_authority_anchor()
+        anchor = self._get_compliance_authority_anchor()
         eligible: list[dict[str, Any]] = []
         schedule_blocked = 0
 
@@ -512,6 +530,15 @@ class UnifiedMatchMatrixBroker:
                 provider_id = str(candidate.get("provider_id") or "").strip()
                 if not provider_id:
                     continue
+
+                sentinel_verdict = self._evaluate_compliance_sentinel(
+                    candidate,
+                    shift_id=shift_id,
+                    shift_context=shift_context,
+                )
+                if not sentinel_verdict.get("allowed"):
+                    continue
+
                 try:
                     evaluation = checker.evaluate_dispatch_compliance(provider_id)
                 except Exception as exc:  # noqa: BLE001

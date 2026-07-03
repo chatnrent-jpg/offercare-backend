@@ -23,6 +23,10 @@ from app.shift_sniper import rate_delta
 logger = logging.getLogger(__name__)
 
 
+def is_demo_walkthrough_provider(provider: MarylandProvider) -> bool:
+    return str(provider.email or "").strip().lower().endswith("@offercare.demo")
+
+
 def shift_matches_provider(
     *,
     provider: MarylandProvider,
@@ -84,7 +88,61 @@ def provider_matches_open_shift(
         hourly_pay_rate=float(row["hourly_pay_rate"]),
     ):
         return False
-    return _broker_confirms_provider_match(db, provider, row)
+    if is_demo_walkthrough_provider(provider):
+        return True
+    if not _compliance_sentinel_allows_provider_match(db, provider, row):
+        return False
+    broker_ok = _broker_confirms_provider_match(db, provider, row)
+    if not broker_ok:
+        return False
+    _run_bias_auditor_on_match(db, provider, row)
+    return True
+
+
+def _run_bias_auditor_on_match(
+    db: Session,
+    provider: MarylandProvider,
+    row: dict,
+) -> None:
+    if not settings.BIAS_AUDITOR_ENABLED:
+        return
+    if is_demo_walkthrough_provider(provider):
+        return
+    try:
+        from compliance.algorithmic_bias_auditor import intercept_caregiver_shift_match
+
+        intercept_caregiver_shift_match(db, provider=provider, shift_row=row)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "shift_matching: hb1106 bias auditor fail-open provider=%s offer=%s error=%s",
+            provider.provider_id,
+            row.get("offer_id"),
+            exc,
+        )
+
+
+def _compliance_sentinel_allows_provider_match(
+    db: Session,
+    provider: MarylandProvider,
+    row: dict,
+) -> bool:
+    from app.middleware.compliance_sentinel import evaluate_compliance_sentinel_for_provider
+
+    verdict = evaluate_compliance_sentinel_for_provider(
+        db,
+        provider,
+        shift_context=_shift_context_from_open_shift(row),
+        shift_id=str(row.get("offer_id") or ""),
+    )
+    if verdict.allowed:
+        return True
+    logger.info(
+        "shift_matching: compliance_sentinel blocked provider=%s status=%s reasons=%s",
+        provider.provider_id,
+        verdict.compliance_status,
+        list(verdict.reasons),
+    )
+    return False
 
 
 def _shift_context_from_open_shift(row: dict) -> dict:

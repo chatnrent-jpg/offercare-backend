@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Baltimore CNA shifts with instant Stripe payout after shift completion and automated W-2 tax compliance." />
+  <meta name="theme-color" content="#059669" />
+  <title>Baltimore Instant Pay CNA — VettedCare.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/baltimore-instant-pay-cna/styles.css?v=1" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">V</span>
+        <span class="brand-text">VettedCare<span class="brand-dot">.ai</span></span>
+      </div>
+      <a class="top-link" href="/portal">Sign in</a>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">Baltimore · W-2 CNA floor staff</p>
+      <h1 id="hero-headline">Loading…</h1>
+      <p id="hero-subheadline" class="hero-lede">Loading…</p>
+      <div id="trust-chips" class="trust-chips" aria-label="Trust highlights"></div>
+      <div class="pay-pill">
+        <span class="pay-pill-label">Typical Baltimore CNA rate</span>
+        <strong id="typical-pay">—</strong>
+        <span class="pay-pill-unit">/hr W-2</span>
+      </div>
+    </section>
+
+    <section class="selling-points" aria-label="Core benefits">
+      <article class="point-card point-card--primary" id="point-instant-pay">
+        <div class="point-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="point-body">
+          <div class="point-meta">
+            <span class="point-badge" id="badge-instant">Stripe bridge</span>
+          </div>
+          <h2 id="title-instant">Instant shift payout</h2>
+          <p id="body-instant" class="point-copy">Loading…</p>
+        </div>
+      </article>
+
+      <article class="point-card" id="point-w2">
+        <div class="point-icon point-icon--shield" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="point-body">
+          <div class="point-meta">
+            <span class="point-badge point-badge--muted" id="badge-w2">Tier 1 W-2</span>
+          </div>
+          <h2 id="title-w2">Automated W-2 compliance</h2>
+          <p id="body-w2" class="point-copy">Loading…</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="apply-section" id="apply">
+      <div class="apply-card">
+        <h2 id="apply-headline">Text to apply</h2>
+        <p id="apply-subheadline" class="apply-lede">Loading…</p>
+
+        <form id="text-apply-form" class="text-apply-form" novalidate>
+          <label class="field-label" for="apply-phone">Mobile number</label>
+          <div class="phone-row">
+            <span class="phone-prefix" aria-hidden="true">+1</span>
+            <input
+              id="apply-phone"
+              name="phone"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel-national"
+              placeholder="(410) 555-0199"
+              required
+              aria-describedby="apply-error"
+            />
+          </div>
+
+          <label class="field-label optional" for="apply-name">First name <span>(optional)</span></label>
+          <input id="apply-name" name="name" type="text" autocomplete="given-name" placeholder="Jordan" />
+
+          <label class="consent-row">
+            <input id="consent-sms" type="checkbox" required />
+            <span id="consent-label">Loading consent…</span>
+          </label>
+
+          <button type="submit" class="cta-btn" id="apply-submit">
+            <span class="cta-label">Text me shift offers</span>
+            <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+          <p id="apply-error" class="form-error hidden" role="alert"></p>
+        </form>
+
+        <div id="apply-success" class="apply-success hidden" role="status" aria-live="polite">
+          <div class="success-icon" aria-hidden="true">✓</div>
+          <h3>You're in the queue</h3>
+          <p id="success-message" class="success-copy"></p>
+          <a id="full-apply-link" href="/join" class="secondary-link">Complete full onboarding →</a>
+        </div>
+
+        <p class="fine-print">
+          W-2 employee · MBON-verified before dispatch ·
+          <a href="/join">Full application</a>
+        </p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>VettedCare.ai — Baltimore instant-pay CNA staffing</p>
+    </footer>
+  </div>
+
+  <div class="sticky-cta" id="sticky-cta">
+    <button type="button" class="sticky-btn" id="sticky-apply-btn">Text to apply — instant pay shifts</button>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script src="/baltimore-instant-pay-cna/app.js?v=1"></script>
+</body>
+</html>

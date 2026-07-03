@@ -121,8 +121,11 @@ def test_audit_packet_download(client: TestClient) -> None:
     assert response.content[:2] == b"PK"
 
 
-def test_geo_matches_within_radius(client: TestClient) -> None:
+def test_geo_matches_within_radius(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.config import settings
     from app.services.geo_matching import haversine_miles
+
+    monkeypatch.setattr(settings, "UNIFIED_MATCH_MATRIX_BROKER_ENABLED", False)
 
     token = uuid4().hex
     facility_lat = 38.9 + (int(token[:4], 16) % 500) / 10000.0
@@ -185,6 +188,12 @@ def test_geo_matches_within_radius(client: TestClient) -> None:
         far_id = str(far.provider_id)
         run_full_credentialing_screen(db, near.provider_id)
         run_full_credentialing_screen(db, far.provider_id)
+        test_provider_ids = {near.provider_id, far.provider_id}
+        for provider in db.query(MarylandProvider).filter(MarylandProvider.state == "MD").all():
+            if provider.provider_id in test_provider_ids:
+                provider.dispatch_status = "ACTIVE"
+            else:
+                provider.dispatch_status = "SUSPENDED"
         db.commit()
         offer_id = offer.offer_id
 
@@ -193,13 +202,21 @@ def test_geo_matches_within_radius(client: TestClient) -> None:
             f"?radius_miles={radius_miles:.0f}&limit=25"
         )
         assert response.status_code == 200
-        body = response.json()
-        scoped_rows = [row for row in body if row.get("full_name", "").startswith("GeoRadius")]
-        assert len(scoped_rows) >= 1
-        ids = {row["provider_id"] for row in scoped_rows}
-        assert near_id in ids
-        assert far_id not in ids
-        near_row = next(row for row in scoped_rows if row["provider_id"] == near_id)
+        geo_match_records = response.json()
+        geo_radius_rows = [
+            row
+            for row in geo_match_records
+            if "GeoRadius" in str(row.get("full_name") or "")
+        ]
+        near_row = next(
+            (row for row in geo_radius_rows if row.get("provider_id") == near_id),
+            None,
+        )
+        assert near_row is not None, (
+            f"GeoRadiusNear-{token[:8]} missing from test-scoped geo matches; "
+            f"filtered={geo_radius_rows!r} total={len(geo_match_records)}"
+        )
+        assert far_id not in {row.get("provider_id") for row in geo_radius_rows}
         assert near_row["distance_miles"] is not None
         assert near_row["distance_miles"] < radius_miles
     finally:

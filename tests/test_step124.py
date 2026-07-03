@@ -24,6 +24,7 @@ def _apply_payload(**overrides):
         "consent_sms_dispatch": True,
         "consent_privacy_policy": True,
         "consent_terms_of_service": True,
+        "consent_aedt_30_day": True,
     }
     base.update(overrides)
     return base

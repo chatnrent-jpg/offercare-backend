@@ -1,0 +1,63 @@
+{
+  "template_id": "vettedcare-baltimore-instant-pay-cna-workstream",
+  "template_version": "2026-07-03",
+  "description": "Workstream job distribution bridge — Baltimore instant-pay CNA text-to-apply posts for Indeed and ZipRecruiter.",
+  "manus_instructions": [
+    "1. Set WORKSTREAM_CLIENT_ID + WORKSTREAM_CLIENT_SECRET (or WORKSTREAM_ACCESS_TOKEN) and PUBLIC_BASE_URL in .env.",
+    "2. Copy this file to integrations/workstream/baltimore_instant_pay_cna.json if customizing channels.",
+    "3. Run scripts/run-workstream-baltimore-cna-distribute.bat --dry-run to preview payloads.",
+    "4. Live run posts to Workstream with Instant Pay via Stripe + W-2 Status headers and distributes to Indeed/ZipRecruiter.",
+    "5. Configure Workstream webhook to POST /api/v1/webhooks/workstream/text-apply — replies land in caregiver_intake_queue.",
+    "6. Landing page apply URL: /baltimore-instant-pay-cna/"
+  ],
+  "landing": {
+    "slug": "baltimore-instant-pay-cna",
+    "apply_path": "/baltimore-instant-pay-cna/",
+    "public_base_url_fallback": "https://vettedcare.ai"
+  },
+  "location": {
+    "name": "Baltimore Metro — SNF/ALF",
+    "city": "Baltimore",
+    "state": "Maryland",
+    "postal_code": "21201",
+    "country": "US",
+    "market": "Baltimore"
+  },
+  "position": {
+    "title": "Baltimore CNA — Instant Pay via Stripe | W-2 Per-Diem Shifts",
+    "status": "published",
+    "access": "public",
+    "job_type": "part_time",
+    "pay_frequency": "hourly",
+    "remote_type": "on_site",
+    "text_apply_keyword": "CNA"
+  },
+  "job_post_headers": {
+    "instant_pay_via_stripe": "enabled",
+    "w2_status": "Tier 1 W-2 Employee"
+  },
+  "distribution": {
+    "channels": ["indeed", "ziprecruiter"],
+    "channel_labels": {
+      "indeed": "Indeed",
+      "ziprecruiter": "ZipRecruiter"
+    },
+    "text_to_apply_enabled": true,
+    "radius_miles": 35
+  },
+  "webhook": {
+    "path": "/api/v1/webhooks/workstream/text-apply",
+    "events": ["text_to_apply_reply", "position_application.created"],
+    "destination_table": "caregiver_intake_queue",
+    "bearer_token_env": "WORKSTREAM_WEBHOOK_BEARER_TOKEN"
+  },
+  "api": {
+    "base_url": "https://public-api.workstream.us",
+    "create_position_path": "/positions",
+    "distribute_path": "/positions/distribute",
+    "token_scopes": ["positions", "position_applications"]
+  },
+  "export": {
+    "path": "leads/workstream_baltimore_cna_job_posts.json"
+  }
+}

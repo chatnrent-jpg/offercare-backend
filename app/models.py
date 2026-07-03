@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Numeric, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -53,6 +53,7 @@ class MarylandProvider(Base):
     sms_opt_out = Column(String(5), nullable=False, default="false")
     vetted_status = Column(String(30), nullable=False, default="ACTION_NEEDED")
     vetted_status_updated_at = Column(DateTime(timezone=True), nullable=True)
+    consent_signed_at = Column(DateTime(timezone=True), nullable=True)
 
 
 class LicenseVerificationLog(Base):
@@ -123,6 +124,26 @@ class ClinicianPortalAccount(Base):
     )
     password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ClinicianOAuthIdentity(Base):
+    __tablename__ = "clinician_oauth_identities"
+
+    identity_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("maryland_providers.provider_id"),
+        nullable=False,
+    )
+    oauth_provider = Column(String(32), nullable=False)
+    oauth_subject = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("oauth_provider", "oauth_subject", name="uq_clinician_oauth_provider_subject"),
+    )
 
 
 class ClinicianPushSubscription(Base):
@@ -367,6 +388,32 @@ class B2BRawLead(Base):
     outreach_ready = Column(String(5), nullable=False, default="false")
 
 
+class CaregiverIntakeQueue(Base):
+    """Text-to-apply and lightweight landing leads awaiting full credential onboarding."""
+
+    __tablename__ = "caregiver_intake_queue"
+
+    intake_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    phone_number = Column(String(20), nullable=False, index=True)
+    full_name = Column(String(255), nullable=True)
+    credential_type = Column(String(20), nullable=False, default="CNA")
+    home_zip = Column(String(20), nullable=True)
+    landing_slug = Column(String(120), nullable=False, default="baltimore-instant-pay-cna")
+    market = Column(String(80), nullable=False, default="Baltimore")
+    queue_status = Column(String(30), nullable=False, default="QUEUED")
+    sms_consent = Column(String(5), nullable=False, default="true")
+    consent_version = Column(String(20), nullable=False)
+    client_ip = Column(String(64), nullable=True)
+    notes = Column(Text, nullable=True)
+    provider_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("maryland_providers.provider_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    queued_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
 class MdProviderLicensure(Base):
     __tablename__ = "md_provider_licensure"
 
@@ -538,6 +585,28 @@ class ShiftTimesheetPayout(Base):
     paid_at = Column(DateTime(timezone=True), nullable=True)
 
 
+class FacilityBillingAuditLedger(Base):
+    """B2B facility invoice audit trail — markup + employer FICA per completed shift."""
+
+    __tablename__ = "facility_billing_audit_ledger"
+
+    audit_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    timesheet_id = Column(UUID(as_uuid=True), nullable=True)
+    provider_id = Column(UUID(as_uuid=True), nullable=True)
+    facility_id = Column(UUID(as_uuid=True), nullable=True)
+    offer_id = Column(UUID(as_uuid=True), nullable=True)
+    hours_worked = Column(Numeric(8, 2), nullable=False)
+    gross_caregiver_pay_rate = Column(Numeric(8, 2), nullable=False)
+    margin_pct = Column(Numeric(6, 4), nullable=False)
+    employer_fica_rate = Column(Numeric(6, 4), nullable=False)
+    gross_pay = Column(Numeric(10, 2), nullable=False)
+    platform_margin = Column(Numeric(10, 2), nullable=False)
+    employer_taxes = Column(Numeric(10, 2), nullable=False)
+    total_facility_bill = Column(Numeric(10, 2), nullable=False)
+    invoice_payload_json = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
 def _load_clinician_calendar_module():
     """Register clinician calendar ORM once (file lives under app/models/ but app.models is models.py)."""
     import importlib.util
@@ -565,3 +634,38 @@ CALENDAR_EVENT_TYPES = _clinician_calendar.CALENDAR_EVENT_TYPES
 EVENT_TYPE_SHIFT_COMMITMENT = _clinician_calendar.EVENT_TYPE_SHIFT_COMMITMENT
 EVENT_TYPE_SOFT_BLOCK_PREFERENCE = _clinician_calendar.EVENT_TYPE_SOFT_BLOCK_PREFERENCE
 EVENT_TYPE_BLACKOUT_UNAVAILABLE = _clinician_calendar.EVENT_TYPE_BLACKOUT_UNAVAILABLE
+
+
+def _load_caregiver_accounts_module():
+    """Register dual-account caregiver ORM (module lives under app/models/)."""
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    module_name = "app._models_caregiver_accounts"
+    cached = sys.modules.get(module_name)
+    if cached is not None:
+        return cached
+
+    module_path = Path(__file__).resolve().parent / "models" / "caregiver_accounts.py"
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError("caregiver_accounts model module unavailable")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+_caregiver_accounts = _load_caregiver_accounts_module()
+CaregiverProfile = _caregiver_accounts.CaregiverProfile
+CaregiverW2EmployeeAccount = _caregiver_accounts.CaregiverW2EmployeeAccount
+Caregiver1099ContractorAccount = _caregiver_accounts.Caregiver1099ContractorAccount
+EMPLOYMENT_TIER_W2 = _caregiver_accounts.EMPLOYMENT_TIER_W2
+EMPLOYMENT_TIER_1099 = _caregiver_accounts.EMPLOYMENT_TIER_1099
+EMPLOYMENT_TIERS = _caregiver_accounts.EMPLOYMENT_TIERS
+EIN_VALIDATION_UNVALIDATED = _caregiver_accounts.EIN_VALIDATION_UNVALIDATED
+EIN_VALIDATION_PENDING = _caregiver_accounts.EIN_VALIDATION_PENDING
+EIN_VALIDATION_VALIDATED = _caregiver_accounts.EIN_VALIDATION_VALIDATED
+EIN_VALIDATION_REJECTED = _caregiver_accounts.EIN_VALIDATION_REJECTED
+EIN_VALIDATION_STATUSES = _caregiver_accounts.EIN_VALIDATION_STATUSES

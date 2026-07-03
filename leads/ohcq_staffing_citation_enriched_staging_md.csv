@@ -1,0 +1,6 @@
+facility_name,county,facility_type,flag_reason,don_full_name,don_verified_email,don_direct_phone,don_linkedin_url,hr_staffing_coordinator_full_name,hr_staffing_coordinator_verified_email,hr_staffing_coordinator_direct_phone,hr_staffing_coordinator_linkedin_url,clay_record_id,enriched_at_utc
+WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE,Frederick,SNF,insufficient_staffing_citation,,,,,,,,,ohcq-willowbrooke-ct-skilled-care-buckingham-s-choice-frederick,
+ADELPHI NURSING AND REHABILITATION CENTER,Prince George's,SNF,insufficient_staffing_citation,,,,,,,,,ohcq-adelphi-nursing-and-rehabilitation-center-prince-george-s,
+STERLING CARE HILLHAVEN,Prince George's,SNF,insufficient_staffing_citation,,,,,,,,,ohcq-sterling-care-hillhaven-prince-george-s,
+ALLEGANY HEALTH NURSING AND REHAB,Allegany,SNF,below_state_mandated_care_hours,,,,,,,,,ohcq-allegany-health-nursing-and-rehab-allegany,
+Cumberland Healthcare Center,Allegany,SNF,below_state_mandated_care_hours,,,,,,,,,ohcq-cumberland-healthcare-center-allegany,

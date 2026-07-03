@@ -57,6 +57,7 @@ def test_maryland_platform_end_to_end_capstone(client: TestClient) -> None:
             "consent_sms_dispatch": True,
             "consent_privacy_policy": True,
             "consent_terms_of_service": True,
+            "consent_aedt_30_day": True,
         },
     ).json()
     assert worker["license_status"] == "VERIFIED"

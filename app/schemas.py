@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
@@ -62,6 +63,7 @@ class ProviderRead(ProviderCreate):
     last_verified_timestamp: datetime | None = None
     applied_at: datetime | None = None
     verification_notes: str | None = None
+    consent_signed_at: datetime | None = None
 
 
 class OfferCreate(BaseModel):
@@ -200,6 +202,13 @@ class ShiftLockResponse(BaseModel):
     offer_id: UUID | None = None
     provider_id: UUID | None = None
     placement_id: UUID | None = None
+    facility_name: str | None = None
+    shift_role: str | None = None
+    shift_starts_at: datetime | None = None
+    shift_ends_at: datetime | None = None
+    hourly_pay_rate: float | None = None
+    provider_license: str | None = None
+    journey_steps: list[dict] = Field(default_factory=list)
 
 
 class FacilityScrapePreviewRow(BaseModel):
@@ -576,6 +585,13 @@ class ClinicianLoginResponse(BaseModel):
     provider: ProviderRead
 
 
+class PortalAuthProvidersResponse(BaseModel):
+    google: bool = False
+    facebook: bool = False
+    demo: bool = True
+    api_base: str = "http://127.0.0.1:8000"
+
+
 class ClinicianApplicationStatusResponse(BaseModel):
     provider: ProviderRead
     portal_enabled: bool
@@ -614,10 +630,119 @@ class ClinicianPlacementOut(BaseModel):
     clinical_unit: str
     hourly_bill_rate: float
     vms_submission_status: str
+    vms_status_label: str | None = None
     vms_external_ref: str | None = None
+    vms_submitted_at: datetime | None = None
     shift_starts_at: datetime | None = None
     shift_ends_at: datetime | None = None
     outbound_payload_timestamp: datetime | None = None
+
+
+class ClinicianPaymentOut(BaseModel):
+    payout_id: UUID
+    timesheet_id: UUID
+    placement_id: UUID
+    facility_name: str
+    shift_role: str | None = None
+    hourly_rate: float | None = None
+    gross_pay_amount: float
+    payout_status: str
+    payout_status_label: str | None = None
+    payout_eligible_at: datetime
+    paid_at: datetime | None = None
+    stripe_payout_id: str | None = None
+    shift_starts_at: datetime | None = None
+    shift_ends_at: datetime | None = None
+
+
+class ClinicianPaymentReceiptOut(BaseModel):
+    receipt_id: str
+    payout_id: UUID
+    placement_id: UUID
+    clinician_name: str
+    clinician_email: str
+    facility_name: str
+    shift_role: str | None = None
+    gross_pay_amount: float
+    paid_at: datetime | None = None
+    stripe_payout_id: str | None = None
+    payout_status: str
+    receipt_filename: str
+    receipt_text: str
+
+
+class ClinicianActivityOut(BaseModel):
+    event_id: str
+    event_type: str
+    label: str
+    detail: str | None = None
+    amount: float | None = None
+    reference: str | None = None
+    occurred_at: datetime | None = None
+    status: str = "done"
+
+
+class ClinicianEarningsOut(BaseModel):
+    week_paid_amount: float
+    lifetime_paid_amount: float
+    pending_payroll_amount: float
+    shifts_paid_count: int
+    last_paid_at: datetime | None = None
+    currency: str = "USD"
+
+
+class ClinicianAlertOut(BaseModel):
+    alert_id: str
+    alert_type: str
+    channel: str
+    title: str
+    body: str | None = None
+    reference: str | None = None
+    amount: float | None = None
+    sent_at: datetime | None = None
+    status: str = "DELIVERED"
+
+
+class ClinicianNextShiftOut(BaseModel):
+    offer_id: UUID
+    facility_name: str | None = None
+    shift_role: str | None = None
+    hourly_pay_rate: float | None = None
+    shift_starts_at: datetime | None = None
+    shift_ends_at: datetime | None = None
+
+
+class ClinicianJourneyStatusOut(BaseModel):
+    phase: str
+    phase_label: str
+    next_action: str
+    lockable_count: int
+    paid_shifts_count: int
+    lifetime_paid_amount: float
+    can_repeat_journey: bool
+    next_lockable_shift: ClinicianNextShiftOut | None = None
+
+
+class ClinicianJourneyExportOut(BaseModel):
+    filename: str
+    export_text: str
+    phase: str
+    phase_label: str
+    lockable_count: int
+    paid_shifts_count: int
+    lifetime_paid_amount: float
+
+
+class DemoPortalAutopilotOut(BaseModel):
+    ok: bool
+    message: str | None = None
+    reason: str | None = None
+    repaired_placements: int = 0
+    vms_dispatched: int = 0
+    payments_created: int = 0
+    payouts_completed: int = 0
+    shifts_replenished: int = 0
+    lockable_count: int = 0
 
 
 class ClinicianScheduleEventOut(BaseModel):
@@ -1834,6 +1959,7 @@ class MarylandLandingApplyRequest(BaseModel):
     consent_sms_dispatch: bool
     consent_terms_of_service: bool
     consent_privacy_policy: bool
+    consent_aedt_30_day: bool
 
     @model_validator(mode="after")
     def validate_maryland_floor_staff(self) -> "MarylandLandingApplyRequest":
@@ -1853,6 +1979,7 @@ class MarylandLandingApplyRequest(BaseModel):
             and self.consent_sms_dispatch
             and self.consent_terms_of_service
             and self.consent_privacy_policy
+            and self.consent_aedt_30_day
         ):
             raise ValueError("consent_required")
         return self
@@ -1890,6 +2017,87 @@ class MarylandLandingApplyResponse(BaseModel):
     message: str
     portal_url: str
     verified_at: str
+    consent_signed_at: str | None = None
+
+
+class BaltimoreInstantPaySellingPointOut(BaseModel):
+    id: str
+    title: str
+    badge: str
+    body: str
+    icon: str
+
+
+class BaltimoreInstantPayTextApplyBlockOut(BaseModel):
+    headline: str
+    subheadline: str
+    cta_label: str
+    phone_placeholder: str
+    consent_label: str
+
+
+class BaltimoreInstantPayLandingPageResponse(BaseModel):
+    slug: str
+    market: str
+    headline: str
+    subheadline: str
+    selling_points: list[BaltimoreInstantPaySellingPointOut]
+    trust_chips: list[str]
+    typical_hourly_pay: float
+    apply_defaults: dict[str, str]
+    text_apply: BaltimoreInstantPayTextApplyBlockOut
+    consent_version: str
+    full_apply_url: str
+    portal_url: str
+    region_slug: str | None = None
+    license_slug: str | None = None
+    region_label: str | None = None
+    county: str | None = None
+    credential_type: str | None = None
+    license_label: str | None = None
+    path: str | None = None
+    api_path: str | None = None
+    text_apply_api_path: str | None = None
+    intake_table: str | None = None
+    region_metadata: dict[str, Any] | None = None
+    layout: dict[str, Any] | None = None
+
+
+class BaltimoreInstantPayTextApplyRequest(BaseModel):
+    phone_number: str = Field(min_length=10, max_length=20)
+    full_name: str | None = Field(default=None, max_length=255)
+    credential_type: str = Field(default="CNA", min_length=2, max_length=20)
+    home_zip: str | None = Field(default=None, min_length=5, max_length=10)
+    consent_version: str = Field(min_length=5, max_length=20)
+    consent_sms_dispatch: bool
+
+    @model_validator(mode="after")
+    def validate_text_apply(self) -> "BaltimoreInstantPayTextApplyRequest":
+        from app.services.care_taxonomy import normalize_credential_type
+        from app.services.maryland_landing import MARYLAND_LANDING_CREDENTIALS
+        from app.services.worker_consent import WORKER_CONSENT_VERSION
+
+        self.credential_type = normalize_credential_type(self.credential_type)
+        if self.credential_type not in MARYLAND_LANDING_CREDENTIALS:
+            raise ValueError("unsupported_credential")
+        if self.consent_version != WORKER_CONSENT_VERSION:
+            raise ValueError("consent_version_mismatch")
+        if not self.consent_sms_dispatch:
+            raise ValueError("consent_required")
+        return self
+
+
+class BaltimoreInstantPayTextApplyResponse(BaseModel):
+    intake_id: str
+    queue_status: str
+    phone_number_masked: str
+    market: str
+    credential_type: str
+    message: str
+    queued_at: str
+    full_apply_url: str
+    landing_slug: str | None = None
+    region_metadata: dict[str, Any] | None = None
 
 
 class JobBoardListingOut(BaseModel):
@@ -2284,3 +2492,168 @@ class ManusDeskHandoffResponse(BaseModel):
     api_endpoints: dict[str, str]
     auth_header: str
     generated_at_utc: str
+
+
+# ---------------------------------------------------------------------------
+# Dual-account caregiver API (Tier 1 W-2 / Tier 2 1099)
+# ---------------------------------------------------------------------------
+
+from app.models import EMPLOYMENT_TIER_1099, EMPLOYMENT_TIER_W2, EMPLOYMENT_TIERS  # noqa: E402
+
+
+class CaregiverProfileOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    caregiver_profile_id: UUID
+    mbon_license_number: str
+    full_name: str
+    email: EmailStr | None = None
+    phone_number: str | None = None
+    credential_type: str
+    employment_tier: str
+    provider_id: UUID | None = None
+    account_status: str
+    skyflow_vault_record_id: str | None = None
+    skyflow_ssn_token: str | None = None
+    skyflow_dob_token: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CaregiverW2AccountOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    w2_account_id: UUID
+    caregiver_profile_id: UUID
+    maryland_residence_county: str
+    local_tax_jurisdiction_code: str | None = None
+    w4_on_file: bool
+    payroll_withholding_status: str
+    employee_payroll_number: str | None = None
+    gusto_employee_id: str | None = None
+    payroll_onboarding_error: str | None = None
+    skyflow_stripe_routing_token: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class Caregiver1099AccountOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    contractor_account_id: UUID
+    caregiver_profile_id: UUID
+    corporate_legal_name: str
+    corporate_ein: str
+    corporate_ein_validation_status: str
+    ein_validated_at: datetime | None = None
+    ein_validation_reference: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CaregiverAccountBundleOut(BaseModel):
+    profile: CaregiverProfileOut
+    employment_tier: str
+    w2_account: CaregiverW2AccountOut | None = None
+    contractor_account: Caregiver1099AccountOut | None = None
+
+
+class CaregiverProfileCreateIn(BaseModel):
+    mbon_license_number: str = Field(min_length=2, max_length=50)
+    full_name: str = Field(min_length=2, max_length=255)
+    employment_tier: str = Field(min_length=8, max_length=20)
+    credential_type: str = Field(default="CNA", min_length=2, max_length=20)
+    email: EmailStr | None = None
+    phone_number: str | None = Field(default=None, min_length=10, max_length=20)
+    provider_id: UUID | None = None
+    account_status: str = Field(default="ACTIVE", min_length=4, max_length=30)
+
+    @model_validator(mode="after")
+    def validate_tier(self) -> "CaregiverProfileCreateIn":
+        tier = str(self.employment_tier or "").strip().upper()
+        if tier not in EMPLOYMENT_TIERS:
+            raise ValueError("invalid_employment_tier")
+        self.employment_tier = tier
+        return self
+
+
+class CaregiverW2AccountCreateIn(BaseModel):
+    maryland_residence_county: str = Field(min_length=2, max_length=100)
+    local_tax_jurisdiction_code: str | None = Field(default=None, max_length=20)
+    w4_on_file: bool = False
+    payroll_withholding_status: str = Field(default="PENDING_SETUP", max_length=30)
+    employee_payroll_number: str | None = Field(default=None, max_length=50)
+
+
+class Caregiver1099AccountCreateIn(BaseModel):
+    corporate_legal_name: str = Field(min_length=2, max_length=255)
+    corporate_ein: str = Field(min_length=9, max_length=12)
+    corporate_ein_validation_status: str = Field(default="UNVALIDATED", max_length=30)
+
+
+class CaregiverProvisionIn(BaseModel):
+    mbon_license_number: str = Field(min_length=2, max_length=50)
+    full_name: str = Field(min_length=2, max_length=255)
+    employment_tier: str = Field(min_length=8, max_length=20)
+    credential_type: str = Field(default="CNA", min_length=2, max_length=20)
+    email: EmailStr | None = None
+    phone_number: str | None = Field(default=None, min_length=10, max_length=20)
+    provider_id: UUID | None = None
+    maryland_residence_county: str | None = Field(default=None, max_length=100)
+    local_tax_jurisdiction_code: str | None = Field(default=None, max_length=20)
+    w4_on_file: bool = False
+    corporate_legal_name: str | None = Field(default=None, max_length=255)
+    corporate_ein: str | None = Field(default=None, max_length=12)
+    ssn: str | None = Field(default=None, min_length=9, max_length=11)
+    date_of_birth: str | None = Field(default=None, max_length=20)
+    stripe_routing_token: str | None = Field(default=None, max_length=128)
+
+    @model_validator(mode="after")
+    def validate_tier_requirements(self) -> "CaregiverProvisionIn":
+        tier = str(self.employment_tier or "").strip().upper()
+        if tier not in EMPLOYMENT_TIERS:
+            raise ValueError("invalid_employment_tier")
+        self.employment_tier = tier
+        if tier == EMPLOYMENT_TIER_W2 and not str(self.maryland_residence_county or "").strip():
+            raise ValueError("maryland_residence_county_required")
+        if tier == EMPLOYMENT_TIER_1099:
+            if not str(self.corporate_legal_name or "").strip():
+                raise ValueError("corporate_legal_name_required")
+            if not str(self.corporate_ein or "").strip():
+                raise ValueError("corporate_ein_required")
+        return self
+
+
+class CaregiverProvisionFromProviderIn(BaseModel):
+    employment_tier: str = Field(min_length=8, max_length=20)
+    maryland_residence_county: str | None = Field(default=None, max_length=100)
+    local_tax_jurisdiction_code: str | None = Field(default=None, max_length=20)
+    corporate_legal_name: str | None = Field(default=None, max_length=255)
+    corporate_ein: str | None = Field(default=None, max_length=12)
+    ssn: str | None = Field(default=None, min_length=9, max_length=11)
+    date_of_birth: str | None = Field(default=None, max_length=20)
+    stripe_routing_token: str | None = Field(default=None, max_length=128)
+
+    @model_validator(mode="after")
+    def validate_tier_requirements(self) -> "CaregiverProvisionFromProviderIn":
+        tier = str(self.employment_tier or "").strip().upper()
+        if tier not in EMPLOYMENT_TIERS:
+            raise ValueError("invalid_employment_tier")
+        self.employment_tier = tier
+        if tier == EMPLOYMENT_TIER_W2 and not str(self.maryland_residence_county or "").strip():
+            raise ValueError("maryland_residence_county_required")
+        if tier == EMPLOYMENT_TIER_1099:
+            if not str(self.corporate_legal_name or "").strip():
+                raise ValueError("corporate_legal_name_required")
+            if not str(self.corporate_ein or "").strip():
+                raise ValueError("corporate_ein_required")
+        return self
+
+
+class CaregiverLinkProviderIn(BaseModel):
+    provider_id: UUID
+
+
+class CaregiverEinValidationIn(BaseModel):
+    status: str = Field(min_length=4, max_length=30)
+    validation_reference: str | None = Field(default=None, max_length=100)

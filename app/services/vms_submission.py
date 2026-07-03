@@ -21,6 +21,18 @@ from app.models import (
 )
 from app.services.ops_metrics import log_ops_event
 
+VMS_STATUS_LABELS = {
+    "PENDING": "Queued for VMS dispatch",
+    "SUBMITTED": "Confirmed with facility",
+    "FAILED": "Dispatch review needed",
+    "ESCROW_LOCKED": "Pay escrow locked",
+}
+
+
+def vms_status_label(status: str | None) -> str:
+    key = str(status or "PENDING").upper()
+    return VMS_STATUS_LABELS.get(key, key.replace("_", " ").title())
+
 
 @dataclass(frozen=True)
 class VmsSubmissionResult:
@@ -283,10 +295,32 @@ def list_clinician_placements(
                 "clinical_unit": placement.clinical_unit,
                 "hourly_bill_rate": float(placement.hourly_bill_rate),
                 "vms_submission_status": placement.vms_submission_status,
+                "vms_status_label": vms_status_label(placement.vms_submission_status),
                 "vms_external_ref": placement.vms_external_ref,
+                "vms_submitted_at": placement.vms_submitted_at,
                 "shift_starts_at": shift_starts_at,
                 "shift_ends_at": shift_ends_at,
                 "outbound_payload_timestamp": placement.outbound_payload_timestamp,
             }
         )
     return results
+
+
+def submit_demo_clinician_placements_to_vms(db: Session, provider: MarylandProvider) -> int:
+    """Dry-run/live VMS dispatch for demo walkthrough placements stuck in PENDING."""
+    from app.services.shift_matching import is_demo_walkthrough_provider
+
+    if not is_demo_walkthrough_provider(provider):
+        return 0
+
+    submitted = 0
+    rows = list_clinician_placements(db, provider.provider_id)
+    for row in rows:
+        if str(row.get("vms_submission_status") or "").upper() != "PENDING":
+            continue
+        try:
+            submit_placement_to_vms(db, row["placement_id"])
+            submitted += 1
+        except ValueError:
+            continue
+    return submitted

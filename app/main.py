@@ -39,6 +39,8 @@ from app.routers.deploy import router as deploy_router
 from app.routers.ops import router as ops_router
 from app.routers.integrations import router as integrations_router
 from app.routers.clinicians import router as clinicians_router
+from app.routers.portal_auth import router as portal_auth_router
+from app.routers.caregivers import router as caregivers_router
 from app.routers.core import router as core_router
 from app.routers.scraper import router as scraper_router
 from app.routers.shifts import router as shifts_router
@@ -57,6 +59,8 @@ from api.instant_pay_retention import (
     stop_instant_pay_worker,
 )
 from app.api.webhooks.stripe_escrow import router as stripe_escrow_webhook_router
+from app.api.webhooks.inbound_communications import router as inbound_communications_router
+from app.api.webhooks.workstream_intake import register_workstream_intake_webhook
 from strategy.database_schema_healer import DatabaseSchemaHealer
 from strategy.system_pulse_daemon import SystemPulseDaemon
 
@@ -74,10 +78,12 @@ async def lifespan(app: FastAPI):
         logger.info("Database migrations ready.")
         try:
             from app.database import SessionLocal
-            from app.services.demo_portal_accounts import ensure_demo_portal_accounts
+            from app.services.portal_login import bootstrap_portal_logins
 
             with SessionLocal() as db:
-                portal_bootstrap = ensure_demo_portal_accounts(db)
+                portal_bootstrap = bootstrap_portal_logins(db)
+            if portal_bootstrap.get("sample_clinician_ready"):
+                logger.info("Portal sample clinician ready: %s", portal_bootstrap.get("sample_email"))
             if portal_bootstrap["created"] or portal_bootstrap["updated"]:
                 logger.info(
                     "Demo portal logins ready: created=%s updated=%s",
@@ -129,6 +135,8 @@ app.include_router(ops_router)
 app.include_router(integrations_router)
 app.include_router(live_scraper_adapters_router)
 app.include_router(clinicians_router)
+app.include_router(caregivers_router)
+app.include_router(portal_auth_router)
 app.include_router(scraper_router)
 app.include_router(shifts_router)
 app.include_router(shift_sniper_router)
@@ -141,13 +149,15 @@ register_intake_webhooks(app)
 register_vector_match_engine(app)
 register_instant_pay_retention(app)
 app.include_router(stripe_escrow_webhook_router)
+app.include_router(inbound_communications_router)
+register_workstream_intake_webhook(app)
 
 ADMIN_STATIC_DIR = Path(__file__).resolve().parent / "static" / "admin"
 if ADMIN_STATIC_DIR.is_dir():
     app.mount("/admin", StaticFiles(directory=ADMIN_STATIC_DIR, html=True), name="admin")
 
 PORTAL_STATIC_DIR = Path(__file__).resolve().parent / "static" / "portal"
-PORTAL_BUILD_ID = "portal-step15-2026"
+PORTAL_BUILD_ID = "portal-step29-2026b"
 
 
 def _portal_asset_headers() -> dict[str, str]:
@@ -171,6 +181,22 @@ if PORTAL_STATIC_DIR.is_dir():
         return FileResponse(
             PORTAL_STATIC_DIR / "index.html",
             media_type="text/html",
+            headers=_portal_asset_headers(),
+        )
+
+    @app.get("/portal/auth.js", include_in_schema=False)
+    def portal_auth_js() -> FileResponse:
+        return FileResponse(
+            PORTAL_STATIC_DIR / "auth.js",
+            media_type="application/javascript",
+            headers=_portal_asset_headers(),
+        )
+
+    @app.get("/portal/shifts.js", include_in_schema=False)
+    def portal_shifts_js() -> FileResponse:
+        return FileResponse(
+            PORTAL_STATIC_DIR / "shifts.js",
+            media_type="application/javascript",
             headers=_portal_asset_headers(),
         )
 
@@ -201,8 +227,61 @@ if PORTAL_STATIC_DIR.is_dir():
     app.mount("/portal", StaticFiles(directory=PORTAL_STATIC_DIR, html=False), name="portal")
 
 LANDING_STATIC_DIR = Path(__file__).resolve().parent / "static" / "landing"
+SHARED_STATIC_DIR = Path(__file__).resolve().parent / "static" / "shared"
+if SHARED_STATIC_DIR.is_dir():
+    app.mount("/shared", StaticFiles(directory=SHARED_STATIC_DIR, html=False), name="shared")
 if LANDING_STATIC_DIR.is_dir():
     app.mount("/join", StaticFiles(directory=LANDING_STATIC_DIR, html=True), name="join")
+
+BALTIMORE_LANDING_DIR = Path(__file__).resolve().parent / "static" / "baltimore-instant-pay-cna"
+INSTANT_PAY_LANDING_BUILD_ID = "instant-pay-v0-2026b"
+
+
+def _instant_pay_landing_headers(landing_slug: str) -> dict[str, str]:
+    return {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "X-Landing-Build": INSTANT_PAY_LANDING_BUILD_ID,
+        "X-Landing-Slug": landing_slug,
+    }
+
+
+def _register_instant_pay_landing_routes() -> None:
+    if not BALTIMORE_LANDING_DIR.is_dir():
+        return
+
+    from app.services.localized_instant_pay_landing import get_route_manifest
+
+    manifest = get_route_manifest()
+    registered: set[str] = set()
+
+    for route in manifest.iter_routes():
+        slug = route.landing_slug
+        if slug in registered:
+            continue
+        registered.add(slug)
+
+        @app.get(f"/{slug}", include_in_schema=False)
+        def _landing_root_redirect(_slug: str = slug) -> RedirectResponse:
+            return RedirectResponse(url=f"/{_slug}/", status_code=307)
+
+        @app.get(f"/{slug}/", include_in_schema=False)
+        @app.get(f"/{slug}/index.html", include_in_schema=False)
+        def _landing_index(_slug: str = slug) -> FileResponse:
+            return FileResponse(
+                BALTIMORE_LANDING_DIR / "index.html",
+                media_type="text/html",
+                headers=_instant_pay_landing_headers(_slug),
+            )
+
+        app.mount(
+            f"/{slug}",
+            StaticFiles(directory=BALTIMORE_LANDING_DIR, html=False),
+            name=f"instant-pay-{slug}",
+        )
+
+
+_register_instant_pay_landing_routes()
 
 register_asgi_app(app)
 
@@ -219,6 +298,7 @@ def read_root():
         "region": grid_region_label(),
         "admin": "/admin",
         "portal": "/portal/",
+        "baltimore_instant_pay_cna": "/baltimore-instant-pay-cna/",
         "manus": {
             "config": "/api/vettedcare/manus/config",
             "work_queue": "/api/vettedcare/manus/work-queue",

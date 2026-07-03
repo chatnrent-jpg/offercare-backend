@@ -51,7 +51,7 @@ def _client_ip(request: Request) -> str:
 
 
 def _limit_for_path(path: str) -> tuple[str, int] | None:
-    if path == "/api/clinicians/login":
+    if path == "/api/clinicians/login" or path == "/api/portal/auth/login" or path == "/api/portal/auth/demo-login":
         return "login", settings.RATE_LIMIT_LOGIN_PER_MINUTE
     if path == "/api/clinicians/apply":
         return "apply", settings.RATE_LIMIT_APPLY_PER_MINUTE

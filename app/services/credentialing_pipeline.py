@@ -130,6 +130,26 @@ def run_full_credentialing_screen(db: Session, provider_id: UUID) -> dict:
     db.commit()
     db.refresh(provider)
 
+    if not blocked and mbon.status == "ACTIVE":
+        try:
+            from app.services.payroll_onboarding_syncer import sync_payroll_onboarding_after_mbon_clear
+
+            sync_payroll_onboarding_after_mbon_clear(
+                db,
+                provider,
+                mbon_result=mbon,
+                commit=True,
+            )
+            db.refresh(provider)
+        except Exception as exc:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "credentialing_pipeline: payroll onboarding sync fail-open provider=%s error=%s",
+                provider.provider_id,
+                exc,
+            )
+
     return {
         "provider_id": str(provider.provider_id),
         "format_check": format_check.result,

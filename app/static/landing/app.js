@@ -43,12 +43,14 @@ const els = {
   closeTosBtn: document.getElementById("close-tos-btn"),
   closeTosFooterBtn: document.getElementById("close-tos-footer-btn"),
   toast: document.getElementById("toast"),
+  aedtMount: document.getElementById("aedt-disclosure-mount"),
 };
 
 let landingData = null;
 let consentVersion = "";
 let termsOfService = null;
 let privacyPolicy = null;
+let aedtDisclosure = null;
 
 function showToast(message, isError = false) {
   els.toast.textContent = message;
@@ -253,6 +255,18 @@ function renderLanding(data) {
   if (data.privacy_policy) {
     renderPrivacyPolicy(data.privacy_policy);
   }
+  mountAedtDisclosure(data.consent_disclosures || {});
+}
+
+function mountAedtDisclosure(disclosures) {
+  if (!els.aedtMount || !window.VettedCareAedtDisclosure) return;
+  els.aedtMount.innerHTML = "";
+  aedtDisclosure = window.VettedCareAedtDisclosure.createAedtDisclosureBox({
+    copy: {
+      body: disclosures.maryland_aedt_30_day || window.VettedCareAedtDisclosure.DEFAULT_COPY.body,
+    },
+  });
+  els.aedtMount.appendChild(aedtDisclosure.element);
 }
 
 function payBandForCredential(code) {
@@ -298,6 +312,7 @@ function resetApplyForm() {
   if (els.consentSms) els.consentSms.checked = false;
   if (els.consentPrivacy) els.consentPrivacy.checked = false;
   if (els.consentTos) els.consentTos.checked = false;
+  aedtDisclosure?.reset();
   delete els.applyRate.dataset.touched;
   refreshCredentialFields();
 }
@@ -305,6 +320,13 @@ function resetApplyForm() {
 async function submitApplication(event) {
   event.preventDefault();
   els.applyError.classList.add("hidden");
+  if (aedtDisclosure && !aedtDisclosure.validate()) {
+    els.applyError.textContent =
+      "You must accept the Maryland AEDT automated shift-routing disclosure before applying.";
+    els.applyError.classList.remove("hidden");
+    showToast("Maryland AEDT disclosure acceptance is required.", true);
+    return;
+  }
   if (
     !els.consentCredential?.checked ||
     !els.consentSms?.checked ||
@@ -338,6 +360,7 @@ async function submitApplication(event) {
     consent_sms_dispatch: true,
     consent_privacy_policy: true,
     consent_terms_of_service: true,
+    consent_aedt_30_day: true,
   };
   try {
     const result = await api("/api/landing/maryland/apply", {

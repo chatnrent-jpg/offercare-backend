@@ -1,0 +1,337 @@
+{
+  "template_id": "vettedcare-md-ohcq-staffing-don-hr",
+  "template_version": "2026-07-03",
+  "description": "Clay.com enrichment template — Maryland OHCQ staffing-citation facilities → DON + HR Staffing Coordinator contacts.",
+  "manus_instructions": [
+    "1. Run scripts/run-ohcq-citation-tracker.bat to refresh leads/ohcq_staffing_citation_flags_md.csv.",
+    "2. Copy this file to integrations/clay/ohcq_citation_enrichment.json and fill Clay credentials.",
+    "3. Create a Clay table matching clay_table.columns below (or import via Clay template).",
+    "4. Wire enrichment_columns in Clay UI using the action_sequence for each role.",
+    "5. Run scripts/clay_push_ohcq_leads.py --dry-run then live push to Clay webhook or v3 API.",
+    "6. Export enriched rows to leads/ohcq_staffing_citation_enriched_md.csv for outreach."
+  ],
+  "input": {
+    "source_type": "csv",
+    "path": "leads/ohcq_staffing_citation_flags_md.csv",
+    "encoding": "utf-8",
+    "dedupe_keys": ["facility_name", "county"],
+    "required_columns": ["facility_name", "county"],
+    "optional_columns": [
+      "facility_type",
+      "flag_reason",
+      "deficiency_tag",
+      "deficiency_summary",
+      "survey_date",
+      "md_license_number",
+      "cms_ccn"
+    ]
+  },
+  "clay_table": {
+    "name": "MD OHCQ Staffing Citations — DON & HR Enrichment",
+    "webhook_url_env": "CLAY_TABLE_WEBHOOK_URL",
+    "table_id_env": "CLAY_TABLE_ID",
+    "view_id_env": "CLAY_TABLE_VIEW_ID",
+    "session_cookie_env": "CLAY_SESSION_COOKIE",
+    "api_base": "https://api.clay.com/v3",
+    "batch_size": 50
+  },
+  "input_column_mappings": {
+    "facility_name": {
+      "clay_column": "Facility Name",
+      "clay_field_id_env": "CLAY_FIELD_FACILITY_NAME",
+      "required": true
+    },
+    "county": {
+      "clay_column": "Maryland County",
+      "clay_field_id_env": "CLAY_FIELD_COUNTY",
+      "required": true
+    },
+    "facility_type": {
+      "clay_column": "Facility Type",
+      "clay_field_id_env": "CLAY_FIELD_FACILITY_TYPE"
+    },
+    "flag_reason": {
+      "clay_column": "Staffing Flag Reason",
+      "clay_field_id_env": "CLAY_FIELD_FLAG_REASON"
+    },
+    "deficiency_summary": {
+      "clay_column": "Citation Summary",
+      "clay_field_id_env": "CLAY_FIELD_CITATION_SUMMARY"
+    },
+    "md_license_number": {
+      "clay_column": "MD License Number",
+      "clay_field_id_env": "CLAY_FIELD_MD_LICENSE"
+    },
+    "search_location": {
+      "clay_column": "Search Location",
+      "derive": "{county} County, Maryland, United States",
+      "clay_field_id_env": "CLAY_FIELD_SEARCH_LOCATION"
+    },
+    "company_domain_guess": {
+      "clay_column": "Company Domain Guess",
+      "derive": "slugify(facility_name).md.snf",
+      "clay_field_id_env": "CLAY_FIELD_DOMAIN_GUESS"
+    }
+  },
+  "target_roles": [
+    {
+      "role_id": "don",
+      "display_name": "Director of Nursing (DON)",
+      "title_search_queries": [
+        "Director of Nursing",
+        "DON",
+        "Director Nursing Services",
+        "Nursing Director"
+      ],
+      "linkedin_keywords": ["director of nursing", "don", "nursing director"],
+      "output_prefix": "don"
+    },
+    {
+      "role_id": "hr_staffing_coordinator",
+      "display_name": "HR Staffing Coordinator",
+      "title_search_queries": [
+        "HR Staffing Coordinator",
+        "Staffing Coordinator",
+        "Human Resources Staffing Coordinator",
+        "Recruiting Coordinator",
+        "Workforce Coordinator"
+      ],
+      "linkedin_keywords": ["staffing coordinator", "hr coordinator", "workforce coordinator"],
+      "output_prefix": "hr_staffing_coordinator"
+    }
+  ],
+  "enrichment_columns": [
+    {
+      "column": "Find Company",
+      "clay_action": "Enrich Company",
+      "inputs": {
+        "company_name": "{{Facility Name}}",
+        "location": "{{Search Location}}"
+      },
+      "sources": ["LinkedIn Company", "Clearbit", "Google Maps"],
+      "outputs": ["company_linkedin_url", "company_domain", "company_phone"]
+    },
+    {
+      "column": "Find DON",
+      "clay_action": "Find People at Company",
+      "role_id": "don",
+      "inputs": {
+        "company_name": "{{Facility Name}}",
+        "domain": "{{Company Domain}}",
+        "location": "{{Search Location}}",
+        "job_titles": ["Director of Nursing", "DON", "Director Nursing Services"]
+      },
+      "sources": ["LinkedIn", "Apollo", "ZoomInfo", "Clay People Database"],
+      "max_results": 3
+    },
+    {
+      "column": "Enrich DON LinkedIn",
+      "clay_action": "Enrich Person",
+      "role_id": "don",
+      "inputs": {
+        "linkedin_url": "{{DON LinkedIn URL}}",
+        "full_name": "{{DON Full Name}}"
+      },
+      "sources": ["LinkedIn"]
+    },
+    {
+      "column": "DON Work Email",
+      "clay_action": "Work Email (Waterfall)",
+      "role_id": "don",
+      "inputs": {
+        "full_name": "{{DON Full Name}}",
+        "company_name": "{{Facility Name}}",
+        "domain": "{{Company Domain}}",
+        "linkedin_url": "{{DON LinkedIn URL}}"
+      },
+      "sources": ["Apollo", "ZoomInfo", "Hunter", "Clay Email Finder"],
+      "verify": ["NeverBounce", "ZeroBounce"]
+    },
+    {
+      "column": "DON Direct Phone",
+      "clay_action": "Find Mobile Number",
+      "role_id": "don",
+      "inputs": {
+        "full_name": "{{DON Full Name}}",
+        "company_name": "{{Facility Name}}",
+        "linkedin_url": "{{DON LinkedIn URL}}",
+        "work_email": "{{DON Work Email}}"
+      },
+      "sources": ["Apollo", "ZoomInfo", "Clay Phone Finder"]
+    },
+    {
+      "column": "Find HR Staffing Coordinator",
+      "clay_action": "Find People at Company",
+      "role_id": "hr_staffing_coordinator",
+      "inputs": {
+        "company_name": "{{Facility Name}}",
+        "domain": "{{Company Domain}}",
+        "location": "{{Search Location}}",
+        "job_titles": [
+          "HR Staffing Coordinator",
+          "Staffing Coordinator",
+          "Human Resources Staffing Coordinator",
+          "Workforce Coordinator"
+        ]
+      },
+      "sources": ["LinkedIn", "Apollo", "ZoomInfo", "Clay People Database"],
+      "max_results": 3
+    },
+    {
+      "column": "Enrich HR LinkedIn",
+      "clay_action": "Enrich Person",
+      "role_id": "hr_staffing_coordinator",
+      "inputs": {
+        "linkedin_url": "{{HR LinkedIn URL}}",
+        "full_name": "{{HR Full Name}}"
+      },
+      "sources": ["LinkedIn"]
+    },
+    {
+      "column": "HR Work Email",
+      "clay_action": "Work Email (Waterfall)",
+      "role_id": "hr_staffing_coordinator",
+      "inputs": {
+        "full_name": "{{HR Full Name}}",
+        "company_name": "{{Facility Name}}",
+        "domain": "{{Company Domain}}",
+        "linkedin_url": "{{HR LinkedIn URL}}"
+      },
+      "sources": ["Apollo", "ZoomInfo", "Hunter", "Clay Email Finder"],
+      "verify": ["NeverBounce", "ZeroBounce"]
+    },
+    {
+      "column": "HR Direct Phone",
+      "clay_action": "Find Mobile Number",
+      "role_id": "hr_staffing_coordinator",
+      "inputs": {
+        "full_name": "{{HR Full Name}}",
+        "company_name": "{{Facility Name}}",
+        "linkedin_url": "{{HR LinkedIn URL}}",
+        "work_email": "{{HR Work Email}}"
+      },
+      "sources": ["Apollo", "ZoomInfo", "Clay Phone Finder"]
+    }
+  ],
+  "output_column_mappings": {
+    "don_full_name": {
+      "clay_column": "DON Full Name",
+      "clay_field_id_env": "CLAY_OUT_DON_FULL_NAME"
+    },
+    "don_verified_email": {
+      "clay_column": "DON Work Email",
+      "clay_field_id_env": "CLAY_OUT_DON_EMAIL"
+    },
+    "don_direct_phone": {
+      "clay_column": "DON Direct Phone",
+      "clay_field_id_env": "CLAY_OUT_DON_PHONE"
+    },
+    "don_linkedin_url": {
+      "clay_column": "DON LinkedIn URL",
+      "clay_field_id_env": "CLAY_OUT_DON_LINKEDIN"
+    },
+    "hr_staffing_coordinator_full_name": {
+      "clay_column": "HR Full Name",
+      "clay_field_id_env": "CLAY_OUT_HR_FULL_NAME"
+    },
+    "hr_staffing_coordinator_verified_email": {
+      "clay_column": "HR Work Email",
+      "clay_field_id_env": "CLAY_OUT_HR_EMAIL"
+    },
+    "hr_staffing_coordinator_direct_phone": {
+      "clay_column": "HR Direct Phone",
+      "clay_field_id_env": "CLAY_OUT_HR_PHONE"
+    },
+    "hr_staffing_coordinator_linkedin_url": {
+      "clay_column": "HR LinkedIn URL",
+      "clay_field_id_env": "CLAY_OUT_HR_LINKEDIN"
+    }
+  },
+  "api_mappings": {
+    "webhook_push": {
+      "method": "POST",
+      "url": "{{CLAY_TABLE_WEBHOOK_URL}}",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body_shape": "flat_row",
+      "example_body": {
+        "Facility Name": "ADELPHI NURSING AND REHABILITATION CENTER",
+        "Maryland County": "Prince George's",
+        "Facility Type": "SNF",
+        "Staffing Flag Reason": "insufficient_staffing_citation",
+        "Search Location": "Prince George's County, Maryland, United States"
+      }
+    },
+    "v3_add_records": {
+      "method": "POST",
+      "path": "/v3/tables/{TABLE_ID}/records",
+      "headers": {
+        "Content-Type": "application/json",
+        "Cookie": "{{CLAY_SESSION_COOKIE}}"
+      },
+      "body_shape": "clay_cells",
+      "example_body": {
+        "records": [
+          {
+            "id": "ohcq-adelphi-prince-georges",
+            "cells": {
+              "CLAY_FIELD_FACILITY_NAME": "ADELPHI NURSING AND REHABILITATION CENTER",
+              "CLAY_FIELD_COUNTY": "Prince George's"
+            }
+          }
+        ]
+      }
+    },
+    "v3_run_enrichment": {
+      "method": "PATCH",
+      "path": "/v3/tables/{TABLE_ID}/run",
+      "headers": {
+        "Content-Type": "application/json",
+        "Cookie": "{{CLAY_SESSION_COOKIE}}"
+      },
+      "body": {
+        "callerName": "ActionCellViewer",
+        "fieldIds": ["{{CLAY_ENRICHMENT_FIELD_IDS}}"],
+        "forceRun": true,
+        "runRecords": {
+          "recordIds": ["{{RECORD_IDS}}"]
+        }
+      }
+    },
+    "v3_poll_records": {
+      "method": "GET",
+      "path": "/v3/tables/{TABLE_ID}/views/{VIEW_ID}/records",
+      "headers": {
+        "Cookie": "{{CLAY_SESSION_COOKIE}}"
+      }
+    },
+    "v3_fetch_record": {
+      "method": "GET",
+      "path": "/v3/tables/{TABLE_ID}/records/{RECORD_ID}",
+      "headers": {
+        "Cookie": "{{CLAY_SESSION_COOKIE}}"
+      },
+      "note": "Use per-record fetch to read externalContent.fullValue after enrichment completes."
+    }
+  },
+  "export": {
+    "path": "leads/ohcq_staffing_citation_enriched_md.csv",
+    "columns": [
+      "facility_name",
+      "county",
+      "facility_type",
+      "flag_reason",
+      "don_full_name",
+      "don_verified_email",
+      "don_direct_phone",
+      "don_linkedin_url",
+      "hr_staffing_coordinator_full_name",
+      "hr_staffing_coordinator_verified_email",
+      "hr_staffing_coordinator_direct_phone",
+      "hr_staffing_coordinator_linkedin_url",
+      "clay_record_id",
+      "enriched_at_utc"
+    ]
+  }
+}

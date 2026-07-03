@@ -13,7 +13,39 @@ from app.models import (
     MarylandProvider,
     OfferCareJobOffer,
     ShiftNotificationLog,
+    VmsSubmissionLog,
 )
+
+
+def _delete_clinical_placements_cascade(
+    db: Session,
+    *,
+    offer_ids: list | None = None,
+    provider_ids: list | None = None,
+) -> None:
+    """Purge VMS submission logs before clinical_placements_ledger (FK child-first)."""
+    ledger_query = db.query(ClinicalPlacementLedger.placement_id)
+    if provider_ids:
+        if not provider_ids:
+            return
+        ledger_query = ledger_query.filter(
+            ClinicalPlacementLedger.assigned_clinician_id.in_(provider_ids)
+        )
+        ledger_filter = ClinicalPlacementLedger.assigned_clinician_id.in_(provider_ids)
+    elif offer_ids:
+        if not offer_ids:
+            return
+        ledger_query = ledger_query.filter(ClinicalPlacementLedger.offer_id.in_(offer_ids))
+        ledger_filter = ClinicalPlacementLedger.offer_id.in_(offer_ids)
+    else:
+        return
+
+    placement_ids = [row[0] for row in ledger_query.all()]
+    if placement_ids:
+        db.query(VmsSubmissionLog).filter(
+            VmsSubmissionLog.placement_id.in_(placement_ids)
+        ).delete(synchronize_session=False)
+    db.query(ClinicalPlacementLedger).filter(ledger_filter).delete(synchronize_session=False)
 
 
 def _delete_providers(db: Session, provider_ids: list) -> None:
@@ -31,9 +63,7 @@ def _delete_providers(db: Session, provider_ids: list) -> None:
     db.query(ShiftNotificationLog).filter(
         ShiftNotificationLog.provider_id.in_(provider_ids)
     ).delete(synchronize_session=False)
-    db.query(ClinicalPlacementLedger).filter(
-        ClinicalPlacementLedger.assigned_clinician_id.in_(provider_ids)
-    ).delete(synchronize_session=False)
+    _delete_clinical_placements_cascade(db, provider_ids=provider_ids)
     db.query(OfferCareJobOffer).filter(
         OfferCareJobOffer.assigned_provider_id.in_(provider_ids)
     ).update({OfferCareJobOffer.assigned_provider_id: None}, synchronize_session=False)
@@ -67,9 +97,7 @@ def purge_lock_test_pollution(db: Session) -> None:
             db.query(ShiftNotificationLog).filter(
                 ShiftNotificationLog.offer_id.in_(offer_ids)
             ).delete(synchronize_session=False)
-            db.query(ClinicalPlacementLedger).filter(
-                ClinicalPlacementLedger.offer_id.in_(offer_ids)
-            ).delete(synchronize_session=False)
+            _delete_clinical_placements_cascade(db, offer_ids=offer_ids)
             db.query(OfferCareJobOffer).filter(
                 OfferCareJobOffer.offer_id.in_(offer_ids)
             ).delete(synchronize_session=False)
@@ -138,9 +166,7 @@ def purge_post_acute_demo_pollution(db: Session) -> None:
             db.query(ShiftNotificationLog).filter(
                 ShiftNotificationLog.offer_id.in_(offer_ids)
             ).delete(synchronize_session=False)
-            db.query(ClinicalPlacementLedger).filter(
-                ClinicalPlacementLedger.offer_id.in_(offer_ids)
-            ).delete(synchronize_session=False)
+            _delete_clinical_placements_cascade(db, offer_ids=offer_ids)
             db.query(OfferCareJobOffer).filter(
                 OfferCareJobOffer.offer_id.in_(offer_ids)
             ).delete(synchronize_session=False)

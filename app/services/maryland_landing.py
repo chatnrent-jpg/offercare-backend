@@ -17,7 +17,7 @@ from app.services.care_taxonomy import (
 )
 from app.services.credentialing_pipeline import run_full_credentialing_screen
 from app.services.license_verification import apply_as_clinician
-from app.services.worker_consent import build_consent_disclosures, record_apply_consents
+from app.services.worker_consent import build_consent_disclosures, record_apply_consents, record_maryland_aedt_consent
 from app.services.worker_privacy_policy import build_worker_privacy_policy
 from app.services.worker_terms_of_service import build_worker_terms_of_service
 
@@ -122,8 +122,15 @@ def apply_maryland_floor_staff(
         consent_version=payload.consent_version,
         client_ip=client_ip,
     )
+    consent_signed_at = record_maryland_aedt_consent(
+        db,
+        provider.provider_id,
+        consent_version=payload.consent_version,
+        client_ip=client_ip,
+    )
 
     screen = run_full_credentialing_screen(db, provider.provider_id)
+    db.commit()
     refreshed = db.query(MarylandProvider).filter(MarylandProvider.provider_id == provider.provider_id).one()
     return {
         "provider_id": str(refreshed.provider_id),
@@ -141,6 +148,7 @@ def apply_maryland_floor_staff(
         "message": _landing_apply_message(refreshed, screen),
         "portal_url": "/portal",
         "verified_at": datetime.now(timezone.utc).isoformat(),
+        "consent_signed_at": consent_signed_at.isoformat(),
     }
 
 

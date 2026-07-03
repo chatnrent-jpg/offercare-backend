@@ -102,6 +102,25 @@ class Settings(BaseSettings):
     ZOOMINFO_API_KEY: str = ""
     CONTACT_ENRICH_TIMEOUT_SECONDS: float = 20.0
 
+    CLAY_TABLE_WEBHOOK_URL: str = ""
+    CLAY_TABLE_ID: str = ""
+    CLAY_TABLE_VIEW_ID: str = ""
+    CLAY_SESSION_COOKIE: str = ""
+    CLAY_ENRICHMENT_DRY_RUN: bool = True
+
+    HEYREACH_API_KEY: str = ""
+    HEYREACH_LIST_ID: str = ""
+    HEYREACH_CAMPAIGN_ID: str = ""
+    HEYREACH_SENDER_ACCOUNT_IDS: str = ""
+    HEYREACH_OUTREACH_DRY_RUN: bool = True
+
+    WORKSTREAM_API_BASE: str = "https://public-api.workstream.us"
+    WORKSTREAM_CLIENT_ID: str = ""
+    WORKSTREAM_CLIENT_SECRET: str = ""
+    WORKSTREAM_ACCESS_TOKEN: str = ""
+    WORKSTREAM_WEBHOOK_BEARER_TOKEN: str = ""
+    WORKSTREAM_JOB_DISTRIBUTION_DRY_RUN: bool = True
+
     OUTREACH_EMAIL_ENABLED: bool = True
     OUTREACH_EMAIL_DRY_RUN: bool = True
     OUTREACH_LLM_DRY_RUN: bool = True
@@ -114,6 +133,12 @@ class Settings(BaseSettings):
 
     JWT_SECRET_KEY: str = "offercare-dev-secret-change-in-production"
     JWT_EXPIRE_MINUTES: int = 60 * 24
+
+    GOOGLE_OAUTH_CLIENT_ID: str = ""
+    GOOGLE_OAUTH_CLIENT_SECRET: str = ""
+    FACEBOOK_APP_ID: str = ""
+    FACEBOOK_APP_SECRET: str = ""
+    PORTAL_OAUTH_REDIRECT_BASE: str = ""
 
     VMS_SUBMISSION_URL: str = ""
     VMS_DRY_RUN: bool = True
@@ -177,6 +202,43 @@ class Settings(BaseSettings):
     INSTANT_PAY_WORKER_ENABLED: bool = True
     INSTANT_PAY_WORKER_INTERVAL_SECONDS: int = 60
 
+    PAYROLL_TAX_INTERCEPT_ENABLED: bool = True
+    PAYROLL_TAX_PROVIDER: str = "local"  # local | gusto | checkhq
+    INSTANT_PAY_FEDERAL_INCOME_EFFECTIVE_RATE: float = 0.12
+    INSTANT_PAY_MD_STATE_EFFECTIVE_RATE: float = 0.0575
+    GUSTO_API_TOKEN: str = ""
+    GUSTO_COMPANY_ID: str = ""
+    GUSTO_API_BASE: str = "https://api.gusto-demo.com"
+    GUSTO_API_VERSION: str = "2024-04-01"
+    CHECKHQ_API_KEY: str = ""
+    CHECKHQ_API_BASE: str = "https://sandbox.checkhq.com"
+    CHECKHQ_COMPANY_ID: str = ""
+    CHECKHQ_DEFAULT_WORKPLACE_ID: str = ""
+
+    PAYROLL_ONBOARDING_SYNC_ENABLED: bool = True
+    PAYROLL_ONBOARDING_DRY_RUN: bool = True
+    PAYROLL_ONBOARDING_TIMEOUT_SECONDS: float = 30.0
+
+    COMPLIANCE_SENTINEL_ENABLED: bool = True
+    COMPLIANCE_SENTINEL_HB1106_REQUIRED: bool = True
+    COMPLIANCE_SENTINEL_MBON_MAX_AGE_HOURS: int = 24
+
+    BIAS_AUDITOR_ENABLED: bool = True
+    BIAS_AUDITOR_DRY_RUN: bool = True
+    BIAS_AUDITOR_LLM_MODEL: str = "claude-3-5-sonnet-20241022"
+    BIAS_AUDITOR_ANTHROPIC_API_KEY: str = ""
+    BIAS_AUDITOR_LLM_TIMEOUT_SECONDS: float = 30.0
+    BIAS_AUDITOR_LOG_PATH: str = "maryland_hb1106_audit.log"
+
+    SKYFLOW_VAULT_ENABLED: bool = True
+    SKYFLOW_VAULT_DRY_RUN: bool = True
+    SKYFLOW_VAULT_ID: str = ""
+    SKYFLOW_VAULT_URL: str = ""
+    SKYFLOW_VAULT_TABLE: str = "caregivers"
+    SKYFLOW_BEARER_TOKEN: str = ""
+    SKYFLOW_VAULT_TIMEOUT_SECONDS: float = 30.0
+    SKYFLOW_DRY_VAULT_PATH: str = "logs/skyflow_dry_vault.json"
+
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_LOGIN_PER_MINUTE: int = 10
     RATE_LIMIT_APPLY_PER_MINUTE: int = 5
@@ -199,6 +261,9 @@ class Settings(BaseSettings):
     MD_CNA_MIN_MARGIN_PCT: float = 0.16
     MD_GNA_MIN_MARGIN_PCT: float = 0.16
     MD_MBON_RECHECK_STALE_DAYS: int = 7
+
+    B2B_INVOICING_ENABLED: bool = True
+    B2B_INVOICE_MARGIN_PCT: float = 0.40
 
     class Config:
         env_file = str(_ENV_FILE)

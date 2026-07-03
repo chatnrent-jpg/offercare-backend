@@ -9,14 +9,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="VettedCare" />
   <meta name="description" content="Mid-Atlantic clinician portal for shift alerts, open shifts, and placements." />
+  <meta name="ops-console-url" content="http://127.0.0.1:8503" />
+  <meta name="portal-api-base" content="http://127.0.0.1:8000" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>VettedCare.ai — Clinician Portal</title>
   <link rel="manifest" href="/portal/manifest.webmanifest" />
   <link rel="icon" href="/portal/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/portal/icon.svg" />
-  <link rel="stylesheet" href="/portal/styles.css?v=portal-step15-2026" />
+  <link rel="stylesheet" href="/shared/aedt_disclosure.css?v=1" />
+  <link rel="stylesheet" href="/portal/styles.css?v=portal-step29-2026b" />
 </head>
-<body data-portal-build="portal-step15-2026">
+<body data-portal-build="portal-step29-2026b">
   <div id="install-banner" class="install-banner hidden" role="region" aria-label="Install app">
     <div>
       <strong>Install VettedCare</strong>
@@ -56,9 +59,18 @@
           placeholder="SecretPass1"
           required
         />
-        <p class="demo-login-hint muted">Demo sign-in: <strong>nj.snf.cna.a@offercare.demo</strong> / <strong>SecretPass1</strong></p>
-        <button class="btn primary" type="submit">Sign in</button>
+        <p class="demo-login-hint muted">Demo: <strong>nj.snf.cna.a@offercare.demo</strong> / <strong>SecretPass1</strong></p>
+        <button class="btn primary" type="submit">Sign in with email</button>
       </form>
+
+      <div id="social-auth-row" class="social-auth-row hidden">
+        <div class="auth-divider" aria-hidden="true"><span>or continue with</span></div>
+        <button type="button" id="google-login-btn" class="btn oauth google hidden">Continue with Google</button>
+        <button type="button" id="facebook-login-btn" class="btn oauth facebook hidden">Continue with Facebook</button>
+        <p id="oauth-hint" class="oauth-hint muted hidden">Social sign-in must match your VettedCare clinician email on file.</p>
+      </div>
+
+      <button type="button" id="demo-login-btn" class="btn ghost demo-login-btn">Use demo account</button>
 
       <form id="apply-form" class="auth-form hidden">
         <label for="apply-name">Full name</label>
@@ -87,6 +99,8 @@
         <input id="apply-rate" type="number" min="0" step="0.01" value="95" required />
         <label for="apply-password">Portal password</label>
         <input id="apply-password" type="password" minlength="8" autocomplete="new-password" required />
+        <div id="portal-aedt-disclosure-mount" aria-live="polite"></div>
+        <p class="muted">Maryland applicants: full registration with AEDT disclosure is at <a href="/join">/join</a>.</p>
         <button class="btn primary" type="submit">Submit application</button>
       </form>
 
@@ -109,17 +123,43 @@
 
     <div id="demo-hint-mismatch-banner" class="demo-hint-mismatch-banner hidden" role="alert" aria-live="assertive"></div>
     <div id="dashboard-alert" class="dashboard-alert hidden" role="alert"></div>
+    <div id="aedt-consent-status" class="hidden" aria-live="polite"></div>
 
     <nav id="portal-section-nav" class="section-nav" aria-label="Portal sections">
       <button type="button" class="section-tab active" data-view="overview">Overview</button>
       <button type="button" class="section-tab" data-view="shifts">Open shifts</button>
       <button type="button" class="section-tab" data-view="schedule">My schedule</button>
       <button type="button" class="section-tab" data-view="placements">Placements</button>
+      <button type="button" class="section-tab" data-view="payments">Payments</button>
+      <button type="button" class="section-tab" data-view="alerts">Alerts</button>
     </nav>
 
     <div id="view-overview" class="portal-view">
       <div id="fatigue-banner" class="fatigue-banner hidden" role="status" aria-live="polite"></div>
+      <section id="pipeline-strip" class="pipeline-strip" aria-label="Shift to pay pipeline"></section>
+      <div id="journey-complete-banner" class="journey-complete-banner hidden" role="status" aria-live="polite"></div>
+      <section id="next-shift-desk" class="next-shift-desk hidden" aria-label="Next shift desk"></section>
       <section class="stats" id="stats"></section>
+      <section id="earnings-strip" class="earnings-strip" aria-label="Earnings summary"></section>
+      <section id="demo-tools-panel" class="demo-tools-panel hidden" aria-label="Demo presenter tools">
+        <div>
+          <p class="eyebrow">Demo presenter tools</p>
+          <strong>Run the rest of the journey in one click</strong>
+          <p class="muted">VMS dispatch → payroll → instant pay → next lockable shift.</p>
+        </div>
+        <div class="demo-tools-actions">
+          <button type="button" class="btn primary" id="demo-autopilot-btn">Run autopilot</button>
+          <button type="button" class="btn ghost" id="demo-export-journey-btn">Export journey</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Shift journey</h2>
+          <p class="muted">Your lock → dispatch → payroll → instant pay timeline.</p>
+        </div>
+        <div id="activity-feed" class="activity-feed"></div>
+      </section>
 
       <section class="panel">
         <div class="panel-head">
@@ -176,6 +216,7 @@
           </label>
         </div>
         <div id="shifts-alert" class="shifts-alert hidden" role="status"></div>
+        <div id="shifts-next-banner" class="shifts-next-banner hidden" role="status"></div>
         <div class="actions-row shift-filters">
           <label>
             State
@@ -233,17 +274,72 @@
       <section class="panel">
         <div class="panel-head">
           <h2>Your placements</h2>
-          <p class="muted">Shifts you locked from the portal or via SMS YES.</p>
+          <p class="muted">Locked shifts and VMS dispatch status from the facility staffing system.</p>
         </div>
+        <div id="placements-vms-summary" class="placements-vms-summary muted"></div>
         <div class="actions-row">
           <button id="download-placements-calendar-btn" class="btn ghost" type="button">Download my calendar (.ics)</button>
         </div>
         <div id="placements-table" class="table-wrap"></div>
       </section>
     </div>
+
+    <div id="view-payments" class="portal-view hidden">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Instant pay</h2>
+          <p class="muted">Payroll entries after supervisor timesheet sign-off on confirmed placements.</p>
+        </div>
+        <div id="payments-summary" class="placements-vms-summary muted"></div>
+        <div id="payments-table" class="table-wrap"></div>
+      </section>
+    </div>
+
+    <div id="view-alerts" class="portal-view hidden">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Alerts</h2>
+          <p class="muted">SMS, push, and portal notifications across your shift journey.</p>
+        </div>
+        <div id="alerts-summary" class="placements-vms-summary muted"></div>
+        <div id="alerts-feed" class="alerts-feed"></div>
+      </section>
+    </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>
-  <script src="/portal/app.js?v=portal-step15-2026"></script>
+
+  <div id="lock-precheck-modal" class="portal-modal hidden" role="dialog" aria-modal="true" aria-labelledby="lock-precheck-title">
+    <div class="portal-modal-card">
+      <p class="eyebrow">Confirm lock</p>
+      <h2 id="lock-precheck-title">Lock this shift?</h2>
+      <dl id="lock-precheck-details" class="lock-confirm-details"></dl>
+      <p class="lock-precheck-copy muted">You are committing to this shift. Confirm only if you can work the full block.</p>
+      <div class="portal-modal-actions">
+        <button id="lock-precheck-confirm-btn" class="btn primary" type="button">Confirm lock</button>
+        <button id="lock-precheck-cancel-btn" class="btn ghost" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lock-confirm-modal" class="portal-modal hidden" role="dialog" aria-modal="true" aria-labelledby="lock-confirm-title">
+    <div class="portal-modal-card">
+      <p class="eyebrow">Shift confirmed</p>
+      <h2 id="lock-confirm-title">You're locked in</h2>
+      <dl id="lock-confirm-details" class="lock-confirm-details"></dl>
+      <div id="lock-confirm-pipeline" class="lock-confirm-pipeline" aria-label="Journey handoff"></div>
+      <p id="lock-confirm-message" class="muted"></p>
+      <div class="portal-modal-actions">
+        <button id="lock-confirm-placements-btn" class="btn primary" type="button">View placements</button>
+        <button id="lock-confirm-overview-btn" class="btn ghost" type="button">Track journey</button>
+        <button id="lock-confirm-close-btn" class="btn ghost" type="button">Stay on shifts</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/shared/aedt_disclosure.js?v=1"></script>
+  <script src="/portal/auth.js?v=portal-step29-2026b"></script>
+  <script src="/portal/shifts.js?v=portal-step29-2026b"></script>
+  <script src="/portal/app.js?v=portal-step29-2026b"></script>
 </body>
 </html>
