@@ -2657,3 +2657,46 @@ class CaregiverLinkProviderIn(BaseModel):
 class CaregiverEinValidationIn(BaseModel):
     status: str = Field(min_length=4, max_length=30)
     validation_reference: str | None = Field(default=None, max_length=100)
+
+
+# AI Resume Parser Schemas
+
+class ParsedResumeResponse(BaseModel):
+    """Response schema for AI resume parsing endpoint."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    audit_id: str
+    candidate_name: str
+    email: str | None = None
+    phone: str | None = None
+    skills: list[str] = Field(default_factory=list)
+    certifications: list[dict[str, Any]] = Field(default_factory=list)
+    work_history: list[dict[str, Any]] = Field(default_factory=list)
+    education: list[dict[str, Any]] = Field(default_factory=list)
+    confidence_score: float
+    verification_flags: dict[str, bool] = Field(default_factory=dict)
+    tokens_used: int | None = None
+    cost_usd: float | None = None
+    elapsed_ms: int | None = None
+    is_degraded: bool = False
+    warning: str | None = None
+
+
+class AIAuditLogEntry(BaseModel):
+    """Response schema for AI audit log retrieval."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    audit_id: str
+    operation_type: str
+    model_used: str
+    user_id: str | None = None
+    input_hash: str
+    input_preview: str | None = None
+    output_data: dict[str, Any]
+    confidence_score: float | None = None
+    tokens_used: int | None = None
+    cost_usd: float | None = None
+    elapsed_ms: int | None = None
+    status: str
+    error_message: str | None = None
+    created_at: datetime

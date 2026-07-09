@@ -1,8 +1,8 @@
 # Manus B2B Facility Recruitment Engine
 
-**Manus acts · VettedCare decides.**
+**Manus acts · VettedMe decides.**
 
-Hybrid split: Manus runs external web workflows (RFP monitors, LinkedIn/directory enrichment, VMS logins). Cursor/VettedCare parses, dedupes, matches, and gates dispatch locally.
+Hybrid split: Manus runs external web workflows (RFP monitors, LinkedIn/directory enrichment, VMS logins). Cursor/VettedMe parses, dedupes, matches, and gates dispatch locally.
 
 ## Filesystem handoff
 
@@ -48,7 +48,7 @@ Parsed MSAs with margin below `CONTRACT_MIN_MARGIN_PCT` (default 18%) → `PENDI
 Run migration:
 
 ```powershell
-cd C:\VettedCare.ai\vettedcare-backend
+cd C:\VettedMe.ai\vettedcare-backend
 alembic upgrade head
 ```
 

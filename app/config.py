@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 from pydantic_settings import BaseSettings
 
@@ -6,14 +7,162 @@ _ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
+    # Database URLs
+    DATABASE_URL: str  # Legacy sync: postgresql://user:pass@host:port/db
+    ASYNC_DATABASE_URL: str = ""  # Async: postgresql+asyncpg://user:pass@host:port/db
     PROJECT_NAME: str
+    
+    # Component Feature Flags
+    SEMANTIC_MATCHER_DRY_RUN: bool = True
+    BIAS_AUDITOR_ENABLED: bool = True
+    VMS_INGEST_CONCURRENCY_LEVEL: int = 20
 
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_FROM_NUMBER: str = ""
     SMS_DRY_RUN: bool = True
     PUBLIC_BASE_URL: str = ""
+    
+    # Conversational SMS Dispatch (Tier 1 Feature #1)
+    CONVERSATIONAL_SMS_ENABLED: bool = True
+    CONVERSATIONAL_SMS_LLM_MODEL: str = "gpt-4"
+    CONVERSATIONAL_SMS_OPENAI_API_KEY: str = ""
+    CONVERSATIONAL_SMS_MAX_SESSION_HOURS: int = 24
+    CONVERSATIONAL_SMS_AUTO_TIMEOUT_MINUTES: int = 30
+    CONVERSATIONAL_SMS_DRY_RUN: bool = True
+    
+    # Wave Dispatch Logic (Tier 1 Feature #2)
+    WAVE_DISPATCH_ENABLED: bool = True
+    WAVE_DISPATCH_DEFAULT_WAVE_1_SIZE: int = 5
+    WAVE_DISPATCH_DEFAULT_WAVE_2_SIZE: int = 10
+    WAVE_DISPATCH_DEFAULT_WAVE_3_SIZE: int = 20
+    WAVE_DISPATCH_BONUS_ENABLED: bool = True
+    WAVE_DISPATCH_BONUS_AMOUNT: float = 5.00
+    WAVE_DISPATCH_DRY_RUN: bool = True
+    
+    # Smart Document Extraction (Tier 1 Feature #3)
+    SMART_DOCUMENT_EXTRACTION_ENABLED: bool = True
+    SMART_DOCUMENT_OCR_SERVICE: str = "AWS_TEXTRACT"
+    AWS_TEXTRACT_REGION: str = "us-east-1"
+    AWS_TEXTRACT_ACCESS_KEY: str = ""
+    AWS_TEXTRACT_SECRET_KEY: str = ""
+    SMART_DOCUMENT_BLUR_THRESHOLD: float = 100.0
+    SMART_DOCUMENT_MIN_RESOLUTION_WIDTH: int = 800
+    SMART_DOCUMENT_DRY_RUN: bool = True
+    
+    # MBON Auto-Sweeps (Tier 1 Feature #4)
+    MBON_AUTO_SWEEP_ENABLED: bool = True
+    MBON_AUTO_SWEEP_SCHEDULE_CRON: str = "0 2 * * 0"  # Every Sunday at 2 AM
+    MBON_AUTO_SWEEP_BATCH_SIZE: int = 100
+    MBON_AUTO_SWEEP_RATE_LIMIT_SECONDS: int = 1
+    MBON_AUTO_SUSPEND_ON_REVOKED: bool = True
+    MBON_AUTO_WARN_EXPIRING_DAYS: int = 30
+    OPS_TEAM_EMAIL: str = ""
+    
+    # 24/7 Incident Handling (Tier 2 Feature #5)
+    INCIDENT_HANDLING_ENABLED: bool = True
+    INCIDENT_AUTO_BACKUP_DISPATCH: bool = True
+    INCIDENT_RELIABILITY_PENALTY_CANCELLATION: float = 5.0
+    INCIDENT_RELIABILITY_PENALTY_NOSHOW: float = 10.0
+    INCIDENT_EMERGENCY_THRESHOLD_MINUTES: int = 120  # 2 hours before shift
+    
+    # Auto-Negotiation (Tier 2 Feature #6)
+    AUTO_NEGOTIATION_ENABLED: bool = True
+    AUTO_NEGOTIATION_MAX_INCREASE_PCT: float = 60.0  # Max 60% increase
+    AUTO_NEGOTIATION_URGENCY_THRESHOLD_HOURS: int = 6  # Start negotiating 6hrs before shift
+    AUTO_NEGOTIATION_INCREASE_INCREMENT_PCT: float = 10.0  # Increase by 10% each wave
+    
+    # Surge Pricing (Tier 2 Feature #7)
+    SURGE_PRICING_ENABLED: bool = True
+    SURGE_PRICING_MAX_MULTIPLIER: float = 2.5  # Max 2.5x surge
+    SURGE_PRICING_HIGH_DEMAND_THRESHOLD: int = 20  # 20+ unfilled shifts triggers surge
+    SURGE_PRICING_WEATHER_API_KEY: str = ""  # For weather-based surge
+    
+    # Gamification & Retention (Tier 2 Feature #8)
+    GAMIFICATION_ENABLED: bool = True
+    GAMIFICATION_TIER_BRONZE_THRESHOLD: int = 0  # 0+ shifts
+    GAMIFICATION_TIER_SILVER_THRESHOLD: int = 50  # 50+ shifts
+    GAMIFICATION_TIER_GOLD_THRESHOLD: int = 150  # 150+ shifts
+    GAMIFICATION_TIER_PLATINUM_THRESHOLD: int = 300  # 300+ shifts
+    GAMIFICATION_INSTANT_PAY_TIER: str = "SILVER"  # Instant pay unlocked at Silver
+    
+    # EHR Integration (Tier 3 Feature #9)
+    EHR_INTEGRATION_ENABLED: bool = True
+    EHR_SYNC_INTERVAL_MINUTES: int = 15  # Poll EHR every 15 minutes
+    EHR_MATRIXCARE_API_BASE: str = ""
+    EHR_POINTCLICKCARE_API_BASE: str = ""
+    EHR_DRY_RUN: bool = True
+    
+    # PBJ Reporting (Tier 3 Feature #10)
+    PBJ_REPORTING_ENABLED: bool = True
+    PBJ_AUTO_EXPORT_ENABLED: bool = True
+    PBJ_EXPORT_DAY_OF_MONTH: int = 15  # Auto-export on 15th of each month
+    PBJ_EXPORT_FORMAT: str = "CSV"  # CSV or XML
+    
+    # Anti-Poaching NLP (Tier 3 Feature #11)
+    ANTIPOACHING_ENABLED: bool = True
+    ANTIPOACHING_RISK_THRESHOLD: float = 70.0  # Flag if risk > 70%
+    ANTIPOACHING_AUTO_ALERT: bool = True
+    
+    # Shift Bundling (Tier 3 Feature #12)
+    SHIFT_BUNDLING_ENABLED: bool = True
+    SHIFT_BUNDLING_MAX_DISTANCE_MILES: float = 15.0  # Max distance between bundled facilities
+    SHIFT_BUNDLING_MIN_REST_HOURS: float = 1.0  # Min rest between bundled shifts
+    
+    # Invoice Encryption (PCI/SOX Compliance)
+    INVOICE_ENCRYPTION_ENABLED: bool = True
+    INVOICE_ENCRYPTION_KEY: str = ""  # Fernet key (32-byte URL-safe base64-encoded)
+    INVOICE_ENCRYPTION_KEY_ROTATION_DAYS: int = 90  # Rotate key every 90 days
+    
+    # Traffic Routing (High-Value Feature #1)
+    TRAFFIC_ROUTING_ENABLED: bool = True
+    TRAFFIC_ROUTING_DRY_RUN: bool = True
+    GOOGLE_MAPS_API_KEY: str = ""  # Google Maps Distance Matrix API key
+    
+    # Geofence Reliability (High-Value Feature #2)
+    GEOFENCE_ENABLED: bool = True
+    GEOFENCE_MONITORING_WINDOW_MIN: int = 60  # Start monitoring 60 min before
+    GEOFENCE_ALERT_THRESHOLD_MIN: int = 15    # Alert if home at 15 min before
+    
+    # Predictive Call-Out (High-Value Feature #3)
+    PREDICTIVE_CALLOUT_ENABLED: bool = True
+    PREDICTIVE_CALLOUT_LOOKBACK_DAYS: int = 90
+    PREDICTIVE_CALLOUT_HIGH_RISK_THRESHOLD: float = 0.30
+    
+    # Biometric Reconciliation (Enterprise Feature #4)
+    BIOMETRIC_RECONCILIATION_ENABLED: bool = True
+    KRONOS_API_URL: str = "https://api.kronos.com"
+    KRONOS_API_KEY: str = ""
+    SMARTLINX_API_URL: str = "https://api.smartlinx.com"
+    SMARTLINX_API_KEY: str = ""
+    
+    # Patient Acuity Staffing (Enterprise Feature #5)
+    ACUITY_STAFFING_ENABLED: bool = True
+    
+    # CMS Star Safeguards (Enterprise Feature #6)
+    CMS_STAR_SAFEGUARDS_ENABLED: bool = True
+    
+    # Float Pool (Enterprise Feature #7)
+    FLOAT_POOL_ENABLED: bool = True
+    FLOAT_POOL_TIMEOUT_HOURS: int = 4
+    
+    # Burnout Prediction (Advanced Feature #8)
+    BURNOUT_PREDICTION_ENABLED: bool = True
+    
+    # Workers' Comp (Advanced Feature #9)
+    WORKERS_COMP_ENABLED: bool = True
+    WORKERS_COMP_API_URL: str = "https://api.insurance-carrier.com"
+    WORKERS_COMP_API_KEY: str = ""
+    
+    # Credit Check (Advanced Feature #10)
+    CREDIT_CHECK_ENABLED: bool = True
+    EXPERIAN_API_URL: str = "https://api.experian.com"
+    EXPERIAN_API_KEY: str = ""
+    
+    # Disaster Recovery (Advanced Feature #11)
+    DISASTER_RECOVERY_ENABLED: bool = True
+    PLATFORM_HEALTH_CHECK_URL: str = ""
+    EMERGENCY_COORDINATOR_PHONES: List[str] = []
 
     SNIPER_WEIGHT_COMPLIANCE: float = 100.0
     SNIPER_WEIGHT_RATE_DELTA: float = 10.0
@@ -129,7 +278,7 @@ class Settings(BaseSettings):
     OUTREACH_LLM_MODEL: str = "gpt-4o-mini"
     OUTREACH_LLM_TIMEOUT_SECONDS: float = 30.0
     OUTREACH_SENDER_NAME: str = "Henry Okojie"
-    OUTREACH_AGENCY_NAME: str = "VettedCare.ai"
+    OUTREACH_AGENCY_NAME: str = "VettedMe.ai"
 
     JWT_SECRET_KEY: str = "offercare-dev-secret-change-in-production"
     JWT_EXPIRE_MINUTES: int = 60 * 24
@@ -289,5 +438,8 @@ class Settings(BaseSettings):
     def push_configured(self) -> bool:
         return bool(str(self.VAPID_PUBLIC_KEY or "").strip() and str(self.VAPID_PRIVATE_KEY or "").strip())
 
+
+# Ensure Pydantic model is fully compiled before instantiation
+Settings.model_rebuild()
 
 settings = Settings()

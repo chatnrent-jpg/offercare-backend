@@ -1,0 +1,187 @@
+{
+  "mode": "PRODUCTION_SLICE",
+  "product": "VettedCare.ai Backup Notify Cascade",
+  "events": [
+    {
+      "ok": true,
+      "status": "NOTIFY_CASCADE_STARTED",
+      "live_execution": true,
+      "slice_key": "Montgomery_SNF_CNA",
+      "dispatch_id": "backup-d4d830cc-2026-06-26T23:37:40.000345+00:00",
+      "offer_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "notifications": [
+        {
+          "provider_id": "CNA-MD-99001",
+          "provider_uuid": "7182639b-7618-46ec-8ac2-994649763c6c",
+          "name": "Nia Patterson",
+          "rank": 1,
+          "phone_number": "3015559901",
+          "status": "DRY_RUN",
+          "mode": "dry_run",
+          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+          "notified_at_utc": "2026-06-26T23:37:40.213235+00:00"
+        }
+      ],
+      "cascade": {
+        "dispatch_id": "backup-d4d830cc-2026-06-26T23:37:40.000345+00:00",
+        "slice_key": "Montgomery_SNF_CNA",
+        "offer_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+        "status": "EXHAUSTED",
+        "cascade_enabled": true,
+        "timeout_seconds": 90,
+        "notified_count": 1,
+        "sent_count": 1,
+        "max_recipients": 5,
+        "last_notified_at_utc": "2026-06-26T23:37:40.213235+00:00",
+        "next_eligible_at_utc": "2026-06-26T23:39:10.213235+00:00",
+        "seconds_until_eligible": 89,
+        "notified": [
+          {
+            "provider_id": "CNA-MD-99001",
+            "provider_uuid": "7182639b-7618-46ec-8ac2-994649763c6c",
+            "name": "Nia Patterson",
+            "rank": 1,
+            "phone_number": "3015559901",
+            "status": "DRY_RUN",
+            "mode": "dry_run",
+            "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+            "notified_at_utc": "2026-06-26T23:37:40.213235+00:00"
+          }
+        ],
+        "next_candidate": null,
+        "can_advance": false,
+        "offer_status": "BROADCASTING"
+      },
+      "advance_status": "advanced",
+      "advance_message": "Notified Nia Patterson (rank #1).",
+      "sms_dry_run": true,
+      "staged_at_utc": "2026-06-26T23:37:40.672226+00:00"
+    },
+    {
+      "ok": true,
+      "status": "NOTIFY_CASCADE_STARTED",
+      "live_execution": true,
+      "slice_key": "Montgomery_SNF_CNA",
+      "dispatch_id": "backup-d4d830cc-2026-06-26T23:44:41.457442+00:00",
+      "offer_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "notifications": [
+        {
+          "provider_id": "CNA-MD-99001",
+          "provider_uuid": "7182639b-7618-46ec-8ac2-994649763c6c",
+          "name": "Nia Patterson",
+          "rank": 1,
+          "phone_number": "3015559901",
+          "status": "DRY_RUN",
+          "mode": "dry_run",
+          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+          "notified_at_utc": "2026-06-26T23:44:41.489438+00:00"
+        }
+      ],
+      "cascade": {
+        "dispatch_id": "backup-d4d830cc-2026-06-26T23:44:41.457442+00:00",
+        "slice_key": "Montgomery_SNF_CNA",
+        "offer_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+        "status": "ACTIVE",
+        "cascade_enabled": true,
+        "timeout_seconds": 90,
+        "notified_count": 1,
+        "sent_count": 1,
+        "max_recipients": 5,
+        "last_notified_at_utc": "2026-06-26T23:44:41.489438+00:00",
+        "next_eligible_at_utc": "2026-06-26T23:46:11.489438+00:00",
+        "seconds_until_eligible": 89,
+        "notified": [
+          {
+            "provider_id": "CNA-MD-99001",
+            "provider_uuid": "7182639b-7618-46ec-8ac2-994649763c6c",
+            "name": "Nia Patterson",
+            "rank": 1,
+            "phone_number": "3015559901",
+            "status": "DRY_RUN",
+            "mode": "dry_run",
+            "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+            "notified_at_utc": "2026-06-26T23:44:41.489438+00:00"
+          }
+        ],
+        "next_candidate": {
+          "rank": 2,
+          "provider_id": "CNA-MD-99002",
+          "name": "Jordan Ellis",
+          "license_type": "CNA",
+          "county": "Montgomery",
+          "has_gna_endorsement": true,
+          "compliance_status": "COMPLIANT"
+        },
+        "can_advance": false,
+        "offer_status": "BROADCASTING"
+      },
+      "advance_status": "advanced",
+      "advance_message": "Notified Nia Patterson (rank #1).",
+      "sms_dry_run": true,
+      "staged_at_utc": "2026-06-26T23:44:41.512985+00:00"
+    },
+    {
+      "event_type": "ADVANCE",
+      "dispatch_id": "backup-d4d830cc-2026-06-26T23:44:41.457442+00:00",
+      "live_execution": true,
+      "slice_key": "Montgomery_SNF_CNA",
+      "notification": {
+        "provider_id": "CNA-MD-99002",
+        "provider_uuid": "5156a4be-5923-4c87-a41a-5bf5ff8eedee",
+        "name": "Jordan Ellis",
+        "rank": 2,
+        "phone_number": "3015559902",
+        "status": "DRY_RUN",
+        "mode": "dry_run",
+        "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #2. Urgent same-day coverage needed…",
+        "notified_at_utc": "2026-06-26T23:46:24.030967+00:00"
+      },
+      "cascade_status": {
+        "dispatch_id": "backup-d4d830cc-2026-06-26T23:44:41.457442+00:00",
+        "slice_key": "Montgomery_SNF_CNA",
+        "offer_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+        "status": "EXHAUSTED",
+        "cascade_enabled": true,
+        "timeout_seconds": 90,
+        "notified_count": 2,
+        "sent_count": 2,
+        "max_recipients": 5,
+        "last_notified_at_utc": "2026-06-26T23:46:24.030967+00:00",
+        "next_eligible_at_utc": "2026-06-26T23:47:54.030967+00:00",
+        "seconds_until_eligible": 89,
+        "notified": [
+          {
+            "provider_id": "CNA-MD-99001",
+            "provider_uuid": "7182639b-7618-46ec-8ac2-994649763c6c",
+            "name": "Nia Patterson",
+            "rank": 1,
+            "phone_number": "3015559901",
+            "status": "DRY_RUN",
+            "mode": "dry_run",
+            "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+            "notified_at_utc": "2026-06-26T23:44:41.489438+00:00"
+          },
+          {
+            "provider_id": "CNA-MD-99002",
+            "provider_uuid": "5156a4be-5923-4c87-a41a-5bf5ff8eedee",
+            "name": "Jordan Ellis",
+            "rank": 2,
+            "phone_number": "3015559902",
+            "status": "DRY_RUN",
+            "mode": "dry_run",
+            "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #2. Urgent same-day coverage needed…",
+            "notified_at_utc": "2026-06-26T23:46:24.030967+00:00"
+          }
+        ],
+        "next_candidate": null,
+        "can_advance": false,
+        "offer_status": "BROADCASTING"
+      },
+      "staged_at_utc": "2026-06-26T23:46:24.149341+00:00",
+      "sms_dry_run": true
+    }
+  ],
+  "count": 3,
+  "updated_at_utc": "2026-06-26T23:46:24.184069+00:00",
+  "live_execution": true
+}

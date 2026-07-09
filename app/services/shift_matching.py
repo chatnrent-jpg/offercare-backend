@@ -1,14 +1,22 @@
-"""Filter open shifts to those a clinician can staff."""
+"""
+Filter open shifts to those a clinician can staff.
+
+Deep Cleanroom Rewrite — Elite Systems Engineer (2026-07-06)
+Integrates Component 2 (SemanticMatcher) and Component 3 (BiasAuditor).
+"""
 
 from __future__ import annotations
 
 import logging
+import uuid as uuid_module
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from app.compliance import BiasAuditor
 from app.config import settings
 from app.models import MarylandProvider
 from app.services.care_taxonomy import (
@@ -16,6 +24,7 @@ from app.services.care_taxonomy import (
     credential_valid_in_state,
     provider_supports_facility_type,
 )
+from app.services.matcher import SemanticMatcher
 from app.services.shift_offer_generator import list_open_shifts
 from app.services.states import normalize_state
 from app.shift_sniper import rate_delta
@@ -99,26 +108,60 @@ def provider_matches_open_shift(
     return True
 
 
-def _run_bias_auditor_on_match(
-    db: Session,
+async def _run_bias_auditor_on_match_async(
+    db_session: AsyncSession,
     provider: MarylandProvider,
     row: dict,
+    similarity_score: float,
 ) -> None:
-    if not settings.BIAS_AUDITOR_ENABLED:
-        return
-    if is_demo_walkthrough_provider(provider):
-        return
-    try:
-        from compliance.algorithmic_bias_auditor import intercept_caregiver_shift_match
+    """
+    Create tamper-evident HB 1106 bias audit record for algorithmic match.
 
-        intercept_caregiver_shift_match(db, provider=provider, shift_row=row)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning(
-            "shift_matching: hb1106 bias auditor fail-open provider=%s offer=%s error=%s",
-            provider.provider_id,
-            row.get("offer_id"),
-            exc,
+    Integrates Component 3: BiasAuditor with cryptographic hash-chaining.
+    """
+    if not settings.BIAS_AUDITOR_ENABLED:
+        logger.debug("Bias auditor disabled — skipping audit record creation")
+        return
+
+    if is_demo_walkthrough_provider(provider):
+        logger.debug("Demo provider — skipping bias audit")
+        return
+
+    try:
+        auditor = BiasAuditor()
+        
+        metadata = {
+            "caregiver_license": provider.credential_type,
+            "shift_license_required": str(row.get("shift_role") or ""),
+            "region": str(row.get("county") or ""),
+            "facility_type": str(row.get("facility_type") or ""),
+            "facility_state": str(row.get("state") or ""),
+            "hourly_pay_rate": float(row.get("hourly_pay_rate") or 0),
+            "match_method": "semantic_vector",
+            "compliance_passed": True,
+        }
+
+        audit_record = await auditor.audit_and_chain_match(
+            match_id=str(uuid_module.uuid4()),
+            caregiver_id=str(provider.provider_id),
+            facility_shift_id=str(row.get("offer_id") or ""),
+            similarity_score=similarity_score,
+            metadata=metadata,
+            db_session=db_session,
         )
+
+        logger.info(
+            f"HB 1106 audit record created: match_id={audit_record.match_id}, "
+            f"block_hash={audit_record.block_hash[:16]}..."
+        )
+
+    except Exception as exc:
+        logger.error(
+            f"shift_matching: hb1106 bias auditor failed provider={provider.provider_id} "
+            f"offer={row.get('offer_id')} error={exc}",
+            exc_info=True,
+        )
+        # Fail-open: don't block matching on audit failure
 
 
 def _compliance_sentinel_allows_provider_match(

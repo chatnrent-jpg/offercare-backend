@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  vettedcare-backend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: vettedcare-backend-hardened-prod
+    restart: always
+    ports:
+      - "8503:8000"
+    env_file:
+      - .env.production
+    read_only: true # Enforces a completely read-only root file system for maximum security protection
+    tmpfs:
+      - /tmp # Provides a secure, temporary memory storage area away from physical disk layers
+    security_opt:
+      - no-new-privileges:true # Blocks processes inside the container from gaining elevated access permissions
+    depends_on:
+      - vettedcare-db-prod
+      - vettedcare-cache-prod
+    networks:
+      - vettedcare-prod-secure-network
+
+  vettedcare-cache-prod:
+    image: redis:7-alpine
+    container_name: vettedcare-cache-secure-prod
+    command: redis-server --requirepass @Prowess247 --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - vettedcare-prod-secure-network
+
+  vettedcare-db-prod:
+    image: postgres:15-alpine
+    container_name: vettedcare-db-secure-prod
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=@Prowess247
+      - POSTGRES_DB=offercare_db
+    volumes:
+      - vettedcare-prod-db-data:/var/lib/postgresql/data
+    networks:
+      - vettedcare-prod-secure-network
+
+volumes:
+  vettedcare-prod-db-data:
+
+networks:
+  vettedcare-prod-secure-network:
+    driver: bridge

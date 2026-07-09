@@ -549,12 +549,111 @@ class IngestedOpenShift(Base):
 
 
 class ProviderProfileEmbedding(Base):
+    """
+    Provider semantic embeddings for Component 2 (SemanticMatcher).
+    
+    Stores 1536-dimension vectors for AI-powered caregiver-shift matching.
+    Uses pgvector extension with HNSW indexing for fast similarity search.
+    """
     __tablename__ = "provider_profile_embeddings"
 
     provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), primary_key=True)
     profile_text = Column(Text, nullable=False)
-    # Stored via pgvector; ORM reads/writes through semantic match service raw SQL.
+    # embedding_vector stored via pgvector extension — accessed through raw SQL
+    # Column definition: embedding_vector vector(1536)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class ShiftEmbedding(Base):
+    """
+    Shift requirement embeddings for Component 2 (SemanticMatcher).
+    
+    Stores 1536-dimension vectors for facility shift requirements.
+    Enables semantic matching between caregiver skills and shift needs.
+    """
+    __tablename__ = "shift_embeddings"
+
+    shift_id = Column(UUID(as_uuid=True), primary_key=True)
+    shift_description = Column(Text, nullable=False)
+    required_license = Column(String(20), nullable=False)
+    # embedding_vector stored via pgvector extension — accessed through raw SQL
+    # Column definition: embedding_vector vector(1536)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class HB1106BiasLedger(Base):
+    """
+    Maryland HB 1106 tamper-evident bias audit ledger (Component 3).
+    
+    Blockchain-style hash-chained ledger for algorithmic employment decisions.
+    Each record contains SHA-256 hash of previous record, forming immutable chain.
+    
+    Compliance: MD HB 1106 § 3-601 — Bias Audit and Record Retention (2024).
+    """
+    __tablename__ = "hb1106_bias_ledger"
+    __table_args__ = (
+        UniqueConstraint("block_hash", name="uq_hb1106_block_hash"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    match_id = Column(String(255), nullable=False, index=True)
+    parent_hash = Column(String(64), nullable=False)  # Previous block's hash or genesis
+    block_hash = Column(String(64), nullable=False)  # This block's SHA-256 hash
+    serialized_payload = Column(Text, nullable=False)  # Canonical JSON (sorted keys)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+
+
+class VMSShiftIngest(Base):
+    """
+    VMS (Vendor Management System) shift ingest table (Component 4).
+    
+    High-throughput shift data ingestion with concurrency guards.
+    Supports ShiftWise, Fieldglass, and custom facility VMS feeds.
+    
+    Features:
+    - Time-overlap conflict detection
+    - Crisis rate flagging (hourly_rate > $120)
+    - Status tracking (PENDING, ACTIVE, CONFLICT_OVERLAP, CANCELLED)
+    """
+    __tablename__ = "vms_shifts_ingest"
+    __table_args__ = (
+        # Check constraints for data integrity
+        # valid_time_range already exists in creation SQL
+        # valid_hourly_rate already exists in creation SQL
+    )
+
+    shift_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vms_source = Column(String(50), nullable=False)  # ShiftWise, Fieldglass, Manual
+    facility_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    shift_start = Column(DateTime(timezone=True), nullable=False, index=True)
+    shift_end = Column(DateTime(timezone=True), nullable=False, index=True)
+    required_license = Column(String(20), nullable=False, index=True)  # RN, LPN, CNA, GNA, NA
+    hourly_rate = Column(Numeric(8, 2), nullable=False)
+    shift_description = Column(Text, nullable=True)
+    crisis_rate = Column(Boolean, default=False, nullable=False)
+    status = Column(String(30), nullable=False, default="PENDING", index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+class ComplianceAuditLedger(Base):
+    """
+    Compliance audit ledger for Component 1 (CircuitBreaker) intercept logging.
+    
+    Records circuit breaker intercepts, external API failures, and fallback routes.
+    Provides audit trail for compliance review and system health monitoring.
+    """
+    __tablename__ = "compliance_audit_ledger"
+
+    audit_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_type = Column(String(50), nullable=False, index=True)  # CIRCUIT_BREAKER_INTERCEPT, etc.
+    provider_id = Column(UUID(as_uuid=True), nullable=True)
+    facility_id = Column(UUID(as_uuid=True), nullable=True)
+    match_id = Column(String(255), nullable=True, index=True)
+    error_type = Column(String(50), nullable=True)  # TIMEOUT, UPSTREAM_EXCEPTION, etc.
+    error_detail = Column(Text, nullable=True)
+    metadata_json = Column(Text, nullable=True)  # Additional context as JSON
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
 
 
 class ProviderStripePayoutAccount(Base):
@@ -669,3 +768,537 @@ EIN_VALIDATION_PENDING = _caregiver_accounts.EIN_VALIDATION_PENDING
 EIN_VALIDATION_VALIDATED = _caregiver_accounts.EIN_VALIDATION_VALIDATED
 EIN_VALIDATION_REJECTED = _caregiver_accounts.EIN_VALIDATION_REJECTED
 EIN_VALIDATION_STATUSES = _caregiver_accounts.EIN_VALIDATION_STATUSES
+
+
+# ═══════════════════════════════════════════════════════════════════
+# CONVERSATIONAL SMS DISPATCH — TIER 1 FEATURE
+# Sprint: VCAI-TIER1-SPRINT-2026-07-07
+# Migration: 028_conversational_sms_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class ConversationalSmsSession(Base):
+    """
+    SMS conversation session for facility shift requests.
+    
+    Tracks the state machine for conversational text-to-book dispatch.
+    """
+    __tablename__ = "conversational_sms_sessions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(String(64), unique=True, nullable=False, index=True)
+    facility_id = Column(UUID(as_uuid=True), ForeignKey("maryland_facilities.facility_id"), nullable=True, index=True)
+    facility_phone = Column(String(20), nullable=False, index=True)
+    session_state = Column(String(32), nullable=False, default="INTENT_DETECTION", index=True)
+    intent_data = Column(Text, nullable=True)
+    created_shifts = Column(Text, nullable=True)
+    message_count = Column(String(10), default="0")
+    last_message_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class ConversationalSmsMessage(Base):
+    """
+    Individual SMS messages within a conversational session.
+    
+    Logs all inbound and outbound messages with AI intent classification.
+    """
+    __tablename__ = "conversational_sms_messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(String(64), nullable=False, index=True)
+    direction = Column(String(10), nullable=False, index=True)
+    from_phone = Column(String(20), nullable=False)
+    to_phone = Column(String(20), nullable=False)
+    message_body = Column(Text, nullable=False)
+    intent_classification = Column(Text, nullable=True)
+    twilio_message_sid = Column(String(64), nullable=True)
+    sent_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+
+
+class NurseSmsDispatchLog(Base):
+    """
+    SMS dispatch log for wave-based nurse notifications.
+    
+    Tracks each SMS sent to nurses with wave number and response tracking.
+    """
+    __tablename__ = "nurse_sms_dispatch_log"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    shift_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=True, index=True)
+    wave_number = Column(String(10), nullable=False, index=True)
+    dispatch_priority = Column(String(10), nullable=True)
+    message_body = Column(Text, nullable=False)
+    twilio_message_sid = Column(String(64), nullable=True)
+    dispatched_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    responded_at = Column(DateTime(timezone=True), nullable=True)
+    response_intent = Column(String(32), nullable=True)
+    response_message = Column(Text, nullable=True)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# WAVE DISPATCH LOGIC — TIER 1 FEATURE #2
+# Sprint: VCAI-TIER1-SPRINT-2026-07-07
+# Migration: 029_wave_dispatch_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class WaveDispatchConfig(Base):
+    """
+    Configuration for facility-specific wave dispatch strategies.
+    
+    Controls wave sizes, delays, and bonus rounds.
+    """
+    __tablename__ = "wave_dispatch_configs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(UUID(as_uuid=True), ForeignKey("maryland_facilities.facility_id"), nullable=True, index=True)
+    wave_1_size = Column(String(10), default="5")
+    wave_1_delay_seconds = Column(String(10), default="300")
+    wave_2_size = Column(String(10), default="10")
+    wave_2_delay_seconds = Column(String(10), default="300")
+    wave_3_size = Column(String(10), default="20")
+    wave_3_delay_seconds = Column(String(10), default="600")
+    wave_4_bonus_enabled = Column(Boolean, default=True)
+    wave_4_bonus_amount_per_hour = Column(Numeric(10, 2), default=5.00)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class WaveDispatchRun(Base):
+    """
+    Active wave dispatch run for a shift.
+    
+    Tracks progress through waves and completion status.
+    """
+    __tablename__ = "wave_dispatch_runs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    shift_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    current_wave = Column(String(10), default="1")
+    total_dispatched = Column(String(10), default="0")
+    total_accepted = Column(String(10), default="0")
+    total_declined = Column(String(10), default="0")
+    run_state = Column(String(32), nullable=False, default="ACTIVE", index=True)
+    started_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    completion_reason = Column(String(64), nullable=True)
+
+
+class ProviderReliabilityScore(Base):
+    """
+    Calculated reliability score for wave prioritization.
+    
+    Tracks on-time rate, cancellations, response rate, and facility ratings.
+    """
+    __tablename__ = "provider_reliability_scores"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False, unique=True, index=True)
+    reliability_score = Column(Numeric(5, 2), default=50.0, index=True)
+    on_time_rate = Column(Numeric(5, 4), default=1.0)
+    cancellation_rate = Column(Numeric(5, 4), default=0.0)
+    response_rate = Column(Numeric(5, 4), default=1.0)
+    avg_facility_rating = Column(Numeric(3, 2), default=3.0)
+    total_shifts_completed = Column(String(10), default="0")
+    last_shift_date = Column(DateTime(timezone=True), nullable=True)
+    calculated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SMART DOCUMENT EXTRACTION — TIER 1 FEATURE #3
+# Sprint: VCAI-TIER1-SPRINT-2026-07-07
+# Migration: 030_document_extraction_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class DocumentExtractionLog(Base):
+    """
+    Document extraction log with OCR and fraud detection results.
+    
+    Tracks credential document processing with computer vision.
+    """
+    __tablename__ = "document_extraction_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False, index=True)
+    document_type = Column(String(32), nullable=False, index=True)
+    uploaded_file_path = Column(Text, nullable=False)
+    ocr_service = Column(String(32), nullable=True)
+    extracted_text = Column(Text, nullable=True)
+    extracted_entities = Column(Text, nullable=True)
+    expiration_date = Column(String(20), nullable=True)
+    quality_score = Column(Numeric(5, 2), nullable=True)
+    fraud_flags = Column(Text, nullable=True)
+    extraction_status = Column(String(32), nullable=False, index=True)
+    processed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# MBON AUTO-SWEEPS — TIER 1 FEATURE #4
+# Sprint: VCAI-TIER1-SPRINT-2026-07-07
+# Migration: 031_mbon_sweep_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class MBONSweepRun(Base):
+    """
+    Weekly MBON verification sweep run record.
+    
+    Tracks batch license verification execution.
+    """
+    __tablename__ = "mbon_sweep_runs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    run_started_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    run_completed_at = Column(DateTime(timezone=True), nullable=True)
+    total_licenses_checked = Column(String(10), default="0")
+    total_suspensions = Column(String(10), default="0")
+    total_warnings = Column(String(10), default="0")
+    total_errors = Column(String(10), default="0")
+    run_status = Column(String(32), nullable=False, default="IN_PROGRESS", index=True)
+    error_message = Column(Text, nullable=True)
+
+
+class MBONSweepResult(Base):
+    """
+    Individual license verification result within a sweep run.
+    
+    Records status changes and actions taken.
+    """
+    __tablename__ = "mbon_sweep_results"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    sweep_run_id = Column(UUID(as_uuid=True), ForeignKey("mbon_sweep_runs.id"), nullable=False, index=True)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False, index=True)
+    license_number = Column(String(64), nullable=True)
+    previous_status = Column(String(32), nullable=True)
+    new_status = Column(String(32), nullable=True)
+    action_taken = Column(String(32), nullable=True, index=True)
+    mbon_api_response = Column(Text, nullable=True)
+    checked_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# 24/7 INCIDENT HANDLING — TIER 2 FEATURE #5
+# Sprint: VCAI-TIER2-SPRINT-2026-07-07
+# Migration: 032_incident_handling_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class ShiftIncidentLog(Base):
+    """
+    Shift incident log for cancellations, emergencies, and issues.
+    
+    Tracks automated response and backup dispatch.
+    """
+    __tablename__ = "shift_incident_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    shift_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False, index=True)
+    incident_type = Column(String(32), nullable=False, index=True)
+    incident_severity = Column(String(16), nullable=False, index=True)
+    reported_via = Column(String(16), nullable=False)
+    incident_details = Column(Text, nullable=True)
+    extracted_intent = Column(Text, nullable=True)
+    automated_actions_taken = Column(Text, nullable=True)
+    backup_dispatched = Column(String(10), default="0")
+    reliability_penalty_applied = Column(Numeric(5, 2), nullable=True)
+    reported_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class BackupDispatchRun(Base):
+    """
+    Backup dispatch run triggered by incident.
+    
+    Tracks emergency wave dispatch for canceled shifts.
+    """
+    __tablename__ = "backup_dispatch_runs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    incident_id = Column(UUID(as_uuid=True), ForeignKey("shift_incident_logs.id"), nullable=False, index=True)
+    shift_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    original_provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False)
+    backup_wave_number = Column(String(10), default="1")
+    total_dispatched = Column(String(10), default="0")
+    backup_secured = Column(String(10), default="0", index=True)
+    backup_provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=True)
+    minutes_before_shift = Column(String(10), nullable=True)
+    started_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# AUTO-NEGOTIATION & SURGE PRICING — TIER 2 FEATURES #6 & #7
+# Sprint: VCAI-TIER2-SPRINT-2026-07-07
+# Migration: 033_negotiation_pricing_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class FacilityRateConfig(Base):
+    """
+    Facility rate configuration with base and max rates.
+    
+    Controls auto-negotiation budget caps.
+    """
+    __tablename__ = "facility_rate_configs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True)
+    base_hourly_rate_cna = Column(Numeric(10, 2), default=25.00)
+    base_hourly_rate_gna = Column(Numeric(10, 2), default=28.00)
+    base_hourly_rate_lpn = Column(Numeric(10, 2), default=35.00)
+    base_hourly_rate_rn = Column(Numeric(10, 2), default=45.00)
+    max_hourly_rate_cna = Column(Numeric(10, 2), default=40.00)
+    max_hourly_rate_gna = Column(Numeric(10, 2), default=45.00)
+    max_hourly_rate_lpn = Column(Numeric(10, 2), default=60.00)
+    max_hourly_rate_rn = Column(Numeric(10, 2), default=80.00)
+    auto_negotiate_enabled = Column(String(10), default="1")
+    surge_pricing_enabled = Column(String(10), default="1")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class RateNegotiationHistory(Base):
+    """
+    Rate negotiation history for shifts.
+    
+    Tracks automatic rate increases to fill urgent shifts.
+    """
+    __tablename__ = "rate_negotiation_history"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    shift_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    facility_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    original_rate = Column(Numeric(10, 2), nullable=False)
+    negotiated_rate = Column(Numeric(10, 2), nullable=False)
+    rate_increase_pct = Column(Numeric(5, 2), nullable=False)
+    urgency_score = Column(Numeric(5, 2), nullable=True)
+    time_until_shift_minutes = Column(String(10), nullable=True)
+    negotiation_trigger = Column(String(64), nullable=True)
+    approved_by = Column(String(32), default="AUTO_NEGOTIATOR")
+    shift_filled_after_increase = Column(String(10), default="0", index=True)
+    negotiated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class SurgePricingEvent(Base):
+    """
+    Surge pricing event record.
+    
+    Tracks regional/market-wide surge multipliers.
+    """
+    __tablename__ = "surge_pricing_events"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_type = Column(String(32), nullable=False, index=True)
+    surge_multiplier = Column(Numeric(5, 2), nullable=False)
+    trigger_reason = Column(Text, nullable=True)
+    affected_regions = Column(Text, nullable=True)
+    affected_credential_types = Column(Text, nullable=True)
+    unfilled_shifts_count = Column(String(10), nullable=True)
+    started_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    ended_at = Column(DateTime(timezone=True), nullable=True, index=True)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# GAMIFICATION & RETENTION — TIER 2 FEATURE #8
+# Sprint: VCAI-TIER2-SPRINT-2026-07-07
+# Migration: 034_gamification_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class ProviderAchievementLog(Base):
+    """
+    Provider achievement log for gamification.
+    
+    Tracks badges, milestones, and rewards.
+    """
+    __tablename__ = "provider_achievement_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False, index=True)
+    achievement_type = Column(String(64), nullable=False, index=True)
+    achievement_tier = Column(String(16), nullable=True)
+    reward_unlocked = Column(Text, nullable=True)
+    earned_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class ProviderTierStatus(Base):
+    """
+    Provider tier status for loyalty program.
+    
+    Tracks tier progression and perks.
+    """
+    __tablename__ = "provider_tier_status"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=False, unique=True, index=True)
+    current_tier = Column(String(16), nullable=False, default="BRONZE", index=True)
+    tier_points = Column(String(10), default="0")
+    total_shifts_completed = Column(String(10), default="0")
+    perfect_attendance_streak = Column(String(10), default="0")
+    perks_unlocked = Column(Text, nullable=True)
+    last_tier_change = Column(DateTime(timezone=True), nullable=True)
+    calculated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# EHR INTEGRATION — TIER 3 FEATURE #9
+# Sprint: VCAI-TIER3-SPRINT-2026-07-07
+# Migration: 035_ehr_integration_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class EHRIntegrationConfig(Base):
+    """
+    EHR integration configuration for facilities.
+    
+    Supports MatrixCare, PointClickCare, and other EHR systems.
+    """
+    __tablename__ = "ehr_integration_configs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True)
+    ehr_system = Column(String(32), nullable=False, index=True)
+    ehr_api_endpoint = Column(Text, nullable=True)
+    ehr_api_key = Column(Text, nullable=True)
+    ehr_facility_id = Column(String(64), nullable=True)
+    sync_enabled = Column(String(10), default="1")
+    sync_direction = Column(String(32), default="BIDIRECTIONAL")
+    last_sync_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class EHRShiftSyncLog(Base):
+    """
+    EHR shift synchronization log.
+    
+    Tracks bidirectional shift sync between VettedCare and EHR systems.
+    """
+    __tablename__ = "ehr_shift_sync_log"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    ehr_system = Column(String(32), nullable=False)
+    shift_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    ehr_shift_id = Column(String(64), nullable=True)
+    sync_direction = Column(String(16), nullable=False)
+    sync_status = Column(String(32), nullable=False, index=True)
+    shift_data = Column(Text, nullable=True)
+    error_message = Column(Text, nullable=True)
+    synced_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# PBJ REPORTING — TIER 3 FEATURE #10
+# Sprint: VCAI-TIER3-SPRINT-2026-07-07
+# Migration: 036_pbj_reporting_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class PBJReportExport(Base):
+    """
+    PBJ (Payroll-Based Journal) report export record.
+    
+    CMS-compliant staffing reports for SNF/nursing homes.
+    """
+    __tablename__ = "pbj_report_exports"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    report_period_start = Column(String(20), nullable=False, index=True)
+    report_period_end = Column(String(20), nullable=False, index=True)
+    cms_provider_id = Column(String(16), nullable=True)
+    total_hours_worked = Column(Numeric(10, 2), nullable=True)
+    total_shifts_reported = Column(String(10), nullable=True)
+    export_format = Column(String(16), default="CSV")
+    export_file_path = Column(Text, nullable=True)
+    export_status = Column(String(32), nullable=False)
+    exported_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# ANTI-POACHING & SHIFT BUNDLING — TIER 3 FEATURES #11 & #12
+# Sprint: VCAI-TIER3-SPRINT-2026-07-07
+# Migration: 037_antipoaching_bundling_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class PoachingDetectionLog(Base):
+    """
+    Poaching detection log with NLP analysis.
+    
+    Monitors communications for off-platform hiring attempts.
+    """
+    __tablename__ = "poaching_detection_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=True, index=True)
+    facility_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    message_source = Column(String(32), nullable=False)
+    message_content = Column(Text, nullable=False)
+    poaching_indicators = Column(Text, nullable=True)
+    risk_score = Column(Numeric(5, 2), nullable=True, index=True)
+    action_taken = Column(String(32), nullable=True)
+    detected_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class ShiftBundle(Base):
+    """
+    Shift bundle for multi-facility route optimization.
+    
+    Groups shifts for maximum nurse hours and facility coverage.
+    """
+    __tablename__ = "shift_bundles"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    bundle_name = Column(String(128), nullable=True)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=True, index=True)
+    shift_ids = Column(Text, nullable=False)
+    total_hours = Column(Numeric(5, 2), nullable=True)
+    total_earnings = Column(Numeric(10, 2), nullable=True)
+    route_optimized = Column(String(10), default="0")
+    bundle_status = Column(String(32), default="PROPOSED", index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECURITY HARDENING — TIER 4 FINAL HARDENING
+# Sprint: VCAI-TIER4-HARDENING-2026-07-07
+# Migration: 038_security_hardening_tables
+# ═══════════════════════════════════════════════════════════════════
+
+class IPWhitelist(Base):
+    """
+    IP whitelist for trusted corporate networks.
+    
+    Prevents false positives from rate limiting legitimate facilities.
+    """
+    __tablename__ = "ip_whitelist"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    facility_id = Column(UUID(as_uuid=True), nullable=True)
+    ip_address = Column(String(45), nullable=False, unique=True, index=True)
+    ip_range_cidr = Column(String(50), nullable=True)
+    whitelist_reason = Column(Text, nullable=True)
+    added_by = Column(String(128), nullable=True)
+    is_active = Column(String(10), default="1", index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class SecurityEvidenceLedger(Base):
+    """
+    Immutable Merkle-tree evidence ledger for legal proof.
+    
+    SHA-256 hash chain for court-admissible security violations.
+    """
+    __tablename__ = "security_evidence_ledger"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    block_index = Column(String(10), nullable=False, unique=True, index=True)
+    evidence_type = Column(String(32), nullable=False, index=True)
+    evidence_data = Column(Text, nullable=False)
+    previous_hash = Column(String(64), nullable=True)
+    current_hash = Column(String(64), nullable=False, unique=True, index=True)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+
+
+# Import AI models
+from app.models.ai_audit import AIAuditLog  # noqa: E402, F401

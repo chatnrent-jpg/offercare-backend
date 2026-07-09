@@ -1,0 +1,161 @@
+{
+  "pipeline_id": "md-ohcq-leads-offline",
+  "generated_at_utc": "2026-07-07T14:18:45+00:00",
+  "mode": "offline_build",
+  "live_execution": false,
+  "manus_action": "REVIEW_ONLY \u2014 assign API keys on keys day before live Clay/HeyReach push",
+  "artifacts": {
+    "flags_csv": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\ohcq_staffing_citation_flags_md.csv",
+    "staging_enriched_csv": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\ohcq_staffing_citation_enriched_staging_md.csv",
+    "live_enriched_csv": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\ohcq_staffing_citation_enriched_md.csv",
+    "heyreach_import_csv": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\heyreach_md_don_ohcq_import.csv",
+    "heyreach_sequence_json": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\heyreach_md_don_ohcq_sequence.json"
+  },
+  "integration_keys": {
+    "CLAY_TABLE_WEBHOOK_URL": {
+      "set": false,
+      "purpose": "Clay webhook push",
+      "assign_on": "keys day \u2014 add to .env before live push"
+    },
+    "CLAY_TABLE_ID": {
+      "set": false,
+      "purpose": "Clay v3 table push",
+      "assign_on": "keys day \u2014 add to .env before live push"
+    },
+    "CLAY_SESSION_COOKIE": {
+      "set": false,
+      "purpose": "Clay v3 session auth",
+      "assign_on": "keys day \u2014 add to .env before live push"
+    },
+    "HEYREACH_API_KEY": {
+      "set": false,
+      "purpose": "HeyReach API campaign control",
+      "assign_on": "keys day \u2014 add to .env before live push"
+    },
+    "HEYREACH_LIST_ID": {
+      "set": false,
+      "purpose": "HeyReach lead list import",
+      "assign_on": "keys day \u2014 add to .env before live push"
+    },
+    "HEYREACH_CAMPAIGN_ID": {
+      "set": false,
+      "purpose": "HeyReach campaign start",
+      "assign_on": "keys day \u2014 add to .env before live push"
+    },
+    "HEYREACH_SENDER_ACCOUNT_IDS": {
+      "set": false,
+      "purpose": "HeyReach LinkedIn sender accounts",
+      "assign_on": "keys day \u2014 add to .env before live push"
+    }
+  },
+  "keys_ready_for_live": false,
+  "county_normalization": {
+    "total": 353,
+    "verified": 284,
+    "unverified": 69,
+    "unverified_samples": [
+      "Belcamp",
+      "Berlin",
+      "Boonsboro",
+      "Boonsboro",
+      "Brooklyn Park",
+      "Burtonsville",
+      "Cambridge",
+      "Cambridge",
+      "Centreville",
+      "Charlotte Hall",
+      "Chevy Chase",
+      "Crisfield",
+      "Crownsville",
+      "Denton",
+      "Denton"
+    ]
+  },
+  "steps": [
+    {
+      "step": "ohcq_citation_tracker",
+      "status": "skipped",
+      "note": "Use --run-tracker to refresh flags CSV from MDH/CMS portals"
+    },
+    {
+      "step": "clay_enrichment",
+      "status": "staging_ready",
+      "input_rows": 5,
+      "staging_enriched_csv": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\ohcq_staffing_citation_enriched_staging_md.csv",
+      "live_enriched_csv": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\ohcq_staffing_citation_enriched_md.csv",
+      "clay_push_preview": {
+        "ok": true,
+        "input_rows": 5,
+        "config_template": "C:\\VettedCare.ai\\vettedcare-backend\\integrations\\clay\\ohcq_citation_enrichment.template.json",
+        "target_roles": [
+          "Director of Nursing (DON)",
+          "HR Staffing Coordinator"
+        ],
+        "push": {
+          "ok": true,
+          "dry_run": true,
+          "mode": "preview",
+          "row_count": 5,
+          "sample": [
+            {
+              "Facility Name": "WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE",
+              "Maryland County": "Frederick",
+              "Facility Type": "SNF",
+              "Staffing Flag Reason": "insufficient_staffing_citation",
+              "Citation Summary": "Ensure that the resident and his/her doctor meet face-to-face at all required visits.",
+              "MD License Number": "",
+              "CMS CCN": "215329",
+              "Search Location": "Frederick County, Maryland, United States",
+              "VettedCare Record ID": "ohcq-willowbrooke-ct-skilled-care-buckingham-s-choice-frederick"
+            },
+            {
+              "Facility Name": "ADELPHI NURSING AND REHABILITATION CENTER",
+              "Maryland County": "Prince George's",
+              "Facility Type": "SNF",
+              "Staffing Flag Reason": "insufficient_staffing_citation",
+              "Citation Summary": "Ensure that nurses and nurse aides have the appropriate competencies to care for every resident in a way that maximizes each resident's well being.",
+              "MD License Number": "",
+              "CMS CCN": "215064",
+              "Search Location": "Prince George's County, Maryland, United States",
+              "VettedCare Record ID": "ohcq-adelphi-nursing-and-rehabilitation-center-prince-george-s"
+            }
+          ]
+        }
+      },
+      "note": "Staging CSV has empty DON fields until Clay keys are assigned"
+    },
+    {
+      "step": "heyreach_sequence",
+      "status": "completed",
+      "ok": true,
+      "dry_run": true,
+      "input_rows": 5,
+      "heyreach_leads": 5,
+      "live_send_ready": 0,
+      "import_csv": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\heyreach_md_don_ohcq_import.csv",
+      "sequence_json": "C:\\VettedCare.ai\\vettedcare-backend\\leads\\heyreach_md_don_ohcq_sequence.json",
+      "sample_lead": {
+        "linkedin_url": "",
+        "first_name": "Director",
+        "last_name": "Nursing",
+        "email": "",
+        "company": "WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE",
+        "custom_county": "Frederick",
+        "custom_county_phrase": "in Frederick County",
+        "custom_compliance_hook": "recent OHCQ/CMS staffing citation",
+        "custom_facility_name": "WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE",
+        "custom_flag_reason": "insufficient_staffing_citation",
+        "custom_linkedin_connection": "Hi Director,\n\nI'm reaching out because WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE in Frederick County has been flagged for recent OHCQ/CMS staffing citation \u2014 and DON teams are feeling it on the floor.\n\nVettedCare.ai instantly routes MBON-verified, active Maryland GNAs and LPNs to open shifts within 15 minutes \u2014 credentialed staff only, no compliance surprises.\n\nWould you be open to connecting? Happy to show how we clear staffing gaps fast.\n\n\u2014 VettedCare Team, VettedCare.ai",
+        "custom_linkedin_followup": "Thanks for connecting, Director.\n\nQuick context: we work with SNF/ALF operators in Frederick County who need credentialed coverage yesterday \u2014 not next week.\n\nVettedCare.ai's compliance gate (MBON + HB 1106 + fresh license checks) means every GNA/LPN we dispatch is active and floor-ready. Most facilities see matched clinicians in under 15 minutes once a shift is posted.\n\nIf WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE is still carrying a staffing citation or hour shortfall, I can walk your team through a same-week coverage plan.\n\nWorth a 15-minute call this week?",
+        "custom_email_subject": "WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE in Frederick County \u2014 credentialed GNA/LPN coverage in 15 minutes",
+        "custom_email_body": "Hi Director,\n\nFollowing up on my LinkedIn note \u2014 I'm VettedCare Team with VettedCare.ai.\n\nWILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE in Frederick County was flagged for recent OHCQ/CMS staffing citation. When survey pressure hits, the last thing your DON desk needs is unverified agency send-backs.\n\nVettedCare.ai is built for Maryland operators under OHCQ scrutiny:\n\n\u2022 MBON-verified GNAs & LPNs \u2014 active license, GNA endorsement where required\n\u2022 Compliance sentinel blocks staff with stale credentials or missing HB 1106 consent\n\u2022 Instant shift routing \u2014 matched, credentialed clinicians in ~15 minutes\n\u2022 County-aware dispatch \u2014 we prioritize Frederick coverage first\n\nIf you're clearing a staffing citation or mandated hour gap, reply with your next open shift window and I'll share a live match preview for WILLOWBROOKE CT SKILLED CARE BUCKINGHAM'S CHOICE.\n\n\u2014 VettedCare Team\nVettedCare.ai\nMaryland SNF/ALF instant staffing \u00b7 MBON-gated dispatch"
+      },
+      "sample_county_phrase": "in Frederick County",
+      "channels": [
+        "linkedin_connection_request",
+        "linkedin_message",
+        "email_follow_up"
+      ]
+    }
+  ]
+}

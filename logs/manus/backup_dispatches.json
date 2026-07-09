@@ -1,0 +1,130 @@
+{
+  "mode": "STAGING",
+  "live_execution": true,
+  "product": "VettedCare.ai Backup Routing Engine",
+  "dispatches": [
+    {
+      "dispatch_id": "backup-eb1ac566-2026-06-26T21:13:52.527829+00:00",
+      "disrupted_shift_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+      "original_provider_id": "CNA-MD-88421",
+      "status": "NO_BACKUP_AVAILABLE",
+      "live_execution": false,
+      "staged_at_utc": "2026-06-26T21:13:52.527847+00:00",
+      "shift": {
+        "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+        "facility_name": "Arbor Ridge at Riderwood",
+        "facility_type": "SNF",
+        "required_role": "CNA",
+        "county": "Montgomery",
+        "shift_timestamp": "2026-06-27T07:00:00+00:00"
+      },
+      "backup_candidates": [],
+      "routing_notes": "Prioritized same-county compliant backups; SNF CNA GNA firewall enforced."
+    },
+    {
+      "dispatch_id": "backup-eb1ac566-2026-06-26T21:20:51.828494+00:00",
+      "disrupted_shift_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+      "original_provider_id": "CNA-MD-88421",
+      "status": "NO_BACKUP_AVAILABLE",
+      "live_execution": false,
+      "staged_at_utc": "2026-06-26T21:20:51.828506+00:00",
+      "shift": {
+        "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+        "facility_name": "Arbor Ridge at Riderwood",
+        "facility_type": "SNF",
+        "required_role": "CNA",
+        "county": "Montgomery",
+        "shift_timestamp": "2026-06-27T07:00:00+00:00"
+      },
+      "backup_candidates": [],
+      "routing_notes": "Prioritized same-county compliant backups; SNF CNA GNA firewall enforced."
+    },
+    {
+      "dispatch_id": "backup-eb1ac566-2026-06-26T21:57:08.839586+00:00",
+      "disrupted_shift_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+      "original_provider_id": "CNA-MD-88421",
+      "status": "NO_BACKUP_AVAILABLE",
+      "live_execution": false,
+      "staged_at_utc": "2026-06-26T21:57:08.839593+00:00",
+      "shift": {
+        "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+        "facility_name": "Arbor Ridge at Riderwood",
+        "facility_type": "SNF",
+        "required_role": "CNA",
+        "county": "Montgomery",
+        "shift_timestamp": "2026-06-27T07:00:00+00:00"
+      },
+      "backup_candidates": [],
+      "routing_notes": "Prioritized same-county compliant backups; SNF CNA GNA firewall enforced."
+    },
+    {
+      "dispatch_id": "backup-d4d830cc-2026-06-26T23:37:40.000345+00:00",
+      "disrupted_shift_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "original_provider_id": "CNA-MD-88421",
+      "status": "DISPATCH_STAGED",
+      "live_execution": true,
+      "slice_key": "Montgomery_SNF_CNA",
+      "staged_at_utc": "2026-06-26T23:37:40.000349+00:00",
+      "shift": {
+        "order_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+        "facility_name": "Arbor Ridge at Riderwood",
+        "facility_type": "SNF",
+        "required_role": "CNA",
+        "county": "Montgomery",
+        "shift_timestamp": "2026-06-27T07:00:00+00:00"
+      },
+      "backup_candidates": [
+        {
+          "rank": 1,
+          "provider_id": "CNA-MD-99001",
+          "name": "Nia Patterson",
+          "license_type": "CNA",
+          "county": "Montgomery",
+          "has_gna_endorsement": true,
+          "compliance_status": "COMPLIANT"
+        }
+      ],
+      "routing_notes": "Prioritized same-county compliant backups; SNF CNA GNA firewall enforced."
+    },
+    {
+      "dispatch_id": "backup-d4d830cc-2026-06-26T23:44:41.457442+00:00",
+      "disrupted_shift_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "original_provider_id": "CNA-MD-88421",
+      "status": "DISPATCH_STAGED",
+      "live_execution": true,
+      "slice_key": "Montgomery_SNF_CNA",
+      "staged_at_utc": "2026-06-26T23:44:41.457446+00:00",
+      "shift": {
+        "order_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+        "facility_name": "Arbor Ridge at Riderwood",
+        "facility_type": "SNF",
+        "required_role": "CNA",
+        "county": "Montgomery",
+        "shift_timestamp": "2026-06-27T07:00:00+00:00"
+      },
+      "backup_candidates": [
+        {
+          "rank": 1,
+          "provider_id": "CNA-MD-99001",
+          "name": "Nia Patterson",
+          "license_type": "CNA",
+          "county": "Montgomery",
+          "has_gna_endorsement": true,
+          "compliance_status": "COMPLIANT"
+        },
+        {
+          "rank": 2,
+          "provider_id": "CNA-MD-99002",
+          "name": "Jordan Ellis",
+          "license_type": "CNA",
+          "county": "Montgomery",
+          "has_gna_endorsement": true,
+          "compliance_status": "COMPLIANT"
+        }
+      ],
+      "routing_notes": "Prioritized same-county compliant backups; SNF CNA GNA firewall enforced."
+    }
+  ],
+  "count": 5,
+  "updated_at_utc": "2026-06-26T23:44:41.478076+00:00"
+}

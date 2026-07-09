@@ -1,0 +1,120 @@
+{
+  "mode": "STAGING",
+  "live_execution": false,
+  "processed_at_utc": "2026-06-26T20:20:44.965603+00:00",
+  "product": "VettedCare.ai Nurse Applicant Pipeline",
+  "applicant_count": 5,
+  "placement_eligible_count": 3,
+  "processing_errors": [],
+  "applicants": [
+    {
+      "applicant_index": 1,
+      "name": "Aisha Thompson",
+      "license_type": "CNA",
+      "license_number": "CNA-MD-88421",
+      "has_gna_endorsement": true,
+      "county": "Montgomery",
+      "verification_timestamp": "2026-06-20T14:30:00+00:00",
+      "target_facility_type": "SNF",
+      "license_expires_on": "2027-03-15T00:00:00+00:00",
+      "compliance_status": "COMPLIANT",
+      "compliant": true,
+      "placement_eligible": true,
+      "errors": [],
+      "warnings": [],
+      "days_to_expiry": 261,
+      "rules_applied": {
+        "expiry_buffer_days": 30,
+        "snf_cna_requires_gna": true
+      }
+    },
+    {
+      "applicant_index": 2,
+      "name": "Brian Okafor",
+      "license_type": "CNA",
+      "license_number": "CNA-MD-77219",
+      "has_gna_endorsement": false,
+      "county": "Baltimore",
+      "verification_timestamp": "2026-06-21T09:15:00+00:00",
+      "target_facility_type": "SNF",
+      "license_expires_on": "2027-01-10T00:00:00+00:00",
+      "compliance_status": "REJECTED_COMPLIANCE",
+      "compliant": false,
+      "placement_eligible": false,
+      "errors": [
+        "missing_gna_endorsement_snf"
+      ],
+      "warnings": [],
+      "days_to_expiry": 197,
+      "rules_applied": {
+        "expiry_buffer_days": 30,
+        "snf_cna_requires_gna": true
+      }
+    },
+    {
+      "applicant_index": 3,
+      "name": "Carmen Delgado",
+      "license_type": "LPN",
+      "license_number": "LPN-MD-55290",
+      "has_gna_endorsement": false,
+      "county": "Baltimore",
+      "verification_timestamp": "2026-06-19T16:45:00+00:00",
+      "target_facility_type": "SNF",
+      "license_expires_on": "2027-06-01T00:00:00+00:00",
+      "compliance_status": "COMPLIANT",
+      "compliant": true,
+      "placement_eligible": true,
+      "errors": [],
+      "warnings": [],
+      "days_to_expiry": 339,
+      "rules_applied": {
+        "expiry_buffer_days": 30,
+        "snf_cna_requires_gna": false
+      }
+    },
+    {
+      "applicant_index": 4,
+      "name": "Derek Washington",
+      "license_type": "CNA",
+      "license_number": "CNA-MD-66104",
+      "has_gna_endorsement": true,
+      "county": "Prince George's",
+      "verification_timestamp": "2026-06-22T11:00:00+00:00",
+      "target_facility_type": "SNF",
+      "license_expires_on": "2026-07-14T00:00:00+00:00",
+      "compliance_status": "REJECTED_COMPLIANCE",
+      "compliant": false,
+      "placement_eligible": false,
+      "errors": [
+        "license_expires_within_buffer"
+      ],
+      "warnings": [],
+      "days_to_expiry": 17,
+      "rules_applied": {
+        "expiry_buffer_days": 30,
+        "snf_cna_requires_gna": true
+      }
+    },
+    {
+      "applicant_index": 5,
+      "name": "Elena Vasquez",
+      "license_type": "CNA",
+      "license_number": "CNA-MD-90331",
+      "has_gna_endorsement": true,
+      "county": "Anne Arundel",
+      "verification_timestamp": "2026-06-18T08:20:00+00:00",
+      "target_facility_type": "ALF",
+      "license_expires_on": "2026-10-24T00:00:00+00:00",
+      "compliance_status": "COMPLIANT",
+      "compliant": true,
+      "placement_eligible": true,
+      "errors": [],
+      "warnings": [],
+      "days_to_expiry": 119,
+      "rules_applied": {
+        "expiry_buffer_days": 30,
+        "snf_cna_requires_gna": false
+      }
+    }
+  ]
+}

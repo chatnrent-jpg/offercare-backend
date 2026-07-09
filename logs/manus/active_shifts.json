@@ -1,0 +1,33 @@
+{
+  "mode": "STAGING",
+  "live_execution": false,
+  "generated_at_utc": "2026-06-26T20:29:32.786287+00:00",
+  "product": "VettedCare.ai Active Shift Order Simulator",
+  "count": 3,
+  "shifts": [
+    {
+      "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+      "facility_name": "Arbor Ridge at Riderwood",
+      "facility_type": "SNF",
+      "county": "Montgomery",
+      "required_role": "CNA",
+      "shift_timestamp": "2026-06-27T07:00:00+00:00"
+    },
+    {
+      "order_id": "abef900e-f15b-46c5-a837-47a36ff7e9a2",
+      "facility_name": "Adelphi Nursing and Rehabilitation Center",
+      "facility_type": "SNF",
+      "county": "Prince George's",
+      "required_role": "LPN",
+      "shift_timestamp": "2026-06-28T07:00:00+00:00"
+    },
+    {
+      "order_id": "56e6b590-c927-4da6-a362-f1b854d03b6d",
+      "facility_name": "Autumn Lake Healthcare at Arlington West",
+      "facility_type": "SNF",
+      "county": "Baltimore",
+      "required_role": "CNA",
+      "shift_timestamp": "2026-06-29T07:00:00+00:00"
+    }
+  ]
+}

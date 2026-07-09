@@ -1,0 +1,100 @@
+# VettedCare.ai Production Dockerfile — OBFUSCATED & HARDENED
+# Sprint: VCAI-TIER4-SECURITY-2026-07-07
+# Purpose: IP-protected production deployment with code obfuscation
+
+# Stage 1: Builder with PyArmor obfuscation
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+COPY requirements-production.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-production.txt
+
+# Install PyArmor for code obfuscation
+RUN pip install --no-cache-dir pyarmor
+
+# Copy application code
+COPY app/ /build/app/
+COPY alembic/ /build/alembic/
+COPY alembic.ini /build/
+
+# === CODE OBFUSCATION LAYER ===
+# Obfuscate all Python files to prevent reverse engineering
+RUN pyarmor obfuscate \
+    --recursive \
+    --output /build/app_obfuscated \
+    --restrict 4 \
+    --advanced 2 \
+    /build/app/__init__.py
+
+# Obfuscate critical services with maximum protection
+RUN pyarmor obfuscate \
+    --output /build/app_obfuscated/services \
+    --restrict 4 \
+    --advanced 2 \
+    --assert-call \
+    --assert-import \
+    /build/app/services/*.py
+
+# === WATERMARKING LAYER ===
+# Inject cryptographic watermarks into obfuscated bytecode
+COPY scripts/inject_watermark.py /build/
+RUN python /build/inject_watermark.py \
+    --target /build/app_obfuscated \
+    --watermark "VETTEDCARE-PROD-$(date +%s)"
+
+# Stage 2: Production runtime (minimal attack surface)
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN useradd -m -u 1000 vettedcare && \
+    chown -R vettedcare:vettedcare /app
+
+# Copy Python dependencies from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+
+# Copy OBFUSCATED application code (NOT original source)
+COPY --from=builder /build/app_obfuscated /app/app
+COPY --from=builder /build/alembic /app/alembic
+COPY --from=builder /build/alembic.ini /app/
+
+# Switch to non-root user
+USER vettedcare
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Run with hardened Gunicorn settings
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "4", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--timeout", "120", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--limit-request-line", "4096", \
+     "--limit-request-fields", "100", \
+     "app.main:app"]

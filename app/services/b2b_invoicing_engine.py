@@ -225,28 +225,38 @@ def persist_facility_billing_audit(
     invoice_payload: dict[str, Any],
     *,
     commit: bool = False,
+    encrypt: bool = True,
 ) -> FacilityBillingAuditLedger:
+    # Encrypt sensitive invoice data if enabled
+    if encrypt and settings.INVOICE_ENCRYPTION_ENABLED:
+        from app.services.invoice_encryption import encrypt_invoice
+        
+        encrypted_payload = encrypt_invoice(invoice_payload.copy())
+        logger.info(f"[B2B INVOICING] Encrypted invoice data for audit persistence")
+    else:
+        encrypted_payload = invoice_payload
+    
     row = FacilityBillingAuditLedger(
         audit_id=uuid4(),
-        timesheet_id=UUID(str(invoice_payload["timesheet_id"]))
-        if invoice_payload.get("timesheet_id")
+        timesheet_id=UUID(str(encrypted_payload["timesheet_id"]))
+        if encrypted_payload.get("timesheet_id")
         else None,
-        provider_id=UUID(str(invoice_payload["provider_id"]))
-        if invoice_payload.get("provider_id")
+        provider_id=UUID(str(encrypted_payload["provider_id"]))
+        if encrypted_payload.get("provider_id")
         else None,
-        facility_id=UUID(str(invoice_payload["facility_id"]))
-        if invoice_payload.get("facility_id")
+        facility_id=UUID(str(encrypted_payload["facility_id"]))
+        if encrypted_payload.get("facility_id")
         else None,
-        offer_id=UUID(str(invoice_payload["offer_id"])) if invoice_payload.get("offer_id") else None,
-        hours_worked=invoice_payload["hours_worked"],
-        gross_caregiver_pay_rate=invoice_payload["gross_caregiver_pay_rate"],
-        margin_pct=invoice_payload["margin_pct"],
-        employer_fica_rate=invoice_payload["employer_fica_rate"],
-        gross_pay=invoice_payload["gross_pay"],
-        platform_margin=invoice_payload["platform_margin"],
-        employer_taxes=invoice_payload["employer_taxes"],
-        total_facility_bill=invoice_payload["total_facility_bill"],
-        invoice_payload_json=json.dumps(invoice_payload, separators=(",", ":")),
+        offer_id=UUID(str(encrypted_payload["offer_id"])) if encrypted_payload.get("offer_id") else None,
+        hours_worked=encrypted_payload["hours_worked"],
+        gross_caregiver_pay_rate=encrypted_payload["gross_caregiver_pay_rate"],
+        margin_pct=encrypted_payload["margin_pct"],
+        employer_fica_rate=encrypted_payload["employer_fica_rate"],
+        gross_pay=encrypted_payload["gross_pay"],
+        platform_margin=encrypted_payload["platform_margin"],
+        employer_taxes=encrypted_payload["employer_taxes"],
+        total_facility_bill=encrypted_payload["total_facility_bill"],
+        invoice_payload_json=json.dumps(encrypted_payload, separators=(",", ":")),
     )
     db.add(row)
     if commit:

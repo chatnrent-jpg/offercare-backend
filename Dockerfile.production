@@ -1,0 +1,37 @@
+# --- Stage 1: Build, Compilation, & Virtualenv Isolation ---
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+# Install minimal native binaries required to build heavy C-extensions like psycopg2
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Establish a completely isolated, clean virtual environment directory
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# --- Stage 2: Final Minimalist Hardened Production Environment ---
+# Uses Google's official minimalist distroless image pre-packaged with Python 3
+FROM gcr.io/distroless/python3:nonroot AS runner
+
+WORKDIR /app
+
+# Safely carry over the built virtual environment package stack from stage 1
+COPY --from=builder /opt/venv /opt/venv
+COPY . /app
+
+# Expose production ASGI server port configuration
+EXPOSE 8000
+
+# Bind application execution directly to the virtual environment runtime
+ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONPATH=/app
+
+# Force the entrypoint through the direct virtualenv binary to bypass shell wrappers
+ENTRYPOINT ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

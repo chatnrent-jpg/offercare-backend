@@ -1,0 +1,23 @@
+# Production Dependencies — Security & Obfuscation
+# Sprint: VCAI-TIER4-SECURITY-2026-07-07
+
+# Code Obfuscation
+pyarmor>=8.0.0
+
+# Production ASGI Server
+gunicorn>=21.2.0
+uvicorn[standard]>=0.24.0
+
+# Rate Limiting & Protection
+slowapi>=0.1.9
+redis>=5.0.0
+
+# Security Headers
+secure>=0.3.0
+
+# Monitoring & Logging
+sentry-sdk>=1.40.0
+python-json-logger>=2.0.7
+
+# IP Geolocation (for scraper detection)
+geoip2>=4.7.0

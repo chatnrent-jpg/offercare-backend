@@ -1,11 +1,11 @@
 # Manus daily recruitment routine
 
-**Manus acts · VettedCare decides.**
+**Manus acts · VettedMe decides.**
 
 ## 1. Export (PowerShell)
 
 ```powershell
-cd C:\VettedCare.ai\vettedcare-backend
+cd C:\VettedMe.ai\vettedcare-backend
 $env:PYTHONPATH = (Get-Location).Path
 python export_manus_recruitment.py
 ```
@@ -14,7 +14,7 @@ Output: `logs\manus\recruitment_snapshot.json`
 
 ## 2. Manus task
 
-1. Open your **VettedCare** Manus project → **New Task**
+1. Open your **VettedMe** Manus project → **New Task**
 2. Attach `recruitment_snapshot.json`
 3. Send:
 
@@ -26,7 +26,7 @@ Read the attached recruitment_snapshot.json. Report:
 - Today's Manus tasks: RFP/RFQ monitoring, CNO/DON enrichment, VMS open-shift sync
 ```
 
-## 3. Manus outputs → VettedCare drop zones
+## 3. Manus outputs → VettedMe drop zones
 
 | Manus delivers | Drop here |
 |----------------|-----------|

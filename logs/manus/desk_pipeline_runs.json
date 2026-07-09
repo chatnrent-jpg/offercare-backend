@@ -1,0 +1,209 @@
+{
+  "mode": "STAGING",
+  "live_execution": false,
+  "product": "VettedCare.ai Desk Pipeline Runs",
+  "runs": [
+    {
+      "run_id": "desk-2026-06-26T21:57:08.838757+00:00",
+      "staged_at_utc": "2026-06-26T21:57:08.838761+00:00",
+      "live_execution": false,
+      "mode": "STAGING",
+      "product": "VettedCare.ai Maryland Desk Orchestrator",
+      "booking": {
+        "pipeline": "BOOKING",
+        "status": "BOOKING_READY",
+        "shift": {
+          "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+          "facility_name": "Arbor Ridge at Riderwood",
+          "facility_type": "SNF",
+          "required_role": "CNA",
+          "county": "Montgomery",
+          "facility_county": "Montgomery",
+          "shift_timestamp": "2026-06-27T07:00:00+00:00",
+          "evaluation_window_barrier": "2026-06-27T07:00:00+00:00"
+        },
+        "evaluation_timestamp": "2026-06-26T21:57:08.838585+00:00",
+        "request_timestamp": "2026-06-26T21:57:08.838585+00:00",
+        "match_count": 3,
+        "selected_provider": {
+          "provider_id": "CNA-MD-90331",
+          "full_name": "Elena Vasquez",
+          "county": "Anne Arundel",
+          "county_match": false,
+          "has_gna_endorsement": true,
+          "conflict_safe": true,
+          "conflict_reason": "BOOKING_SAFE"
+        },
+        "booking_candidates": [
+          {
+            "provider_id": "CNA-MD-88421",
+            "full_name": "Aisha Thompson",
+            "county": "Montgomery",
+            "county_match": true,
+            "has_gna_endorsement": true,
+            "conflict_safe": false,
+            "conflict_reason": "CRITICAL_COLLISION: Provider already committed to overlapping hours at another facility."
+          },
+          {
+            "provider_id": "CNA-MD-90331",
+            "full_name": "Elena Vasquez",
+            "county": "Anne Arundel",
+            "county_match": false,
+            "has_gna_endorsement": true,
+            "conflict_safe": true,
+            "conflict_reason": "BOOKING_SAFE"
+          },
+          {
+            "provider_id": "CNA-MD-66104",
+            "full_name": "Derek Washington",
+            "county": "Prince George's",
+            "county_match": false,
+            "has_gna_endorsement": true,
+            "conflict_safe": true,
+            "conflict_reason": "BOOKING_SAFE"
+          }
+        ],
+        "surge_pricing": {
+          "base_bill_rate": 45.0,
+          "applied_multiplier": 1.0,
+          "final_surge_bill_rate": 45.0,
+          "surge_tier_trigger": "STANDARD",
+          "raw_compounded_multiplier": 1.0,
+          "capped_at_max": false,
+          "hours_until_shift": 9.05
+        },
+        "active_commitments_count": 1
+      },
+      "callout": null,
+      "penalty": null,
+      "manus_operator_note": "Manus acts on filesystem/API handoff · VettedCare decides via engine chain."
+    },
+    {
+      "pipeline": "CALLOUT",
+      "status": "NO_BACKUP_AVAILABLE",
+      "dispatch": {
+        "dispatch_id": "backup-eb1ac566-2026-06-26T21:57:08.839586+00:00",
+        "disrupted_shift_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+        "original_provider_id": "CNA-MD-88421",
+        "status": "NO_BACKUP_AVAILABLE",
+        "live_execution": false,
+        "staged_at_utc": "2026-06-26T21:57:08.839593+00:00",
+        "shift": {
+          "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+          "facility_name": "Arbor Ridge at Riderwood",
+          "facility_type": "SNF",
+          "required_role": "CNA",
+          "county": "Montgomery",
+          "shift_timestamp": "2026-06-27T07:00:00+00:00"
+        },
+        "backup_candidates": [],
+        "routing_notes": "Prioritized same-county compliant backups; SNF CNA GNA firewall enforced."
+      },
+      "run_id": "callout-2026-06-26T21:57:08.838585+00:00",
+      "staged_at_utc": "2026-06-26T21:57:08.838585+00:00",
+      "live_execution": false
+    },
+    {
+      "pipeline": "PENALTY_AUDIT",
+      "status": "VIOLATION",
+      "audit": {
+        "facility_id": "MD-SNF-ARBOR-RIDGE",
+        "provider_id": "CNA-MD-88421",
+        "is_contract_violation": true,
+        "total_hours_recorded": 45.0,
+        "calculated_penalty_fee": 5000.0,
+        "invoice_status_flag": "MINIMUM_HOURS_VIOLATION_PENALTY",
+        "contract_minimum_hours": 160,
+        "standard_buyout_fee": 5000.0
+      },
+      "run_id": "penalty-2026-06-26T21:57:08.838585+00:00",
+      "staged_at_utc": "2026-06-26T21:57:08.838585+00:00",
+      "live_execution": false
+    },
+    {
+      "run_id": "desk-api-2026-06-26T22:34:12.774964+00:00",
+      "staged_at_utc": "2026-06-26T22:34:12.774969+00:00",
+      "live_execution": false,
+      "mode": "STAGING",
+      "pipeline": "full",
+      "status": "BOOKING_READY",
+      "result": {
+        "run_id": "desk-2026-06-26T22:34:12.774945+00:00",
+        "staged_at_utc": "2026-06-26T22:34:12.774954+00:00",
+        "live_execution": false,
+        "mode": "STAGING",
+        "product": "VettedCare.ai Maryland Desk Orchestrator",
+        "booking": {
+          "pipeline": "BOOKING",
+          "status": "BOOKING_READY",
+          "shift": {
+            "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+            "facility_name": "Arbor Ridge at Riderwood",
+            "facility_type": "SNF",
+            "required_role": "CNA",
+            "county": "Montgomery",
+            "facility_county": "Montgomery",
+            "shift_timestamp": "2026-06-27T07:00:00+00:00",
+            "evaluation_window_barrier": "2026-06-27T07:00:00+00:00"
+          },
+          "evaluation_timestamp": "2026-06-26T22:34:12.774535+00:00",
+          "request_timestamp": "2026-06-26T22:34:12.774535+00:00",
+          "match_count": 3,
+          "selected_provider": {
+            "provider_id": "CNA-MD-90331",
+            "full_name": "Elena Vasquez",
+            "county": "Anne Arundel",
+            "county_match": false,
+            "has_gna_endorsement": true,
+            "conflict_safe": true,
+            "conflict_reason": "BOOKING_SAFE"
+          },
+          "booking_candidates": [
+            {
+              "provider_id": "CNA-MD-88421",
+              "full_name": "Aisha Thompson",
+              "county": "Montgomery",
+              "county_match": true,
+              "has_gna_endorsement": true,
+              "conflict_safe": false,
+              "conflict_reason": "CRITICAL_COLLISION: Provider already committed to overlapping hours at another facility."
+            },
+            {
+              "provider_id": "CNA-MD-90331",
+              "full_name": "Elena Vasquez",
+              "county": "Anne Arundel",
+              "county_match": false,
+              "has_gna_endorsement": true,
+              "conflict_safe": true,
+              "conflict_reason": "BOOKING_SAFE"
+            },
+            {
+              "provider_id": "CNA-MD-66104",
+              "full_name": "Derek Washington",
+              "county": "Prince George's",
+              "county_match": false,
+              "has_gna_endorsement": true,
+              "conflict_safe": true,
+              "conflict_reason": "BOOKING_SAFE"
+            }
+          ],
+          "surge_pricing": {
+            "base_bill_rate": 45.0,
+            "applied_multiplier": 1.0,
+            "final_surge_bill_rate": 45.0,
+            "surge_tier_trigger": "STANDARD",
+            "raw_compounded_multiplier": 1.0,
+            "capped_at_max": false,
+            "hours_until_shift": 8.43
+          },
+          "active_commitments_count": 1
+        },
+        "callout": null,
+        "penalty": null,
+        "manus_operator_note": "Manus acts on filesystem/API handoff · VettedCare decides via engine chain."
+      }
+    }
+  ],
+  "count": 4,
+  "updated_at_utc": "2026-06-26T22:34:12.835115+00:00"
+}

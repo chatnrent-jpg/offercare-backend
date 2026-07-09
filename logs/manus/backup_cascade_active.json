@@ -1,0 +1,109 @@
+{
+  "cascades": {
+    "backup-d4d830cc-2026-06-26T23:37:40.000345+00:00": {
+      "dispatch_id": "backup-d4d830cc-2026-06-26T23:37:40.000345+00:00",
+      "slice_key": "Montgomery_SNF_CNA",
+      "disrupted_shift_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "offer_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "shift": {
+        "order_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+        "facility_name": "Arbor Ridge at Riderwood",
+        "facility_type": "SNF",
+        "required_role": "CNA",
+        "county": "Montgomery",
+        "shift_timestamp": "2026-06-27T07:00:00+00:00"
+      },
+      "backups": [
+        {
+          "rank": 1,
+          "provider_id": "CNA-MD-99001",
+          "name": "Nia Patterson",
+          "license_type": "CNA",
+          "county": "Montgomery",
+          "has_gna_endorsement": true,
+          "compliance_status": "COMPLIANT"
+        }
+      ],
+      "notified": [
+        {
+          "provider_id": "CNA-MD-99001",
+          "provider_uuid": "7182639b-7618-46ec-8ac2-994649763c6c",
+          "name": "Nia Patterson",
+          "rank": 1,
+          "phone_number": "3015559901",
+          "status": "DRY_RUN",
+          "mode": "dry_run",
+          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+          "notified_at_utc": "2026-06-26T23:37:40.213235+00:00"
+        }
+      ],
+      "status": "ACTIVE",
+      "created_at_utc": "2026-06-26T23:37:40.066048+00:00",
+      "last_advanced_by": "live_callout",
+      "updated_at_utc": "2026-06-26T23:37:40.631268+00:00"
+    },
+    "backup-d4d830cc-2026-06-26T23:44:41.457442+00:00": {
+      "dispatch_id": "backup-d4d830cc-2026-06-26T23:44:41.457442+00:00",
+      "slice_key": "Montgomery_SNF_CNA",
+      "disrupted_shift_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "offer_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+      "shift": {
+        "order_id": "d4d830cc-5f4e-4be9-b332-8cc70c23457d",
+        "facility_name": "Arbor Ridge at Riderwood",
+        "facility_type": "SNF",
+        "required_role": "CNA",
+        "county": "Montgomery",
+        "shift_timestamp": "2026-06-27T07:00:00+00:00"
+      },
+      "backups": [
+        {
+          "rank": 1,
+          "provider_id": "CNA-MD-99001",
+          "name": "Nia Patterson",
+          "license_type": "CNA",
+          "county": "Montgomery",
+          "has_gna_endorsement": true,
+          "compliance_status": "COMPLIANT"
+        },
+        {
+          "rank": 2,
+          "provider_id": "CNA-MD-99002",
+          "name": "Jordan Ellis",
+          "license_type": "CNA",
+          "county": "Montgomery",
+          "has_gna_endorsement": true,
+          "compliance_status": "COMPLIANT"
+        }
+      ],
+      "notified": [
+        {
+          "provider_id": "CNA-MD-99001",
+          "provider_uuid": "7182639b-7618-46ec-8ac2-994649763c6c",
+          "name": "Nia Patterson",
+          "rank": 1,
+          "phone_number": "3015559901",
+          "status": "DRY_RUN",
+          "mode": "dry_run",
+          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+          "notified_at_utc": "2026-06-26T23:44:41.489438+00:00"
+        },
+        {
+          "provider_id": "CNA-MD-99002",
+          "provider_uuid": "5156a4be-5923-4c87-a41a-5bf5ff8eedee",
+          "name": "Jordan Ellis",
+          "rank": 2,
+          "phone_number": "3015559902",
+          "status": "DRY_RUN",
+          "mode": "dry_run",
+          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #2. Urgent same-day coverage needed…",
+          "notified_at_utc": "2026-06-26T23:46:24.030967+00:00"
+        }
+      ],
+      "status": "ACTIVE",
+      "created_at_utc": "2026-06-26T23:44:41.478725+00:00",
+      "last_advanced_by": "backup_cascade_worker",
+      "updated_at_utc": "2026-06-26T23:46:24.109392+00:00"
+    }
+  },
+  "updated_at_utc": "2026-06-26T23:46:24.110331+00:00"
+}

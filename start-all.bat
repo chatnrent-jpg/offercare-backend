@@ -1,12 +1,12 @@
 @echo off
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
-title VettedCare.ai Launcher
+title VettedMe Launcher
 set "PYTHONPATH=%~dp0"
 set "PY=%~dp0.venv\Scripts\python.exe"
 
 echo.
-echo VettedCare.ai - Credential Safety Platform
+echo VettedMe - Credential Safety Platform
 echo.
 
 if not exist "%PY%" (
@@ -34,8 +34,8 @@ if !errorlevel!==0 (
 )
 
 if "!NEED_START!"=="1" (
-  echo Starting API in a new window - check your taskbar for "VettedCare API"
-  start "VettedCare API" cmd /k "title VettedCare API && cd /d %~dp0 && set PYTHONPATH=%~dp0 && %PY% -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+  echo Starting API in a new window - check your taskbar for "VettedMe API"
+  start "VettedMe API" cmd /k "title VettedMe API && cd /d %~dp0 && set PYTHONPATH=%~dp0 && %PY% -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
   echo Waiting for API up to 90 seconds...
   set "TRIES=0"
   :wait_loop
@@ -45,7 +45,7 @@ if "!NEED_START!"=="1" (
   set /a TRIES+=1
   if !TRIES! LSS 45 goto wait_loop
   echo [ERROR] API did not respond in time.
-  echo Check the taskbar for a window named "VettedCare API" for error messages.
+  echo Check the taskbar for a window named "VettedMe API" for error messages.
   pause
   exit /b 1
   :api_ready
@@ -59,6 +59,6 @@ echo.
 echo Opening admin in your browser...
 start "" "http://127.0.0.1:8000/admin"
 echo.
-echo Leave the "VettedCare API" window open while you work.
+echo Leave the "VettedMe API" window open while you work.
 echo Press any key to close this launcher only...
 pause >nul

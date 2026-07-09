@@ -1,6 +1,6 @@
 # W-2 Maryland Withholding — Endpoint Reference
 
-Focused endpoint map for **federal**, **Maryland state**, and **Maryland county/local** income tax withholding for W-2 employees. Maps to VettedCare `caregiver_w2_employee_accounts.maryland_residence_county`.
+Focused endpoint map for **federal**, **Maryland state**, and **Maryland county/local** income tax withholding for W-2 employees. Maps to VettedMe `caregiver_w2_employee_accounts.maryland_residence_county`.
 
 Sources: mirrored files under `docs/payroll/gusto/` and `docs/payroll/checkhq/`.
 
@@ -12,7 +12,7 @@ Sources: mirrored files under `docs/payroll/gusto/` and `docs/payroll/checkhq/`.
 |------|-------|----------|
 | County tax basis | Employee **home address** county | Employee residence + workplaces drive jurisdiction params |
 | Filing | County tax bundled with MD state income tax to Comptroller | Local MD taxes use jurisdiction code `md` (state + local grouped) |
-| VettedCare field | `maryland_residence_county` on W-2 account | Same — feed into employee home address / tax params before calc |
+| VettedMe field | `maryland_residence_county` on W-2 account | Same — feed into employee home address / tax params before calc |
 
 See: `gusto/gusto-maryland-county-withholding-notes.md` (County taxes section).
 
@@ -124,7 +124,7 @@ If caregivers work in one MD county and live in another state: `checkhq/checkhq-
 
 ---
 
-## Recommended VettedCare call sequence (Tier 1 W-2)
+## Recommended VettedMe call sequence (Tier 1 W-2)
 
 ```
 1. caregiver profile created (MBON + employment_tier=TIER1_W2)

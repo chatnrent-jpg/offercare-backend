@@ -1,12 +1,12 @@
-# Manus → VettedCare webhook
+# Manus → VettedMe webhook
 
 
 
-Manus runs autonomous credential checks. VettedCare stores results, computes the final safety status, writes the audit log, and sends alerts.
+Manus runs autonomous credential checks. VettedMe stores results, computes the final safety status, writes the audit log, and sends alerts.
 
 
 
-**Manus acts. VettedCare decides.**
+**Manus acts. VettedMe decides.**
 
 
 
@@ -134,7 +134,7 @@ Content-Type: application/json
 
 
 
-| Manus check_type | VettedCare screening |
+| Manus check_type | VettedMe screening |
 
 |------------------|----------------------|
 
@@ -166,7 +166,7 @@ Content-Type: application/json
 
 
 
-VettedCare will:
+VettedMe will:
 
 
 

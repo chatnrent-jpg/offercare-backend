@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "product": "VettedCare.ai Maryland Ops Desk — Manus Handoff",
+  "architecture": "Manus acts (scrape, stage JSON, trigger scripts) · VettedCare decides (engine chain)",
+  "live_execution": false,
+  "operator_workflows": [
+    {
+      "id": "stage-workforce",
+      "title": "Process nurse applicants",
+      "command": "python scripts/process_nurse_applicants.py",
+      "output": "logs/manus/processed_providers.json"
+    },
+    {
+      "id": "stage-shifts",
+      "title": "Simulate active shift orders",
+      "command": "python scripts/simulate_shift_orders.py",
+      "output": "logs/manus/active_shifts.json"
+    },
+    {
+      "id": "stage-timesheets",
+      "title": "Reconcile timesheets",
+      "command": "python scripts/process_timesheets.py",
+      "output": "logs/manus/reconciled_timesheets.json"
+    },
+    {
+      "id": "run-desk-pipeline",
+      "title": "Execute full desk orchestrator",
+      "command": "python scripts/run_desk_pipeline.py",
+      "output": "logs/manus/desk_pipeline_runs.json"
+    }
+  ],
+  "engine_chain": [
+    "strategy/shift_match_core.py",
+    "strategy/unified_shift_matcher.py",
+    "strategy/db_workforce_adapter.py",
+    "strategy/schedule_conflict_engine.py",
+    "strategy/surge_pricing_engine.py",
+    "strategy/backup_routing_engine.py",
+    "strategy/placement_penalty_engine.py",
+    "strategy/desk_orchestrator.py"
+  ],
+  "filesystem_paths": {
+    "repo_root": "C:\\VettedCare.ai\\vettedcare-backend",
+    "processed_providers": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\processed_providers.json",
+    "active_shifts": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\active_shifts.json",
+    "reconciled_timesheets": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\reconciled_timesheets.json",
+    "backup_dispatches": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\backup_dispatches.json",
+    "desk_pipeline_runs": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\desk_pipeline_runs.json",
+    "ops_console": "C:\\VettedCare.ai\\vettedcare-backend\\ui_dashboard\\ops_console.py"
+  },
+  "api_recruitment_prefix": "/api/vettedcare/manus/recruitment",
+  "api_credential_prefix": "/api/vettedcare/manus",
+  "generated_at_utc": "2026-06-26T23:44:41.552135+00:00",
+  "api_endpoints": {
+    "handoff": "http://127.0.0.1:8000/api/vettedcare/manus/desk/handoff",
+    "run": "http://127.0.0.1:8000/api/vettedcare/manus/desk/run",
+    "run_production": "http://127.0.0.1:8000/api/vettedcare/manus/desk/run-production",
+    "run_production_live": "http://127.0.0.1:8000/api/vettedcare/manus/desk/run-production-live"
+  },
+  "auth_header": "X-Manus-Key"
+}

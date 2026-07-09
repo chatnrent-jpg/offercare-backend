@@ -1,0 +1,73 @@
+{
+  "mode": "STAGING",
+  "live_execution": false,
+  "product": "VettedCare.ai Timesheet Reconciliation Desk",
+  "processed_at_utc": "2026-06-26T20:42:22.946396+00:00",
+  "timesheet_count": 2,
+  "overtime_compliance_holds": 1,
+  "rate_card": {
+    "bill_rates": {
+      "CNA": 45.0,
+      "LPN": 65.0
+    },
+    "pay_rates": {
+      "CNA": 30.0,
+      "LPN": 45.0
+    }
+  },
+  "comar_guardrails": {
+    "max_single_shift_hours": 12,
+    "weekly_overtime_threshold_hours": 40,
+    "overtime_multiplier": 1.5
+  },
+  "timesheets": [
+    {
+      "timesheet_id": "fb7e2c35-e954-46ff-9dc4-1191e5e156f0",
+      "order_id": "eb1ac566-7331-4af0-aa14-6a7077614773",
+      "facility_name": "Arbor Ridge at Riderwood",
+      "facility_type": "SNF",
+      "county": "Montgomery",
+      "provider_name": "Aisha Thompson",
+      "provider_license_number": "CNA-MD-88421",
+      "role": "CNA",
+      "scheduled_hours": 8,
+      "hours_worked": 8.0,
+      "shift_timestamp": "2026-06-27T07:00:00+00:00",
+      "bill_rate": 45.0,
+      "pay_rate": 30.0,
+      "gross_bill_amount": 360.0,
+      "gross_pay_amount": 240.0,
+      "desk_margin": 120.0,
+      "overtime_hours": 0.0,
+      "overtime_penalty": 0.0,
+      "comar_max_single_shift_hours": 12,
+      "status": "RECONCILED",
+      "invoice_generation_halted": false,
+      "reconciled_at_utc": "2026-06-26T20:42:22.946361+00:00"
+    },
+    {
+      "timesheet_id": "55d8615e-ec12-4647-b685-55a27c243595",
+      "order_id": "abef900e-f15b-46c5-a837-47a36ff7e9a2",
+      "facility_name": "Adelphi Nursing and Rehabilitation Center",
+      "facility_type": "SNF",
+      "county": "Prince George's",
+      "provider_name": "Carmen Delgado",
+      "provider_license_number": "LPN-MD-55290",
+      "role": "LPN",
+      "scheduled_hours": 8,
+      "hours_worked": 14.0,
+      "shift_timestamp": "2026-06-28T07:00:00+00:00",
+      "bill_rate": 65.0,
+      "pay_rate": 45.0,
+      "gross_bill_amount": 910.0,
+      "gross_pay_amount": 675.0,
+      "desk_margin": 235.0,
+      "overtime_hours": 2.0,
+      "overtime_penalty": 135.0,
+      "comar_max_single_shift_hours": 12,
+      "status": "OVERTIME_COMPLIANCE_HOLD",
+      "invoice_generation_halted": true,
+      "reconciled_at_utc": "2026-06-26T20:42:22.946387+00:00"
+    }
+  ]
+}

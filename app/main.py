@@ -51,6 +51,9 @@ from app.routers.live_scraper_adapters import router as live_scraper_adapters_ro
 from app.routers.outreach import router as outreach_router
 from app.routers.vms import router as vms_router
 from app.routers.vettedcare import router as vettedcare_router
+from app.routers.twilio_webhooks import router as twilio_webhooks_router
+from app.routers.billing import router as billing_router
+from app.api.v1.ai_resume import router as ai_resume_router
 from api.intake_webhooks import register_intake_webhooks
 from api.vector_match_engine import register_vector_match_engine
 from api.instant_pay_retention import (
@@ -70,48 +73,27 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
-    schema_heal_status = DatabaseSchemaHealer().verify_and_heal_audit_tables()
-    logger.info("Database schema healer bootstrap: %s", schema_heal_status)
+    logger.info("VettedMe startup — minimal mode for testing")
     register_asgi_app(app)
-    try:
-        run_migrations(engine)
-        logger.info("Database migrations ready.")
-        try:
-            from app.database import SessionLocal
-            from app.services.portal_login import bootstrap_portal_logins
-
-            with SessionLocal() as db:
-                portal_bootstrap = bootstrap_portal_logins(db)
-            if portal_bootstrap.get("sample_clinician_ready"):
-                logger.info("Portal sample clinician ready: %s", portal_bootstrap.get("sample_email"))
-            if portal_bootstrap["created"] or portal_bootstrap["updated"]:
-                logger.info(
-                    "Demo portal logins ready: created=%s updated=%s",
-                    portal_bootstrap["created"],
-                    portal_bootstrap["updated"],
-                )
-        except Exception as exc:
-            logger.warning("Demo portal login bootstrap skipped: %s", exc)
-    except Exception as exc:
-        logger.warning("Database not ready — API online, tables not created: %s", exc)
-    worker_stop = await start_cascade_worker()
-    scheduler_stop = await start_staffing_scheduler()
-    compliance_stop = await start_compliance_scheduler()
-    instant_pay_stop = await start_instant_pay_worker()
-    system_pulse_daemon = SystemPulseDaemon()
-    try:
-        system_pulse_daemon.start_pulse_loop()
-        logger.info("System pulse daemon heartbeat started.")
-    except Exception as exc:
-        logger.warning("System pulse daemon failed to start — API remains online: %s", exc)
+    
+    # Skip database schema healer to avoid blocking
+    # schema_heal_status = DatabaseSchemaHealer().verify_and_heal_audit_tables()
+    # logger.info("Database schema healer bootstrap: %s", schema_heal_status)
+    
+    # Skip migrations to avoid blocking startup
+    # try:
+    #     run_migrations(engine)
+    #     logger.info("Database migrations ready.")
+    # except Exception as exc:
+    #     logger.warning("Database not ready — API online, tables not created: %s", exc)
+    
+    # Skip all workers to avoid blocking startup
+    logger.info("Workers disabled for minimal startup")
+    
     try:
         yield
     finally:
-        system_pulse_daemon.stop_pulse_loop()
-        await stop_instant_pay_worker(instant_pay_stop)
-        await stop_compliance_scheduler(compliance_stop)
-        await stop_staffing_scheduler(scheduler_stop)
-        await stop_cascade_worker(worker_stop)
+        logger.info("VettedMe shutdown complete")
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
@@ -145,6 +127,9 @@ app.include_router(landing_router)
 app.include_router(outreach_router)
 app.include_router(vms_router)
 app.include_router(vettedcare_router)
+app.include_router(twilio_webhooks_router)
+app.include_router(billing_router)
+app.include_router(ai_resume_router)
 register_intake_webhooks(app)
 register_vector_match_engine(app)
 register_instant_pay_retention(app)

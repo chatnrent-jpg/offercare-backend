@@ -1,0 +1,246 @@
+================================================================================
+VettedCare.ai — Full Test Sweep Report
+================================================================================
+
+Timestamp: 2026-07-06T18:40:27.428459
+
+Enterprise Component Tests:
+  Status: PASS
+  Time: 19.12s
+
+--- Output ---
+============================= test session starts =============================
+platform win32 -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\vettedcare.ai\vettedcare-backend
+configfile: pytest.ini
+plugins: anyio-4.13.0, langsmith-0.8.2, logfire-4.32.1, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 39 items
+
+tests/test_circuit_breaker.py::test_circuit_breaker_timeout_triggers_fallback PASSED [  2%]
+tests/test_circuit_breaker.py::test_circuit_breaker_open_routes_to_fallback_immediately PASSED [  5%]
+tests/test_circuit_breaker.py::test_circuit_breaker_upstream_exception_triggers_fallback PASSED [  7%]
+tests/test_circuit_breaker.py::test_circuit_breaker_half_open_recovery PASSED [ 10%]
+tests/test_circuit_breaker.py::test_circuit_breaker_manual_reset PASSED  [ 12%]
+tests/test_circuit_breaker.py::test_circuit_breaker_fallback_failure PASSED [ 15%]
+tests/test_circuit_breaker.py::test_circuit_breaker_concurrent_safety PASSED [ 17%]
+tests/test_semantic_matcher.py::test_dry_run_vector_generation_dimensions PASSED [ 20%]
+tests/test_semantic_matcher.py::test_dry_run_empty_text_handling PASSED  [ 23%]
+tests/test_semantic_matcher.py::test_license_restriction_cna_blocked_from_lpn PASSED [ 25%]
+tests/test_semantic_matcher.py::test_license_compatibility_matrix PASSED [ 28%]
+tests/test_semantic_matcher.py::test_fallback_execution_speed PASSED     [ 30%]
+tests/test_semantic_matcher.py::test_batch_matching_performance PASSED   [ 33%]
+tests/test_semantic_matcher.py::test_score_calculation_consistency PASSED [ 35%]
+tests/test_semantic_matcher.py::test_similarity_score_range PASSED       [ 38%]
+tests/test_semantic_matcher.py::test_full_matching_workflow_integration PASSED [ 41%]
+tests/test_semantic_matcher.py::test_initialize_pgvector_indices PASSED  [ 43%]
+tests/test_bias_auditor.py::test_ledger_initialization PASSED            [ 46%]
+tests/test_bias_auditor.py::test_genesis_block_first_record PASSED       [ 48%]
+tests/test_bias_auditor.py::test_sequential_hash_chaining PASSED         [ 51%]
+tests/test_bias_auditor.py::test_ledger_integrity_verification_passes PASSED [ 53%]
+tests/test_bias_auditor.py::test_ledger_integrity_verification_fails_on_tampering PASSED [ 56%]
+tests/test_bias_auditor.py::test_ledger_integrity_chain_break_detection PASSED [ 58%]
+tests/test_bias_auditor.py::test_empty_ledger_verification PASSED        [ 61%]
+tests/test_bias_auditor.py::test_deterministic_payload_serialization PASSED [ 64%]
+tests/test_bias_auditor.py::test_audit_trail_retrieval PASSED            [ 66%]
+tests/test_vms_pipeline.py::test_process_valid_vms_payload PASSED        [ 69%]
+tests/test_vms_pipeline.py::test_payload_validation_missing_fields PASSED [ 71%]
+tests/test_vms_pipeline.py::test_conflict_overlap_detection PASSED       [ 74%]
+tests/test_vms_pipeline.py::test_no_conflict_different_facilities PASSED [ 76%]
+tests/test_vms_pipeline.py::test_concurrent_ingestion_no_deadlocks PASSED [ 79%]
+tests/test_vms_pipeline.py::test_stress_stream_chaos_distribution PASSED [ 82%]
+tests/test_vms_pipeline.py::test_stress_stream_realistic_data PASSED     [ 84%]
+tests/test_vms_pipeline.py::test_vms_schema_initialization PASSED        [ 87%]
+tests/test_vms_pipeline.py::test_execute_stress_test PASSED              [ 89%]
+tests/test_unified_matching_engine.py::test_infrastructure_initialization PASSED [ 92%]
+tests/test_unified_matching_engine.py::test_full_workflow_license_compliance_pass PASSED [ 94%]
+tests/test_unified_matching_engine.py::test_license_compliance_failure_cna_to_lpn PASSED [ 97%]
+tests/test_unified_matching_engine.py::test_circuit_breaker_status_monitoring PASSED [100%]
+
+============================= 39 passed in 3.79s ==============================
+
+
+Full Test Suite:
+  Status: FAIL
+  Time: 21.27s
+
+--- Output ---
+============================= test session starts =============================
+platform win32 -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\vettedcare.ai\vettedcare-backend
+configfile: pytest.ini
+plugins: anyio-4.13.0, langsmith-0.8.2, logfire-4.32.1, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 623 items / 10 errors
+
+=================================== ERRORS ====================================
+_________________ ERROR collecting tests/test_api_matching.py _________________
+tests\test_api_matching.py:20: in <module>
+    from app.api.v1.matching import get_bias_auditor, get_circuit_breaker, get_semantic_matcher
+app\api\v1\__init__.py:20: in <module>
+    from app.api.v1 import auth, matching, shifts
+app\api\v1\auth.py:36: in <module>
+    router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:787: in __init__
+    super().__init__(
+E   TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+____________ ERROR collecting tests/test_compliance_foundation.py _____________
+ImportError while importing test module 'C:\vettedcare.ai\vettedcare-backend\tests\test_compliance_foundation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:507: in importtestmodule
+    mod = import_path(
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+tests\test_compliance_foundation.py:14: in <module>
+    from app.services.credentialing_pipeline import run_full_credentialing_screen
+app\services\credentialing_pipeline.py:13: in <module>
+    from app.services.mbon_verification import mbon_result_to_json, verify_mbon_license
+E   ImportError: cannot import name 'verify_mbon_license' from 'app.services.mbon_verification' (C:\vettedcare.ai\vettedcare-backend\app\services\mbon_verification.py)
+_______________ ERROR collecting tests/test_maryland_market.py ________________
+ImportError while importing test module 'C:\vettedcare.ai\vettedcare-backend\tests\test_maryland_market.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:507: in importtestmodule
+    mod = import_path(
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+tests\test_maryland_market.py:10: in <module>
+    from compliance.md_licensure_validator import (
+compliance\md_licensure_validator.py:23: in <module>
+    from app.services.mbon_verification import MbonVerificationResult, verify_mbon_license
+E   ImportError: cannot import name 'verify_mbon_license' from 'app.services.mbon_verification' (C:\vettedcare.ai\vettedcare-backend\app\services\mbon_verification.py)
+_________________ ERROR collecting tests/test_portal_auth.py __________________
+tests\test_portal_auth.py:8: in <module>
+    from app.main import PORTAL_BUILD_ID
+app\main.py:38: in <module>
+    from app.routers.deploy import router as deploy_router
+app\routers\deploy.py:96: in <module>
+    router = APIRouter(prefix="/api/deploy", tags=["deploy"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:787: in __init__
+    super().__init__(
+E   TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+___________________ ERROR collecting tests/test_step129.py ____________________
+ImportError while importing test module 'C:\vettedcare.ai\vettedcare-backend\tests\test_step129.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:507: in importtestmodule
+    mod = import_path(
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+tests\test_step129.py:15: in <module>
+    from app.services.credentialing_pipeline import run_full_credentialing_screen
+app\services\credentialing_pipeline.py:13: in <module>
+    from app.services.mbon_verification import mbon_result_to_json, verify_mbon_license
+E   ImportError: cannot import name 'verify_mbon_license' from 'app.services.mbon_verification' (C:\vettedcare.ai\vettedcare-backend\app\services\mbon_verification.py)
+___________________ ERROR collecting tests/test_step133.py ____________________
+tests\test_step133.py:15: in <module>
+    from app.main import app
+app\main.py:38: in <module>
+    from app.routers.deploy import router as deploy_router
+app\routers\deploy.py:96: in <module>
+    router = APIRouter(prefix="/api/deploy", tags=["deploy"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:787: in __init__
+    super().__init__(
+E   TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+_________ ERROR collecting tests/test_step17_portal_demo_lockable.py __________
+tests\test_step17_portal_demo_lockable.py:13: in <module>
+    from app.main import PORTAL_BUILD_ID
+app\main.py:38: in <module>
+    from app.routers.deploy import router as deploy_router
+app\routers\deploy.py:96: in <module>
+    router = APIRouter(prefix="/api/deploy", tags=["deploy"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:787: in __init__
+    super().__init__(
+E   TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+___________ ERROR collecting tests/test_step19_portal_placements.py ___________
+tests\test_step19_portal_placements.py:10: in <module>
+    from app.main import PORTAL_BUILD_ID
+app\main.py:38: in <module>
+    from app.routers.deploy import router as deploy_router
+app\routers\deploy.py:96: in <module>
+    router = APIRouter(prefix="/api/deploy", tags=["deploy"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:787: in __init__
+    super().__init__(
+E   TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+__________ ERROR collecting tests/test_step20_portal_vms_dispatch.py __________
+tests\test_step20_portal_vms_dispatch.py:10: in <module>
+    from app.main import PORTAL_BUILD_ID
+app\main.py:38: in <module>
+    from app.routers.deploy import router as deploy_router
+app\routers\deploy.py:96: in <module>
+    router = APIRouter(prefix="/api/deploy", tags=["deploy"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:787: in __init__
+    super().__init__(
+E   TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+____________ ERROR collecting tests/test_step21_portal_payments.py ____________
+tests\test_step21_portal_payments.py:10: in <module>
+    from app.main import PORTAL_BUILD_ID
+app\main.py:38: in <module>
+    from app.routers.deploy import router as deploy_router
+app\routers\deploy.py:96: in <module>
+    router = APIRouter(prefix="/api/deploy", tags=["deploy"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Henry Okojie\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:787: in __init__
+    super().__init__(
+E   TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+=========================== short test summary info ===========================
+ERROR tests/test_api_matching.py - TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+ERROR tests/test_compliance_foundation.py
+ERROR tests/test_maryland_market.py
+ERROR tests/test_portal_auth.py - TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+ERROR tests/test_step129.py
+ERROR tests/test_step133.py - TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+ERROR tests/test_step17_portal_demo_lockable.py - TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+ERROR tests/test_step19_portal_placements.py - TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+ERROR tests/test_step20_portal_vms_dispatch.py - TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+ERROR tests/test_step21_portal_payments.py - TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'
+!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 10 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+============================= 10 errors in 17.70s =============================

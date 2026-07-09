@@ -1,20 +1,20 @@
-# VettedCare + Manus daily workflow
+# VettedMe + Manus daily workflow
 
 **You operate. Cursor builds. Manus works.**
 
 | Role | Who | Responsibility |
 |------|-----|----------------|
 | Operator | You | Priorities, alert rules, exceptions |
-| Engineer | Cursor | VettedCare API, admin, audit, status engine |
+| Engineer | Cursor | VettedMe API, admin, audit, status engine |
 | Worker | Manus | Fetch queue, run checks, POST evidence |
 
-**Manus acts. VettedCare decides.**
+**Manus acts. VettedMe decides.**
 
 ---
 
 ## Step 0 — one-time setup
 
-1. Start VettedCare: double-click **VettedCare.ai** on your desktop.
+1. Start VettedMe: double-click **VettedMe** on your desktop.
 2. In `.env`, set:
    - `MANUS_API_KEY` — shared secret for Manus only
    - `PUBLIC_BASE_URL=http://127.0.0.1:8000` (or your public URL later)
@@ -104,14 +104,14 @@ X-Manus-Key: <MANUS_API_KEY>
 }
 ```
 
-VettedCare then:
+VettedMe then:
 
 - Stores the run
 - Recomputes **CLEAR / EXPIRING / ACTION NEEDED / BLOCKED**
 - Writes audit events
 - Sends alerts when required
 
-Manus `recommended_status` is logged but **never overrides** VettedCare.
+Manus `recommended_status` is logged but **never overrides** VettedMe.
 
 ---
 
@@ -130,7 +130,7 @@ Approve exceptions or adjust rules — Manus keeps running on schedule.
 ## Manus task prompt (paste into Manus)
 
 ```
-You are the VettedCare.ai autonomous vetting worker.
+You are the VettedMe.ai autonomous vetting worker.
 
 Base URL: http://127.0.0.1:8000
 Auth header: X-Manus-Key: <your key>
@@ -145,7 +145,7 @@ Daily loop:
 Rules:
 - Submit factual evidence only (source URLs + notes)
 - Do not invent pass/fail results
-- VettedCare computes final safety status — you do not override it
+- VettedMe computes final safety status — you do not override it
 - Skip providers you cannot verify; use result PENDING with notes
 ```
 

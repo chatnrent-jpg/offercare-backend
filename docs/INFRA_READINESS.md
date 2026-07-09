@@ -1,4 +1,4 @@
-# VettedCare infrastructure checklist (no Manus required)
+# VettedMe infrastructure checklist (no Manus required)
 
 Work through these **in order**. None require live operations, real clinicians, or a Manus account.
 
@@ -37,10 +37,10 @@ Work through these **in order**. None require live operations, real clinicians, 
 ## Quick commands
 
 ```powershell
-cd C:\VettedCare.ai\vettedcare-backend
+cd C:\VettedMe.ai\vettedcare-backend
 
 # Start platform
-..\start-all.bat   # or desktop VettedCare.ai shortcut
+..\start-all.bat   # or desktop VettedMe.ai shortcut
 
 # Pre-flight
 .\scripts\vettedcare-preflight.ps1

@@ -1,0 +1,89 @@
+{
+  "mode": "SIMULATION_STAGING",
+  "live_execution": false,
+  "product": "VettedCare.ai Maryland B2B Outreach Queue",
+  "manus_instruction": "REVIEW_ONLY — do not send email or SMS until operations sign-off",
+  "count": 10,
+  "queue": [
+    {
+      "facility_id": 1,
+      "facility_name": "Adelphi Nursing and Rehabilitation Center",
+      "recipient_email": "administrator@adelphirehab.com",
+      "recipient_name": "Michelle Carter",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Michelle Carter,\n\nI am reaching out from VettedCare.ai regarding skilled nursing staffing support for Adelphi Nursing and Rehabilitation Center in Prince George's County.\n\nMaryland operators are carrying more census volatility and agency spend than ever — and credential risk on the floor is no longer a back-office problem. VettedCare.ai deploys a Maryland-specific GNA compliance firewall: every CNA is run through automated MBON verification and active GNA endorsement checks before they enter your staffing queue.\n\nFor Adelphi, that means fewer surprise send-backs, cleaner survey posture, and lookahead shift matching that surfaces only compliance-cleared clinicians for your SNF environment.\n\nIf staffing pressure is building on your nursing leadership team, I would welcome a brief conversation to outline a same-week coverage plan tailored to your operation.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 2,
+      "facility_name": "Arbor Ridge at Riderwood",
+      "recipient_email": "don@ericksonliving.com",
+      "recipient_name": "Patricia Nguyen",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Patricia Nguyen,\n\nVettedCare.ai partners with Director of Nursing leaders across Montgomery County to place MBON-cleared CNA, GNA, and LPN coverage without the credential friction that disrupts patient care.\n\nOur Maryland-specific GNA compliance firewall ensures that no CNA appears in your Arbor Ridge at Riderwood staffing pipeline without verified GNA endorsement and active Maryland Board of Nursing status. That structural gate reduces floor-level risk and protects your team from last-minute agency replacements driven by compliance gaps.\n\nWe combine county-aware clinician routing with lookahead matching so your DON desk sees only vetted profiles — not a flood of unverified resumes.\n\nI would appreciate 15 minutes to walk through how this model can relieve staffing strain at Arbor Ridge this quarter.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 3,
+      "facility_name": "Autumn Lake Healthcare at Ballenger Creek",
+      "recipient_email": "administrator@autumnlakehealthcare.com",
+      "recipient_name": "James Holloway",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear James Holloway,\n\nI am writing from VettedCare.ai to introduce a staffing model built for Maryland skilled nursing operators like Autumn Lake Healthcare at Ballenger Creek.\n\nAgency spend and shift call-outs are only half the battle — the other half is credential integrity. VettedCare.ai's Maryland-specific GNA compliance firewall verifies every CNA through MBON and confirms GNA endorsement before placement. Your administrators and DON team receive a shortlist of compliance-cleared clinicians, not liability on the margin.\n\nFor Frederick County SNF operations, we align regional coverage with the compliance gate so admissions and census goals are not undermined by preventable credential failures.\n\nI would welcome the opportunity to discuss a practical staffing plan for your campus.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 4,
+      "facility_name": "Autumn Lake Healthcare at Baltimore Washington",
+      "recipient_email": "don@autumnlakehealthcare.com",
+      "recipient_name": "Sandra Ellis",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Sandra Ellis,\n\nVettedCare.ai supports DON teams across Anne Arundel County with on-demand CNA, GNA, and LPN staffing anchored in automated Maryland compliance vetting.\n\nAt Autumn Lake Healthcare at Baltimore Washington, our Maryland-specific GNA compliance firewall blocks non-endorsed CNAs before they reach your schedule — eliminating a common source of shift disruption in SNF environments. Every clinician is MBON-verified upstream so your nursing leadership can focus on census and care quality, not credential fire drills.\n\nWe are local to the Maryland LTC market and built for operators who need structural firmness in compliance, not another generic agency list.\n\nMay we schedule a short call to review coverage options for your unit mix?\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 5,
+      "facility_name": "Autumn Lake Healthcare at Arlington West",
+      "recipient_email": "administrator@autumnlakehealthcare.com",
+      "recipient_name": "Robert Gaines",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Robert Gaines,\n\nI represent VettedCare.ai, a Maryland-focused staffing platform for skilled nursing and post-acute operators.\n\nAutumn Lake Healthcare at Arlington West faces the same pressures as every Baltimore County SNF: tight labor pools, rising agency rates, and zero tolerance for credential gaps on the floor. Our Maryland-specific GNA compliance firewall addresses the third problem directly — CNAs are MBON-verified and GNA-endorsed before they are presented for placement.\n\nThat means your administrative and nursing teams spend less time on send-backs and more time on stable staffing coverage.\n\nI would be glad to share how we structure same-week CNA/LPN support for Autumn Lake facilities in the region.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 6,
+      "facility_name": "Anchorage Healthcare Center",
+      "recipient_email": "don@anchoragehealthcare.com",
+      "recipient_name": "Angela Brooks",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Angela Brooks,\n\nVettedCare.ai works with nursing leadership at Maryland SNFs to deliver compliance-first CNA and LPN coverage — including Anchorage Healthcare Center in Baltimore.\n\nStaffing pain is rarely just volume; it is reliability under regulatory scrutiny. Our Maryland-specific GNA compliance firewall ensures every CNA in your pipeline carries verified GNA endorsement and active MBON standing before shift assignment. That is the difference between filling a slot and filling it safely.\n\nWe pair the firewall with lookahead matching so your DON desk sees cleared clinicians aligned to your unit needs and county footprint.\n\nI would welcome a brief introduction call at your convenience.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 7,
+      "facility_name": "FutureCare Northpoint",
+      "recipient_email": "administrator@futurecare.com",
+      "recipient_name": "Maria Johnson",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Maria Johnson,\n\nI am contacting you from VettedCare.ai regarding staffing support for FutureCare Northpoint in Baltimore.\n\nFutureCare operators understand that census and quality metrics depend on stable nursing coverage — and that coverage must be compliance-clean. VettedCare.ai applies a Maryland-specific GNA compliance firewall: automated MBON verification plus mandatory GNA endorsement checks for every CNA before dispatch.\n\nFor your SNF, that translates to fewer disrupted shifts, lower agency escalation, and a staffing partner that treats Maryland licensure rules as infrastructure, not paperwork.\n\nI would appreciate the chance to outline a coverage snapshot tailored to Northpoint's current needs.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 8,
+      "facility_name": "Brightview Bethesda Assisted Living",
+      "recipient_email": "administrator@brightviewbethesda.com",
+      "recipient_name": "David Chen",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear David Chen,\n\nVettedCare.ai supports assisted living administrators across Montgomery County with dependable caregiver staffing backed by Maryland licensure verification.\n\nWhile Brightview Bethesda Assisted Living operates in the ALF segment, the same staffing pains apply: call-outs, agency dependency, and the need for clinicians who arrive credentialed and ready. Our Maryland-specific GNA compliance firewall and MBON verification gate ensure that every caregiver presented through VettedCare.ai is cleared before they reach your schedule.\n\nWe help ALF leaders reduce administrative drag and stabilize coverage without compromising regulatory posture.\n\nMay we connect for a short discussion on staffing support for your community?\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 9,
+      "facility_name": "Sunrise at Montgomery Village",
+      "recipient_email": "don@sunriseseniorliving.com",
+      "recipient_name": "Lisa Morgan",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Lisa Morgan,\n\nI am writing from VettedCare.ai to introduce compliance-forward staffing support for Sunrise at Montgomery Village.\n\nAssisted living and memory-care operators in Montgomery County are competing for the same finite pool of qualified caregivers. VettedCare.ai differentiates with a Maryland-specific GNA compliance firewall and automated MBON verification — so your nursing and programming teams receive clinicians who are credentialed before they step on campus.\n\nThat reduces onboarding friction, limits agency surprises, and gives your leadership team a predictable staffing channel.\n\nI would welcome 15 minutes to discuss how we can support Sunrise at Montgomery Village this quarter.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    },
+    {
+      "facility_id": 10,
+      "facility_name": "CommuniCare Silver Spring",
+      "recipient_email": "administrator@communicare.org",
+      "recipient_name": "Robert Lee",
+      "outreach_status": "SIMULATION_STAGING",
+      "personalized_message_body": "Dear Robert Lee,\n\nVettedCare.ai partners with Maryland ALF administrators to deliver CNA and LPN coverage with compliance built into the workflow — including CommuniCare Silver Spring.\n\nStaffing instability drives cost and resident-experience risk. Our Maryland-specific GNA compliance firewall verifies MBON standing and applicable Maryland credential rules before any clinician is offered for placement. You get a cleared bench, not a liability queue.\n\nFor Montgomery County operators, we combine regional matching with the compliance gate so your team spends less time chasing credentials and more time maintaining census.\n\nI would be pleased to arrange a brief call to review a staging coverage plan for your community.\n\nRespectfully,\nVettedCare.ai Staffing Desk\nStaging outreach — not for live dispatch"
+    }
+  ]
+}

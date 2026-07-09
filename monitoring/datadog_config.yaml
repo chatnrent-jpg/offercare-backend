@@ -1,0 +1,243 @@
+# DataDog Monitoring Configuration for VettedPulse
+
+---
+# Application Performance Monitoring (APM)
+apm:
+  enabled: true
+  service_name: vettedpulse-backend
+  env: production
+  
+  # Trace sampling
+  sampling:
+    priority_sampling: true
+    rate: 1.0  # 100% sampling (adjust in production)
+  
+  # Custom spans for critical operations
+  custom_spans:
+    - name: wave_dispatch
+      resource: WaveMatchDispatcher.trigger_wave_dispatch
+      service: matching-engine
+    
+    - name: billing_calculation
+      resource: B2BInvoicingEngine.calculate_invoice
+      service: billing-engine
+    
+    - name: mbon_verification
+      resource: MBONVerificationService.verify_license
+      service: compliance-engine
+
+---
+# Logging Configuration
+logs:
+  enabled: true
+  source: python
+  service: vettedpulse-backend
+  
+  # Log levels
+  levels:
+    - ERROR
+    - WARNING
+    - INFO
+  
+  # Custom log parsing
+  processing_rules:
+    - type: exclude_at_match
+      name: exclude_health_checks
+      pattern: "GET /health"
+    
+    - type: mask_sequences
+      name: mask_ssn
+      pattern: '\d{3}-\d{2}-\d{4}'
+      replace_placeholder: "***-**-****"
+    
+    - type: mask_sequences
+      name: mask_phone
+      pattern: '\+1\d{10}'
+      replace_placeholder: "+1**********"
+
+---
+# Metrics Configuration
+metrics:
+  enabled: true
+  prefix: vettedpulse
+  
+  # Custom metrics
+  custom_metrics:
+    # Business metrics
+    - name: shifts.posted
+      type: count
+      tags:
+        - service:platform
+        - category:business
+    
+    - name: shifts.filled
+      type: count
+      tags:
+        - service:platform
+        - category:business
+    
+    - name: shifts.cancelled
+      type: count
+      tags:
+        - service:platform
+        - category:business
+    
+    - name: providers.active
+      type: gauge
+      tags:
+        - service:platform
+        - category:users
+    
+    - name: facilities.active
+      type: gauge
+      tags:
+        - service:platform
+        - category:users
+    
+    # Performance metrics
+    - name: wave_dispatch.duration
+      type: histogram
+      tags:
+        - service:matching-engine
+        - category:performance
+    
+    - name: billing.calculation_time
+      type: histogram
+      tags:
+        - service:billing-engine
+        - category:performance
+    
+    - name: geofence.check_duration
+      type: histogram
+      tags:
+        - service:geofence
+        - category:performance
+    
+    # Reliability metrics
+    - name: mbon.verification_success_rate
+      type: rate
+      tags:
+        - service:compliance-engine
+        - category:reliability
+    
+    - name: sms.delivery_rate
+      type: rate
+      tags:
+        - service:notifications
+        - category:reliability
+
+---
+# Alerts Configuration
+alerts:
+  # Critical alerts (Page immediately)
+  critical:
+    - name: high_error_rate
+      query: "avg(last_5m):sum:vettedpulse.errors{*} > 10"
+      message: "🚨 CRITICAL: Error rate exceeds 10/5min"
+      notify:
+        - "@pagerduty-critical"
+        - "@slack-alerts"
+    
+    - name: database_connection_pool_exhausted
+      query: "avg(last_5m):max:postgresql.connections.active{*} / max:postgresql.connections.max{*} > 0.9"
+      message: "🚨 CRITICAL: Database connection pool at 90%"
+      notify:
+        - "@pagerduty-critical"
+    
+    - name: wave_dispatch_failure_rate
+      query: "avg(last_15m):sum:vettedpulse.wave_dispatch.failures{*} / sum:vettedpulse.wave_dispatch.total{*} > 0.1"
+      message: "🚨 CRITICAL: Wave dispatch failure rate > 10%"
+      notify:
+        - "@pagerduty-critical"
+  
+  # Warning alerts (Notify but don't page)
+  warning:
+    - name: high_response_time
+      query: "avg(last_10m):avg:trace.fastapi.request.duration{*} > 0.5"
+      message: "⚠️ WARNING: Average API response time > 500ms"
+      notify:
+        - "@slack-alerts"
+    
+    - name: sms_delivery_issues
+      query: "avg(last_30m):sum:vettedpulse.sms.delivery_rate{*} < 0.95"
+      message: "⚠️ WARNING: SMS delivery rate < 95%"
+      notify:
+        - "@slack-alerts"
+    
+    - name: billing_calculation_slow
+      query: "avg(last_15m):avg:vettedpulse.billing.calculation_time{*} > 2"
+      message: "⚠️ WARNING: Billing calculations taking > 2 seconds"
+      notify:
+        - "@slack-alerts"
+
+---
+# Dashboards
+dashboards:
+  - name: Executive Overview
+    widgets:
+      - title: "Daily Active Users"
+        query: "sum:vettedpulse.providers.active{*}"
+        type: timeseries
+      
+      - title: "Shifts Filled Today"
+        query: "sum:vettedpulse.shifts.filled{*}.as_count()"
+        type: query_value
+      
+      - title: "Fill Rate %"
+        query: "(sum:vettedpulse.shifts.filled{*} / sum:vettedpulse.shifts.posted{*}) * 100"
+        type: query_value
+      
+      - title: "Revenue (Est.)"
+        query: "sum:vettedpulse.billing.total_revenue{*}"
+        type: query_value
+  
+  - name: Platform Health
+    widgets:
+      - title: "API Response Time (p95)"
+        query: "p95:trace.fastapi.request.duration{*}"
+        type: timeseries
+      
+      - title: "Error Rate"
+        query: "sum:vettedpulse.errors{*}.as_rate()"
+        type: timeseries
+      
+      - title: "Database Connections"
+        query: "avg:postgresql.connections.active{*}"
+        type: timeseries
+      
+      - title: "Redis Memory Usage"
+        query: "avg:redis.mem.used{*}"
+        type: timeseries
+  
+  - name: Matching Engine Performance
+    widgets:
+      - title: "Wave Dispatch Success Rate"
+        query: "(sum:vettedpulse.wave_dispatch.success{*} / sum:vettedpulse.wave_dispatch.total{*}) * 100"
+        type: timeseries
+      
+      - title: "Average Match Time"
+        query: "avg:vettedpulse.wave_dispatch.duration{*}"
+        type: timeseries
+      
+      - title: "Providers Contacted per Wave"
+        query: "avg:vettedpulse.wave_dispatch.providers_contacted{*}"
+        type: timeseries
+
+---
+# SLI/SLO Configuration
+slo:
+  - name: API Availability
+    target: 99.9  # 99.9% uptime
+    metric: "sum:vettedpulse.requests.success{*} / sum:vettedpulse.requests.total{*}"
+  
+  - name: API Latency
+    target: 95    # 95% of requests < 500ms
+    metric: "p95:trace.fastapi.request.duration{*} < 0.5"
+  
+  - name: Wave Dispatch Success
+    target: 95    # 95% of dispatches successful
+    metric: "sum:vettedpulse.wave_dispatch.success{*} / sum:vettedpulse.wave_dispatch.total{*}"
+  
+  - name: SMS Delivery
+    target: 98    # 98% SMS delivery rate
+    metric: "sum:vettedpulse.sms.delivered{*} / sum:vettedpulse.sms.sent{*}"

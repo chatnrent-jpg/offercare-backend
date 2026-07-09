@@ -12,7 +12,7 @@ Downloaded: 2026-07-02 from official doc indexes:
 ```
 docs/payroll/
 ├── README.md
-├── W2-MARYLAND-WITHHOLDING-ENDPOINTS.md   ← start here (VettedCare mapping)
+├── W2-MARYLAND-WITHHOLDING-ENDPOINTS.md   ← start here (VettedMe mapping)
 ├── gusto/
 │   ├── llms-index.txt                     ← full Gusto doc index
 │   └── *.md                               ← mirrored guides + endpoint refs
@@ -21,7 +21,7 @@ docs/payroll/
     └── *.md                               ← mirrored guides + endpoint refs
 ```
 
-## VettedCare integration context
+## VettedMe integration context
 
 Our Tier 1 W-2 caregiver accounts store `maryland_residence_county` on `caregiver_w2_employee_accounts` because Maryland **county income tax is based on the employee's home address**, not work location (Gusto support docs). Both providers fold county withholding into Maryland state income tax calculation at payroll run time when home address / tax parameters are configured correctly.
 
