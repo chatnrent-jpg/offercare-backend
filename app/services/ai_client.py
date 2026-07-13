@@ -234,6 +234,130 @@ class AIClient:
             response_format={"type": "json_object"},
         )
     
+    async def structured_pydantic_completion(
+        self,
+        messages: list[dict[str, str]],
+        response_model: type,
+        model: Optional[str] = None,
+        temperature: float = 0.2,
+    ) -> Optional[Any]:
+        """
+        Request structured output using native Pydantic model parsing.
+        Uses OpenAI's Structured Outputs feature for guaranteed schema compliance.
+        
+        Args:
+            messages: List of chat messages
+            response_model: Pydantic model class for response parsing
+            model: Model to use (must support structured outputs, e.g., gpt-4o-2024-08-06)
+            temperature: Sampling temperature (lower for structured output)
+        
+        Returns:
+            Pydantic model instance or None on failure
+        """
+        if not self.enabled:
+            logger.warning("OpenAI client not enabled - returning None")
+            return None
+        
+        # Use model that supports structured outputs
+        model = model or "gpt-4o-2024-08-06"
+        retry_count = 0
+        last_error = None
+        
+        while retry_count <= OPENAI_MAX_RETRIES:
+            try:
+                start_time = time.time()
+                
+                # Use beta.chat.completions.parse for Pydantic models
+                response = await self.client.beta.chat.completions.parse(
+                    model=model,
+                    messages=messages,
+                    response_format=response_model,
+                    temperature=temperature,
+                )
+                
+                elapsed_ms = int((time.time() - start_time) * 1000)
+                
+                # Extract parsed model
+                parsed_model = response.choices[0].message.parsed
+                usage = response.usage
+                
+                # Calculate cost
+                cost = self._calculate_cost(
+                    model=model,
+                    prompt_tokens=usage.prompt_tokens if usage else 0,
+                    completion_tokens=usage.completion_tokens if usage else 0,
+                )
+                
+                self.total_requests += 1
+                self.total_cost += cost
+                
+                logger.info(
+                    "OpenAI structured output completed: model=%s tokens=%s cost=$%s latency=%dms",
+                    model,
+                    usage.total_tokens if usage else 0,
+                    cost,
+                    elapsed_ms,
+                )
+                
+                # Return parsed model with metadata attached
+                if parsed_model:
+                    # Attach metadata as private attributes if model supports it
+                    parsed_model._ai_metadata = {
+                        "model": model,
+                        "prompt_tokens": usage.prompt_tokens if usage else 0,
+                        "completion_tokens": usage.completion_tokens if usage else 0,
+                        "total_tokens": usage.total_tokens if usage else 0,
+                        "cost": float(cost),
+                        "elapsed_ms": elapsed_ms,
+                    }
+                
+                return parsed_model
+            
+            except RateLimitError as e:
+                last_error = e
+                retry_count += 1
+                if retry_count <= OPENAI_MAX_RETRIES:
+                    wait_time = OPENAI_RATE_LIMIT_DELAY * (2 ** (retry_count - 1))
+                    logger.warning(
+                        "OpenAI rate limit hit - retry %d/%d after %.1fs",
+                        retry_count,
+                        OPENAI_MAX_RETRIES,
+                        wait_time,
+                    )
+                    await asyncio.sleep(wait_time)
+                else:
+                    logger.error("OpenAI rate limit exceeded max retries: %s", e)
+            
+            except APITimeoutError as e:
+                last_error = e
+                retry_count += 1
+                if retry_count <= OPENAI_MAX_RETRIES:
+                    logger.warning(
+                        "OpenAI timeout - retry %d/%d",
+                        retry_count,
+                        OPENAI_MAX_RETRIES,
+                    )
+                    await asyncio.sleep(1.0)
+                else:
+                    logger.error("OpenAI timeout exceeded max retries: %s", e)
+            
+            except APIError as e:
+                last_error = e
+                logger.error("OpenAI API error: %s", e)
+                break
+            
+            except Exception as e:
+                last_error = e
+                logger.error("OpenAI unexpected error: %s", e)
+                break
+        
+        logger.error(
+            "OpenAI structured output failed after %d retries: %s",
+            retry_count,
+            last_error,
+        )
+        return None
+    
     def _calculate_cost(
         self,
         model: str,

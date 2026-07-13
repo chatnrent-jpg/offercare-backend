@@ -10,7 +10,9 @@ import logging
 import os
 from typing import Any, Optional
 
+from pydantic import BaseModel
 from app.services.ai_client import get_ai_client, AIClient
+from app.api.v1.schemas import HealthcareCredentialSchema, MarylandLicenseType
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,16 @@ RESUME_CONFIDENCE_THRESHOLD = float(os.getenv("RESUME_CONFIDENCE_THRESHOLD", "0.
 class ResumeParserError(Exception):
     """Base exception for resume parsing operations."""
     pass
+
+
+class MarylandCredentialsExtraction(BaseModel):
+    """
+    Response model for Maryland healthcare credential extraction.
+    Wraps multiple credentials found in resume text.
+    """
+    credentials: list[HealthcareCredentialSchema]
+    extraction_notes: str
+    found_count: int
 
 
 class ResumeParser:
@@ -160,6 +172,91 @@ Return JSON with this exact structure:
         except Exception as e:
             logger.error("Resume parsing error: %s", e)
             return self._graceful_degradation_response(resume_text, candidate_name)
+    
+    async def extract_maryland_credentials(
+        self,
+        resume_text: str,
+        candidate_name: Optional[str] = None,
+    ) -> Optional[MarylandCredentialsExtraction]:
+        """
+        Extract Maryland Board of Nursing credentials using OpenAI Structured Output.
+        
+        Uses the HealthcareCredentialSchema Pydantic model for guaranteed schema compliance.
+        This ensures extracted credentials match our database structure exactly.
+        
+        Args:
+            resume_text: Raw resume text content
+            candidate_name: Optional candidate name for context
+        
+        Returns:
+            MarylandCredentialsExtraction with found credentials or None on failure
+        """
+        if not self.enabled:
+            logger.warning("Resume parser not enabled - credential extraction unavailable")
+            return None
+        
+        if not resume_text or len(resume_text.strip()) < 50:
+            logger.warning("Resume text too short for credential extraction")
+            return None
+        
+        # Construct Maryland-specific credential extraction prompt
+        system_prompt = """You are a Maryland Board of Nursing credential verification specialist.
+
+Your task: Extract ONLY Maryland state nursing licenses from resumes.
+
+**Maryland License Types:**
+- CNA: Certified Nursing Assistant
+- GNA: Geriatric Nursing Assistant (Critical for Assisted Living Facilities)
+- LPN: Licensed Practical Nurse
+- RN: Registered Nurse
+
+**Extraction Rules:**
+1. ONLY extract Maryland licenses (MD, Maryland Board of Nursing, MBON)
+2. License numbers are typically alphanumeric (e.g., "R123456", "CNA-45678")
+3. Expiration dates must be parseable dates (YYYY-MM-DD format)
+4. If expiration date is missing or unclear, omit the credential
+5. Do NOT extract licenses from other states
+6. Do NOT extract certifications (CPR, BLS, ACLS) - only state nursing licenses
+
+**Output:**
+- Return all valid Maryland nursing credentials found
+- Set is_ohcq_verified=false and background_check_passed=false (verification happens separately)
+- Include extraction_notes explaining what you found
+- Set found_count to the number of valid credentials extracted
+
+If NO Maryland licenses are found, return empty credentials list with explanatory notes."""
+        
+        user_prompt = f"Extract Maryland nursing licenses from this resume:\n\n{resume_text}"
+        
+        if candidate_name:
+            user_prompt += f"\n\nCandidate name: {candidate_name}"
+        
+        # Execute AI extraction with Pydantic schema
+        try:
+            extracted = await self.ai_client.structured_pydantic_completion(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                response_model=MarylandCredentialsExtraction,
+                temperature=0.2,  # Very low temperature for precision
+            )
+            
+            if not extracted:
+                logger.error("Maryland credential extraction returned empty response")
+                return None
+            
+            logger.info(
+                "Maryland credentials extracted: found=%d candidate=%s",
+                extracted.found_count,
+                candidate_name or "unknown",
+            )
+            
+            return extracted
+        
+        except Exception as e:
+            logger.error("Maryland credential extraction error: %s", e)
+            return None
     
     async def extract_text_from_file(
         self,

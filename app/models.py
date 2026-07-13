@@ -1301,4 +1301,6 @@ class SecurityEvidenceLedger(Base):
 
 
 # Import AI models
-from app.models.ai_audit import AIAuditLog  # noqa: E402, F401
+# TEMPORARY FIX: Commented out to prevent circular import during server startup
+# This model is imported via app.models/__init__.py instead
+# from app.models.ai_audit import AIAuditLog  # noqa: E402, F401

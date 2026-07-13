@@ -385,3 +385,81 @@ class ErrorResponse(BaseModel):
             ]
         }
     }
+
+
+# ============================================================================
+# MARYLAND-SPECIFIC CERTIFICATION SCHEMAS — Phase 2: Integrity (Compliance)
+# ============================================================================
+
+class MarylandLicenseType(str, Enum):
+    """
+    Maryland Board of Nursing license types.
+    
+    Crucial distinction: GNA (Geriatric Nursing Assistant) is essential
+    for Maryland Assisted Living facilities under COMAR regulations.
+    """
+    CNA = "CNA"   # Certified Nursing Assistant
+    GNA = "GNA"   # Geriatric Nursing Assistant (Crucial for Assisted Living)
+    LPN = "LPN"   # Licensed Practical Nurse
+    RN = "RN"     # Registered Nurse
+
+
+class HealthcareCredentialSchema(BaseModel):
+    """
+    Maryland healthcare credential validation schema.
+    
+    Enforces:
+    - Valid Maryland license type (CNA, GNA, LPN, RN)
+    - Official MBON license number
+    - Future expiration date (active licenses only)
+    - OHCQ registry verification status
+    - Background check clearance status
+    """
+    
+    license_type: MarylandLicenseType = Field(
+        ...,
+        description="Type of MD state nursing credential"
+    )
+    
+    license_number: str = Field(
+        ...,
+        description="Official Maryland Board of Nursing license number"
+    )
+    
+    expiration_date: date = Field(
+        ...,
+        description="Must be a future date to be active"
+    )
+    
+    is_ohcq_verified: bool = Field(
+        default=False,
+        description="Has this passed the OHCQ registry verification check?"
+    )
+    
+    background_check_passed: bool = Field(
+        default=False,
+        description="Criminal background screening status"
+    )
+    
+    @field_validator("expiration_date")
+    @classmethod
+    def check_expiration(cls, v: date) -> date:
+        """
+        Validate license expiration date is in the future.
+        
+        Args:
+            v: Expiration date to validate
+        
+        Returns:
+            Validated expiration date
+        
+        Raises:
+            ValueError: If license has expired
+        """
+        if v < date.today():
+            raise ValueError("License has expired. Cannot authorize candidate for matching.")
+        return v
+
+    model_config = {
+        "from_attributes": True,
+    }

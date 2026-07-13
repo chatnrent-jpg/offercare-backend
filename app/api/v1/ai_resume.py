@@ -218,6 +218,163 @@ async def parse_resume_endpoint(
         )
 
 
+@router.post(
+    "/extract-maryland-credentials",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_admin_api_key)],
+)
+async def extract_maryland_credentials_endpoint(
+    resume_text: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    candidate_name: Optional[str] = Form(None),
+    user_id: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Extract Maryland nursing credentials from resume using AI.
+    
+    **VettedMe Intelligence Pillar - Phase 2**
+    
+    **Authentication Required:** Admin API Key via `X-Admin-Key` header
+    
+    Uses OpenAI Structured Output with Pydantic models to extract:
+    - CNA, GNA, LPN, RN licenses
+    - License numbers
+    - Expiration dates
+    
+    **Returns:**
+    - List of HealthcareCredentialSchema objects
+    - Extraction metadata and confidence metrics
+    - AI audit trail reference
+    
+    **Example:**
+    ```bash
+    curl -X POST http://localhost:8000/api/v1/ai/extract-maryland-credentials \
+      -H "X-Admin-Key: your-admin-key" \
+      -F "file=@resume.pdf" \
+      -F "candidate_name=Jane Smith"
+    ```
+    """
+    # Validate input
+    if not resume_text and not file:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either resume_text or file must be provided",
+        )
+    
+    parser = get_resume_parser()
+    input_text = ""
+    filename = "text_input.txt"
+    audit_id = str(uuid4())
+    
+    try:
+        # Extract text from file if provided
+        if file:
+            filename = file.filename or "unknown.txt"
+            file_content = await file.read()
+            
+            try:
+                input_text = await parser.extract_text_from_file(file_content, filename)
+            except ResumeParserError as e:
+                logger.error("File extraction failed: %s", e)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(e),
+                )
+        else:
+            input_text = resume_text or ""
+        
+        # Validate extracted text
+        if len(input_text.strip()) < 50:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Resume text too short - minimum 50 characters required",
+            )
+        
+        # Extract Maryland credentials
+        extracted = await parser.extract_maryland_credentials(input_text, candidate_name)
+        
+        if not extracted:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Credential extraction failed - AI service unavailable",
+            )
+        
+        # Build audit log
+        input_hash = hashlib.sha256(input_text.encode("utf-8")).hexdigest()
+        
+        # Extract AI metadata if available
+        ai_metadata = getattr(extracted, "_ai_metadata", {})
+        
+        try:
+            audit_log = AIAuditLog(
+                audit_id=audit_id,
+                operation_type="maryland_credential_extraction",
+                model_used=ai_metadata.get("model", "gpt-4o-structured"),
+                user_id=user_id,
+                input_hash=input_hash,
+                input_preview=input_text[:500],
+                output_data=json.dumps({
+                    "credentials": [c.model_dump() for c in extracted.credentials],
+                    "extraction_notes": extracted.extraction_notes,
+                    "found_count": extracted.found_count,
+                }, default=str),
+                confidence_score=1.0 if extracted.found_count > 0 else 0.0,
+                tokens_used=ai_metadata.get("total_tokens"),
+                cost_usd=ai_metadata.get("cost"),
+                elapsed_ms=ai_metadata.get("elapsed_ms"),
+                status="SUCCESS",
+            )
+            db.add(audit_log)
+            db.commit()
+            logger.info("Maryland credential extraction audit log created: %s", audit_id)
+        except Exception as e:
+            logger.error("Failed to create audit log: %s", e)
+            db.rollback()
+        
+        # Return results
+        return {
+            "audit_id": audit_id,
+            "candidate_name": candidate_name or "Unknown",
+            "credentials": [c.model_dump() for c in extracted.credentials],
+            "extraction_notes": extracted.extraction_notes,
+            "found_count": extracted.found_count,
+            "tokens_used": ai_metadata.get("total_tokens"),
+            "cost_usd": ai_metadata.get("cost"),
+            "elapsed_ms": ai_metadata.get("elapsed_ms"),
+        }
+    
+    except HTTPException:
+        raise
+    
+    except Exception as e:
+        logger.error("Maryland credential extraction endpoint error: %s", e)
+        
+        # Log failure
+        try:
+            audit_log = AIAuditLog(
+                audit_id=audit_id,
+                operation_type="maryland_credential_extraction",
+                model_used="error",
+                user_id=user_id,
+                input_hash=hashlib.sha256(input_text.encode("utf-8")).hexdigest() if input_text else "error",
+                input_preview=input_text[:500] if input_text else "error",
+                output_data=json.dumps({"error": str(e)}, default=str),
+                status="FAILED",
+                error_message=str(e),
+            )
+            db.add(audit_log)
+            db.commit()
+        except Exception as audit_error:
+            logger.error("Failed to log error: %s", audit_error)
+            db.rollback()
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Maryland credential extraction failed: {str(e)}",
+        )
+
+
 @router.get(
     "/audit/{audit_id}",
     response_model=AIAuditLogEntry,
