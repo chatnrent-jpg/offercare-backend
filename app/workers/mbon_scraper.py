@@ -141,17 +141,24 @@ class MBONScraperPool:
         Finds credentials requiring real-time validation and syncs with DB Layer 039.
         
         Query Strategy:
-        - Targets Maryland (MD) credentials only
-        - Filters for PENDING or ACTIVE status
+        - Targets credentials that are unverified or need re-verification
+        - Prioritizes credentials without OHCQ verification
         - Batch size: 50 credentials per cycle
         
         Args:
             db: SQLAlchemy database session
         """
-        # Querying credentials needing updating
+        from datetime import timedelta
+        
+        # Calculate stale threshold (credentials not verified in 30 days)
+        stale_threshold = datetime.now(timezone.utc) - timedelta(days=30)
+        
+        # Querying credentials needing updating:
+        # 1. Never verified (is_ohcq_verified=False)
+        # 2. OR verified but stale (last verified > 30 days ago)
         stale_credentials = db.query(HealthcareCredential).filter(
-            HealthcareCredential.state == "MD",
-            HealthcareCredential.status.in_(["PENDING", "ACTIVE"])
+            (HealthcareCredential.is_ohcq_verified == False) |
+            (HealthcareCredential.ohcq_verified_at < stale_threshold)
         ).limit(50).all()
 
         logger.info(
@@ -162,8 +169,9 @@ class MBONScraperPool:
             result = await self.verify_license(cred.license_number, cred.license_type)
             
             # Direct row mutations using Revision 039 field constraints
-            cred.status = result["status"]
-            cred.last_verified_at = datetime.fromisoformat(result["checked_at"])
+            if result["is_valid"]:
+                cred.is_ohcq_verified = True
+            cred.ohcq_verified_at = datetime.fromisoformat(result["checked_at"])
             db.commit()
             
         logger.info("Synchronization cycle complete.")

@@ -223,8 +223,10 @@ def mock_mbon_registry_interceptor():
     - Active LPN (L098114) -> 200 OK with valid license data
     - Not Found CNA (A774123) -> 404 NOT_FOUND
     - All other queries -> 400 INVALID_QUERY
+    
+    Note: assert_all_called=False allows tests to use only the routes they need
     """
-    with respx.mock(base_url="https://mbon.org") as respx_mock:
+    with respx.mock(base_url="https://mbon.org", assert_all_called=False) as respx_mock:
         
         # 🟢 Intercept Case 1: Active Registered Nurse (RN) Route Discovery
         respx_mock.get("/RN/R234951").mock(
