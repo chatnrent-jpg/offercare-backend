@@ -21,83 +21,113 @@ def seed_ohcq_test_data():
     records to test proxy-rotation tracking, scrapers, and alerting workflows.
     
     Test Data Coverage:
-    - PENDING status (never verified)
-    - ACTIVE status with stale verification
+    - Unverified credentials (is_ohcq_verified=False)
+    - Verified but not background checked
     - Multiple license types (RN, LPN, CNA)
-    - Different facilities
-    - Test phone numbers for Twilio
+    - Future expiration dates
+    - Stale verification timestamps
     
     Edge Cases:
-    - Pending check (null last_verified_at)
-    - Stale check (30 days old)
-    - Active credentials ready for verification
+    - Pending check (null ohcq_verified_at)
+    - Stale check (30 days old verification)
+    - Ready for verification
+    
+    Note: Requires at least one MarylandProvider record to exist as foreign key
     """
     db = SessionLocal()
     
-    # Calculate a stale timestamp (e.g., last checked 30 days ago)
-    stale_time = datetime.now(timezone.utc) - timedelta(days=30)
-    
-    # 📋 1. Mock Data Variant Payload Definitions
-    seed_records = [
-        HealthcareCredential(
-            id="cred-seed-md-01",
-            professional_name="Sarah Jenkins, RN",
-            license_type="RN",
-            license_number="R234951",
-            state="MD",
-            status="PENDING",
-            facility_name="Johns Hopkins Hospital",
-            phone_number="+15550199111",  # Targets Twilio testing
-            last_verified_at=None
-        ),
-        HealthcareCredential(
-            id="cred-seed-md-02",
-            professional_name="Michael Chang, LPN",
-            license_type="LPN",
-            license_number="L098114",
-            state="MD",
-            status="ACTIVE",
-            facility_name="University of Maryland Medical Center",
-            phone_number="+15550199222",
-            last_verified_at=stale_time
-        ),
-        HealthcareCredential(
-            id="cred-seed-md-03",
-            professional_name="Elena Rostova, CNA",
-            license_type="CNA",
-            license_number="A774123",
-            state="MD",
-            status="ACTIVE",
-            facility_name="Levindale Behavioral Health",
-            phone_number="+15550199333",
-            last_verified_at=stale_time
-        )
-    ]
-
     try:
+        # Import here to avoid circular dependencies
+        from app.models import MarylandProvider
+        import uuid
+        
+        # Get or create a test provider
+        test_provider = db.query(MarylandProvider).filter(
+            MarylandProvider.full_name.like("%Test Provider%")
+        ).first()
+        
+        if not test_provider:
+            logger.info("Creating test provider for credential seeding...")
+            test_provider = MarylandProvider(
+                provider_id=uuid.uuid4(),
+                full_name="Test Provider - Seeded",
+                email="test.provider.seed@example.com",
+                phone_number="+15550100000",
+                npi_number="9999999999",  # Test NPI
+                md_license_number="MD-TEST-999999",
+                state="MD",
+                credential_type="RN",
+            )
+            db.add(test_provider)
+            db.flush()  # Get provider_id
+        
+        provider_id = test_provider.provider_id
+        logger.info(f"Using provider_id: {provider_id}")
+        
+        # Calculate timestamps
+        stale_time = datetime.now(timezone.utc) - timedelta(days=30)
+        future_expiry = datetime.now(timezone.utc).date() + timedelta(days=365)
+        
+        # 📋 1. Mock Data Variant Payload Definitions
+        seed_records = [
+            HealthcareCredential(
+                provider_id=provider_id,
+                license_type="RN",
+                license_number="RN-TEST-234951",
+                expiration_date=future_expiry,
+                is_ohcq_verified=False,
+                background_check_passed=False,
+                ohcq_verified_at=None,  # Never verified
+                verification_notes="Test RN - Pending verification"
+            ),
+            HealthcareCredential(
+                provider_id=provider_id,
+                license_type="LPN",
+                license_number="LPN-TEST-098114",
+                expiration_date=future_expiry,
+                is_ohcq_verified=True,
+                background_check_passed=False,
+                ohcq_verified_at=stale_time,  # Stale verification
+                verification_notes="Test LPN - Verified but no background check"
+            ),
+            HealthcareCredential(
+                provider_id=provider_id,
+                license_type="CNA",
+                license_number="CNA-TEST-774123",
+                expiration_date=future_expiry,
+                is_ohcq_verified=True,
+                background_check_passed=True,
+                ohcq_verified_at=stale_time,
+                background_check_completed_at=stale_time,
+                verification_notes="Test CNA - Fully verified (stale)"
+            )
+        ]
+
+        # Purge old seed credentials
         logger.info("Purging old seed credentials to guarantee test atomicity...")
         db.query(HealthcareCredential).filter(
-            HealthcareCredential.id.like("cred-seed-md-%")
+            HealthcareCredential.license_number.like("%-TEST-%")
         ).delete(synchronize_session=False)
 
         logger.info(f"Injecting {len(seed_records)} pristine Maryland regulatory test rows...")
         db.add_all(seed_records)
         db.commit()
         
-        logger.info("✅ Database table seeding completed successfully under Revision 039 rules.")
+        logger.info("[OK] Database table seeding completed successfully under Revision 039 rules.")
         
         # Log summary of seeded data
         logger.info("")
         logger.info("Seeded Credentials Summary:")
         for record in seed_records:
             logger.info(
-                f"  - {record.professional_name} | {record.license_type} #{record.license_number} | "
-                f"Status: {record.status} | Phone: {record.phone_number}"
+                f"  - {record.license_type} #{record.license_number} | "
+                f"OHCQ Verified: {record.is_ohcq_verified} | "
+                f"Background Check: {record.background_check_passed}"
             )
         
     except Exception as e:
         db.rollback()
-        logger.error(f"❌ Critical error executing seeding procedure: {str(e)}")
+        logger.error(f"[ERROR] Critical error executing seeding procedure: {str(e)}")
         raise e
     finally:
         db.close()
@@ -113,15 +143,15 @@ def clear_seed_data():
     try:
         logger.info("Removing all seed credentials...")
         deleted_count = db.query(HealthcareCredential).filter(
-            HealthcareCredential.id.like("cred-seed-md-%")
+            HealthcareCredential.license_number.like("%-TEST-%")
         ).delete(synchronize_session=False)
         db.commit()
         
-        logger.info(f"✅ Removed {deleted_count} seed credential(s)")
+        logger.info(f"[OK] Removed {deleted_count} seed credential(s)")
         
     except Exception as e:
         db.rollback()
-        logger.error(f"❌ Error clearing seed data: {str(e)}")
+        logger.error(f"[ERROR] Error clearing seed data: {str(e)}")
         raise e
     finally:
         db.close()
