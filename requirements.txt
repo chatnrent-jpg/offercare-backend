@@ -27,5 +27,7 @@ pandas>=2.0.0
 openpyxl>=3.1.0
 stripe>=10.0.0
 cryptography>=41.0.0  # Invoice encryption for PCI/SOX compliance
+celery>=5.3.0  # Background task queue for MBON scraper automation
+redis>=5.0.0  # Message broker and result backend for Celery
 # Optional — live ShiftWise / Fieldglass Playwright ingestion
 # playwright>=1.40.0
