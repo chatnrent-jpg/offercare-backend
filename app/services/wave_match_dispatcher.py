@@ -432,7 +432,7 @@ class WaveMatchDispatcher:
             return
         
         for i, candidate in enumerate(nurses):
-            message = self._build_shift_offer_sms(shift, candidate, wave_number)
+            message = await self._build_shift_offer_sms(shift, candidate, wave_number)
             
             # Send via Twilio
             message_sid = await self._send_sms(
@@ -456,7 +456,7 @@ class WaveMatchDispatcher:
         await self.db.commit()
         print(f"[WAVE DISPATCH] Wave {wave_number}: Dispatched to {len(nurses)} nurses")
     
-    def _build_shift_offer_sms(
+    async def _build_shift_offer_sms(
         self,
         shift: OfferCareJobOffer,
         candidate: NurseCandidate,
