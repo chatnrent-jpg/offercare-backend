@@ -52,7 +52,7 @@ from app.routers.landing import router as landing_router
 from app.routers.live_scraper_adapters import router as live_scraper_adapters_router
 from app.routers.outreach import router as outreach_router
 from app.routers.vms import router as vms_router
-from app.routers.vettedme import router as vettedme_router
+from app.routers.vettedcare import router as vettedme_router
 from app.routers.twilio_webhooks import router as twilio_webhooks_router
 from app.routers.billing import router as billing_router
 from app.api.v1.ai_resume import router as ai_resume_router
