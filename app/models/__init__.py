@@ -53,6 +53,12 @@ EMPLOYMENT_TIER_W2 = "TIER1_W2"
 EMPLOYMENT_TIER_1099 = "TIER2_1099"
 EMPLOYMENT_TIERS = (EMPLOYMENT_TIER_W2, EMPLOYMENT_TIER_1099)
 
+# EIN validation status constants
+EIN_VALIDATION_UNVALIDATED = "UNVALIDATED"
+EIN_VALIDATION_PENDING = "PENDING"
+EIN_VALIDATION_VALIDATED = "VALIDATED"
+EIN_VALIDATION_REJECTED = "REJECTED"
+
 # NOTE: We're NOT importing clinician_calendar, compliance_audit_ledger, etc.
 # because those models are already registered when models.py is loaded.
 # Direct imports of those submodules elsewhere in the codebase will still work.

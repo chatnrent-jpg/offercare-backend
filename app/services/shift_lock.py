@@ -95,3 +95,18 @@ def lock_shift_from_sms_reply(
         "shift_id": str(shift_id) if shift_id else None,
         "message": "SMS lock stub - full implementation pending",
     }
+
+
+def twiml_reply(message: str) -> str:
+    """
+    Generate a Twilio TwiML XML response for SMS replies.
+    
+    Args:
+        message: The message text to send back
+    
+    Returns:
+        TwiML XML string
+    """
+    # Basic TwiML response
+    # TODO: Use twilio.twiml.messaging_response.MessagingResponse for production
+    return f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{message}</Message></Response>'
