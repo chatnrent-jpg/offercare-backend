@@ -11,6 +11,8 @@ import uuid as uuid_module
 
 import pytest
 import pytest_asyncio
+import respx
+from httpx import Response
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -196,6 +198,74 @@ async def mock_provider(async_db: AsyncSession) -> MarylandProvider:
     await async_db.refresh(provider)
     
     return provider
+
+
+# ============================================================================
+# MBON REGISTRY MOCK INTERCEPTOR (Phase 2: Intelligence & Compliance)
+# ============================================================================
+
+@pytest.fixture(autouse=True)
+def mock_mbon_registry_interceptor():
+    """
+    Globally intercepts outgoing HTTP connections aimed at the Maryland Board 
+    of Nursing (MBON) API surface area and injects deterministic mock tracking responses.
+    
+    This interceptor enables safe local and CI testing of:
+    - MBONScraperPool (app/workers/mbon_scraper.py)
+    - Celery background workers (app/core/celery_app.py)
+    - OHCQ compliance verification workflows
+    
+    Without this mock, tests would hit live Maryland government infrastructure
+    and risk IP blocks, rate limiting, or compliance violations.
+    
+    Mock Response Coverage:
+    - Active RN (R234951) -> 200 OK with valid license data
+    - Active LPN (L098114) -> 200 OK with valid license data
+    - Not Found CNA (A774123) -> 404 NOT_FOUND
+    - All other queries -> 400 INVALID_QUERY
+    """
+    with respx.mock(base_url="https://mbon.org") as respx_mock:
+        
+        # 🟢 Intercept Case 1: Active Registered Nurse (RN) Route Discovery
+        respx_mock.get("/RN/R234951").mock(
+            return_value=Response(
+                status_code=200,
+                json={
+                    "status": "ACTIVE",
+                    "license_number": "R234951",
+                    "license_type": "RN",
+                    "expiry_date": "2027-10-31",
+                    "disciplinary_actions": False
+                }
+            )
+        )
+
+        # 🟡 Intercept Case 2: Active Licensed Practical Nurse (LPN) Route Discovery
+        respx_mock.get("/LPN/L098114").mock(
+            return_value=Response(
+                status_code=200,
+                json={
+                    "status": "ACTIVE",
+                    "license_number": "L098114",
+                    "license_type": "LPN",
+                    "expiry_date": "2027-04-30",
+                    "disciplinary_actions": False
+                }
+            )
+        )
+
+        # 🔴 Intercept Case 3: Revoked / Not Found Certified Nursing Assistant (CNA) Route Discovery
+        respx_mock.get("/CNA/A774123").mock(
+            return_value=Response(
+                status_code=404,
+                json={"status": "NOT_FOUND", "detail": "License record not located on state registry."}
+            )
+        )
+
+        # 🔄 Fallback Catch-All Route for unanticipated license lookups
+        respx_mock.route().mock(return_value=Response(status_code=400, json={"status": "INVALID_QUERY"}))
+        
+        yield respx_mock
 
 
 # ============================================================================
