@@ -1,6 +1,6 @@
 {
-  "name": "VettedCare.ai Clinician Portal",
-  "short_name": "VettedCare",
+  "name": "VettedMe.ai Clinician Portal",
+  "short_name": "VettedMe",
   "description": "Mid-Atlantic shift alerts, open shifts, and placement tracking for clinicians.",
   "start_url": "/portal/",
   "scope": "/portal/",
