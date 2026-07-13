@@ -1,4 +1,4 @@
-"""Tests for VettedCare credential safety status engine."""
+"""Tests for VettedMe credential safety status engine."""
 
 from __future__ import annotations
 
@@ -92,10 +92,10 @@ def test_expired_license_is_blocked() -> None:
         db.close()
 
 
-def test_vettedcare_dashboard_endpoint(client: TestClient) -> None:
-    response = client.get("/api/vettedcare/dashboard")
+def test_vettedme_dashboard_endpoint(client: TestClient) -> None:
+    response = client.get("/api/vettedme/dashboard")
     assert response.status_code == 200
     body = response.json()
     assert body["safety_first"] is True
     assert "status_counts" in body
-    assert body["manus_webhook"] == "/api/vettedcare/manus/run"
+    assert body["manus_webhook"] == "/api/vettedme/manus/run"

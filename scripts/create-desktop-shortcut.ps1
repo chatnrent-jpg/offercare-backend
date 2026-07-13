@@ -1,12 +1,12 @@
-# Create VettedCare.ai desktop shortcut + custom icon.
+# Create VettedMe.ai desktop shortcut + custom icon.
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot
 $assets = Join-Path $root 'assets'
-$iconPath = Join-Path $assets 'vettedcare.ico'
+$iconPath = Join-Path $assets 'vettedme.ico'
 $launcher = Join-Path $root 'start-all.bat'
 $desktop = [Environment]::GetFolderPath('Desktop')
-$shortcutPath = Join-Path $desktop 'VettedCare.ai.lnk'
+$shortcutPath = Join-Path $desktop 'VettedMe.ai.lnk'
 
 if (-not (Test-Path -LiteralPath $launcher)) {
     Write-Error "Launcher not found: $launcher"
@@ -16,7 +16,7 @@ New-Item -ItemType Directory -Path $assets -Force | Out-Null
 
 Add-Type -AssemblyName System.Drawing
 
-function New-VettedCareIcon([string]$Path) {
+function New-VettedMeIcon([string]$Path) {
     $size = 256
     $bmp = New-Object System.Drawing.Bitmap $size, $size
     $g = [System.Drawing.Graphics]::FromImage($bmp)
@@ -67,17 +67,17 @@ function New-VettedCareIcon([string]$Path) {
     $g.Dispose()
 }
 
-New-VettedCareIcon -Path $iconPath
+New-VettedMeIcon -Path $iconPath
 
 $shell = New-Object -ComObject WScript.Shell
 $link = $shell.CreateShortcut($shortcutPath)
 $link.TargetPath = $launcher
 $link.WorkingDirectory = $root
 $link.IconLocation = "$iconPath,0"
-$link.Description = 'VettedCare.ai - Credential Safety Platform'
+$link.Description = 'VettedMe.ai - Credential Safety Platform'
 $link.WindowStyle = 1
 $link.Save()
 
 Write-Host "Icon:     $iconPath"
 Write-Host "Shortcut: $shortcutPath"
-Write-Host 'Done - VettedCare.ai is on your desktop.'
+Write-Host 'Done - VettedMe.ai is on your desktop.'

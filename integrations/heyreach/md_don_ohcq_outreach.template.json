@@ -1,5 +1,5 @@
 {
-  "template_id": "vettedcare-md-don-ohcq-heyreach",
+  "template_id": "vettedme-md-don-ohcq-heyreach",
   "template_version": "2026-07-03",
   "description": "HeyReach multi-channel outreach — Maryland DONs at OHCQ staffing-cited facilities (Clay-enriched import).",
   "manus_instructions": [
@@ -126,19 +126,19 @@
   "message_templates": {
     "linkedin_connection_request": {
       "subject": null,
-      "body": "Hi {{first_name}},\n\nI'm reaching out because {{facility_name}} {{county_phrase}} has been flagged for {{compliance_hook}} — and DON teams are feeling it on the floor.\n\nVettedCare.ai instantly routes MBON-verified, active Maryland GNAs and LPNs to open shifts within 15 minutes — credentialed staff only, no compliance surprises.\n\nWould you be open to connecting? Happy to show how we clear staffing gaps fast.\n\n— {{sender_name}}, {{agency_name}}",
-      "fallback_body": "Hi there — VettedCare.ai routes credentialed Maryland GNAs and LPNs to open shifts within 15 minutes. Would love to connect."
+      "body": "Hi {{first_name}},\n\nI'm reaching out because {{facility_name}} {{county_phrase}} has been flagged for {{compliance_hook}} — and DON teams are feeling it on the floor.\n\nVettedMe.ai instantly routes MBON-verified, active Maryland GNAs and LPNs to open shifts within 15 minutes — credentialed staff only, no compliance surprises.\n\nWould you be open to connecting? Happy to show how we clear staffing gaps fast.\n\n— {{sender_name}}, {{agency_name}}",
+      "fallback_body": "Hi there — VettedMe.ai routes credentialed Maryland GNAs and LPNs to open shifts within 15 minutes. Would love to connect."
     },
     "linkedin_follow_up_message": {
       "subject": null,
-      "body": "Thanks for connecting, {{first_name}}.\n\nQuick context: we work with SNF/ALF operators {{county_phrase}} who need credentialed coverage yesterday — not next week.\n\nVettedCare.ai's compliance gate (MBON + HB 1106 + fresh license checks) means every GNA/LPN we dispatch is active and floor-ready. Most facilities see matched clinicians in under 15 minutes once a shift is posted.\n\nIf {{facility_name}} is still carrying a staffing citation or hour shortfall, I can walk your team through a same-week coverage plan.\n\nWorth a 15-minute call this week?",
-      "fallback_body": "Thanks for connecting — VettedCare.ai places MBON-verified Maryland GNAs/LPNs on open shifts within 15 minutes. Open to a quick call?"
+      "body": "Thanks for connecting, {{first_name}}.\n\nQuick context: we work with SNF/ALF operators {{county_phrase}} who need credentialed coverage yesterday — not next week.\n\nVettedMe.ai's compliance gate (MBON + HB 1106 + fresh license checks) means every GNA/LPN we dispatch is active and floor-ready. Most facilities see matched clinicians in under 15 minutes once a shift is posted.\n\nIf {{facility_name}} is still carrying a staffing citation or hour shortfall, I can walk your team through a same-week coverage plan.\n\nWorth a 15-minute call this week?",
+      "fallback_body": "Thanks for connecting — VettedMe.ai places MBON-verified Maryland GNAs/LPNs on open shifts within 15 minutes. Open to a quick call?"
     },
     "email_follow_up": {
       "subject": "{{facility_name}} {{county_phrase}} — credentialed GNA/LPN coverage in 15 minutes",
-      "body": "Hi {{first_name}},\n\nFollowing up on my LinkedIn note — I'm {{sender_name}} with {{agency_name}}.\n\n{{facility_name}} {{county_phrase}} was flagged for {{compliance_hook}}. When survey pressure hits, the last thing your DON desk needs is unverified agency send-backs.\n\nVettedCare.ai is built for Maryland operators under OHCQ scrutiny:\n\n• MBON-verified GNAs & LPNs — active license, GNA endorsement where required\n• Compliance sentinel blocks staff with stale credentials or missing HB 1106 consent\n• Instant shift routing — matched, credentialed clinicians in ~15 minutes\n• County-aware dispatch — we prioritize {{county}} coverage first\n\nIf you're clearing a staffing citation or mandated hour gap, reply with your next open shift window and I'll share a live match preview for {{facility_name}}.\n\n— {{sender_name}}\n{{agency_name}}\nMaryland SNF/ALF instant staffing · MBON-gated dispatch",
+      "body": "Hi {{first_name}},\n\nFollowing up on my LinkedIn note — I'm {{sender_name}} with {{agency_name}}.\n\n{{facility_name}} {{county_phrase}} was flagged for {{compliance_hook}}. When survey pressure hits, the last thing your DON desk needs is unverified agency send-backs.\n\nVettedMe.ai is built for Maryland operators under OHCQ scrutiny:\n\n• MBON-verified GNAs & LPNs — active license, GNA endorsement where required\n• Compliance sentinel blocks staff with stale credentials or missing HB 1106 consent\n• Instant shift routing — matched, credentialed clinicians in ~15 minutes\n• County-aware dispatch — we prioritize {{county}} coverage first\n\nIf you're clearing a staffing citation or mandated hour gap, reply with your next open shift window and I'll share a live match preview for {{facility_name}}.\n\n— {{sender_name}}\n{{agency_name}}\nMaryland SNF/ALF instant staffing · MBON-gated dispatch",
       "fallback_subject": "Maryland credentialed GNA/LPN coverage — 15-minute routing",
-      "fallback_body": "Hi there — VettedCare.ai routes MBON-verified Maryland GNAs and LPNs to open shifts within 15 minutes. Reply if you'd like a coverage walkthrough."
+      "fallback_body": "Hi there — VettedMe.ai routes MBON-verified Maryland GNAs and LPNs to open shifts within 15 minutes. Reply if you'd like a coverage walkthrough."
     }
   },
   "sequence_tree": {

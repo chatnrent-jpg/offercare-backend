@@ -61,7 +61,7 @@ All requested QA certification tasks have been completed:
 ### **Step 1: Install Dependencies**
 
 ```bash
-cd C:\vettedcare.ai\vettedcare-backend
+cd C:\vettedme.ai\vettedme-backend
 
 # Install all dependencies including pytest-asyncio
 pip install -r requirements.txt
@@ -73,8 +73,8 @@ Create or update `.env` file:
 
 ```bash
 # Database URLs
-DATABASE_URL=postgresql://user:pass@localhost/vettedcare_test
-ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/vettedcare_test
+DATABASE_URL=postgresql://user:pass@localhost/vettedme_test
+ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/vettedme_test
 
 # Component Configuration
 SEMANTIC_MATCHER_DRY_RUN=false
@@ -150,7 +150,7 @@ Expected output:
 ```
 ============================= test session starts ==============================
 platform win32 -- Python 3.11.x, pytest-8.0.x, pluggy-1.x
-rootdir: C:\vettedcare.ai\vettedcare-backend
+rootdir: C:\vettedme.ai\vettedme-backend
 configfile: pytest.ini
 testpaths: tests
 plugins: asyncio-0.23.0
@@ -265,10 +265,10 @@ pip install sqlalchemy>=2.0.36
 pg_isready
 
 # Verify test database exists
-psql -U postgres -c "CREATE DATABASE vettedcare_test;"
+psql -U postgres -c "CREATE DATABASE vettedme_test;"
 
 # Install pgvector extension
-psql -U postgres -d vettedcare_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
+psql -U postgres -d vettedme_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
 
 ### **Issue: Table Does Not Exist**
@@ -387,7 +387,7 @@ When executed properly:
 
 ```bash
 # Navigate to backend
-cd C:\vettedcare.ai\vettedcare-backend
+cd C:\vettedme.ai\vettedme-backend
 
 # Install dependencies
 pip install -r requirements.txt

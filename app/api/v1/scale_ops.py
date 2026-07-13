@@ -55,7 +55,7 @@ async def generate_ohcq_audit_ledger(payload: OHCQAuditExportRequest):
     merkle_root = hashlib.sha256(raw_payload_bytes).hexdigest()
     
     # Generate secure HMAC signature using system secret keying
-    secret_signing_key = b"vettedcare_compliance_signature_secret_key"
+    secret_signing_key = b"vettedme_compliance_signature_secret_key"
     crypto_signature = hmac.new(secret_signing_key, merkle_root.encode("utf-8"), hashlib.sha256).hexdigest()
     
     return OHCQAuditResponse(

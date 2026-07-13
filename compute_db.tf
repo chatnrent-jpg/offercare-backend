@@ -1,10 +1,10 @@
 # 1. Private Database Subnet Mapping Group
 resource "aws_db_subnet_group" "db_subnet_group" {
-  name       = "vettedcare-prod-db-subnet-group"
+  name       = "vettedme-prod-db-subnet-group"
   subnet_ids = [aws_subnet.private_subnet_1.id]
 
   tags = {
-    Name = "vettedcare-prod-db-subnet-group"
+    Name = "vettedme-prod-db-subnet-group"
   }
 }
 
@@ -22,14 +22,14 @@ resource "aws_db_instance" "prod_postgres" {
   db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   skip_final_snapshot    = false
-  final_snapshot_identifier = "vettedcare-prod-db-final-snapshot"
+  final_snapshot_identifier = "vettedme-prod-db-final-snapshot"
   
   storage_encrypted      = true
   deletion_protection    = true
 
   tags = {
     Environment = "production"
-    Name        = "vettedcare-prod-database"
+    Name        = "vettedme-prod-database"
   }
 }
 
@@ -48,7 +48,7 @@ resource "aws_instance" "backend_compute" {
   }
 
   tags = {
-    Name        = "vettedcare-prod-compute-node"
+    Name        = "vettedme-prod-compute-node"
     Environment = "production"
   }
 }

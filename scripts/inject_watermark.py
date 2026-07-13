@@ -101,7 +101,7 @@ def main():
     parser.add_argument(
         "--watermark",
         required=True,
-        help="Unique watermark identifier (e.g., VETTEDCARE-PROD-12345)"
+        help="Unique watermark identifier (e.g., VETTEDME-PROD-12345)"
     )
     
     args = parser.parse_args()

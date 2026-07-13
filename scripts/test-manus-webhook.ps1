@@ -1,5 +1,5 @@
-# Simulate Manus webhook — tests VettedCare ingest without a Manus account.
-# Requires: VettedCare API running, MANUS_API_KEY in .env
+# Simulate Manus webhook — tests VettedMe ingest without a Manus account.
+# Requires: VettedMe API running, MANUS_API_KEY in .env
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
@@ -19,29 +19,29 @@ if (-not $ManusKey) {
   exit 1
 }
 
-Write-Host "VettedCare Manus hook test — $Base"
+Write-Host "VettedMe Manus hook test — $Base"
 Write-Host ""
 
-Write-Host "[1/3] GET /api/vettedcare/manus/config"
+Write-Host "[1/3] GET /api/vettedme/manus/config"
 try {
-  $config = Invoke-RestMethod -Uri "$Base/api/vettedcare/manus/config" -Headers @{ "X-Manus-Key" = $ManusKey } -TimeoutSec 15
+  $config = Invoke-RestMethod -Uri "$Base/api/vettedme/manus/config" -Headers @{ "X-Manus-Key" = $ManusKey } -TimeoutSec 15
   Write-Host "OK    endpoints: $($config.endpoints.work_queue)"
 } catch {
   Write-Host "FAIL  $($_.Exception.Message)"
-  Write-Host "      Start VettedCare.ai first"
+  Write-Host "      Start VettedMe.ai first"
   exit 1
 }
 
-Write-Host "[2/3] GET /api/vettedcare/manus/work-queue?limit=1"
+Write-Host "[2/3] GET /api/vettedme/manus/work-queue?limit=1"
 try {
-  $queue = Invoke-RestMethod -Uri "$Base/api/vettedcare/manus/work-queue?limit=1" -Headers @{ "X-Manus-Key" = $ManusKey } -TimeoutSec 30
+  $queue = Invoke-RestMethod -Uri "$Base/api/vettedme/manus/work-queue?limit=1" -Headers @{ "X-Manus-Key" = $ManusKey } -TimeoutSec 30
   Write-Host "OK    total_due=$($queue.total_due) returned=$($queue.returned)"
 } catch {
   Write-Host "FAIL  $($_.Exception.Message)"
   exit 1
 }
 
-Write-Host "[3/3] POST /api/vettedcare/manus/run (example payload)"
+Write-Host "[3/3] POST /api/vettedme/manus/run (example payload)"
 $example = Join-Path $Root "docs\manus-webhook-example.json"
 if (-not (Test-Path $example)) {
   Write-Host "SKIP  example payload not found"
@@ -50,7 +50,7 @@ if (-not (Test-Path $example)) {
 
 try {
   $body = Get-Content $example -Raw
-  $result = Invoke-RestMethod -Uri "$Base/api/vettedcare/manus/run" -Method POST `
+  $result = Invoke-RestMethod -Uri "$Base/api/vettedme/manus/run" -Method POST `
     -Headers @{ "X-Manus-Key" = $ManusKey; "Content-Type" = "application/json" } `
     -Body $body -TimeoutSec 30
   Write-Host "OK    status=$($result.status) (provider_not_found is OK for fake NPI in example)"

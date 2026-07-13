@@ -10,15 +10,15 @@ Supported EHR Systems:
 - Generic REST API (for other systems)
 
 Sync Flow:
-1. EHR → VettedCare (INBOUND):
+1. EHR → VettedMe (INBOUND):
    - Facility posts shift in their EHR
-   - VettedCare polls EHR API every 15 minutes
-   - Auto-creates shift in VettedCare
+   - VettedMe polls EHR API every 15 minutes
+   - Auto-creates shift in VettedMe
    - Triggers wave dispatch
 
-2. VettedCare → EHR (OUTBOUND):
-   - Nurse accepts shift in VettedCare
-   - VettedCare pushes confirmation to EHR
+2. VettedMe → EHR (OUTBOUND):
+   - Nurse accepts shift in VettedMe
+   - VettedMe pushes confirmation to EHR
    - EHR marks shift as filled
    - Nurse details sync to EHR
 
@@ -81,10 +81,10 @@ class EHRIntegrationGateway:
     
     async def sync_inbound_shifts(self, facility_id: UUID) -> SyncResult:
         """
-        Sync shifts from EHR → VettedCare.
+        Sync shifts from EHR → VettedMe.
         
         Polls facility's EHR system for new open shifts.
-        Auto-creates shifts in VettedCare and triggers dispatch.
+        Auto-creates shifts in VettedMe and triggers dispatch.
         
         Args:
             facility_id: Facility UUID
@@ -109,7 +109,7 @@ class EHRIntegrationGateway:
             
             for ehr_shift in ehr_shifts:
                 try:
-                    # Create shift in VettedCare
+                    # Create shift in VettedMe
                     shift_id = await self._create_shift_from_ehr(facility_id, ehr_shift)
                     
                     # Log successful sync
@@ -170,12 +170,12 @@ class EHRIntegrationGateway:
         provider_details: Dict
     ) -> bool:
         """
-        Sync shift confirmation from VettedCare → EHR.
+        Sync shift confirmation from VettedMe → EHR.
         
         When nurse accepts shift, push confirmation to EHR.
         
         Args:
-            shift_id: VettedCare shift UUID
+            shift_id: VettedMe shift UUID
             facility_id: Facility UUID
             provider_id: Provider UUID
             provider_details: Provider credentials/info
@@ -408,7 +408,7 @@ class EHRIntegrationGateway:
             return []
     
     async def _create_shift_from_ehr(self, facility_id: UUID, ehr_shift: Dict) -> UUID:
-        """Create shift in VettedCare from EHR data."""
+        """Create shift in VettedMe from EHR data."""
         from app.models import OfferCareJobOffer
         from datetime import datetime
         from uuid import uuid4

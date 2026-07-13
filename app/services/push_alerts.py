@@ -41,7 +41,7 @@ def build_shift_alert_push(
     reply_keyword: str = "YES",
     schedule_line: str = "",
 ) -> tuple[str, str]:
-    title = f"VettedCare shift · {facility_name}"
+    title = f"VettedMe shift · {facility_name}"
     body = (
         f"{shift_role} · ${hourly_pay_rate:.2f}/hr"
         f"{schedule_line}. Open /portal to lock or reply {reply_keyword} by SMS."

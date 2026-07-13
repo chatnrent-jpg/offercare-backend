@@ -1,5 +1,5 @@
 """
-VettedCare.ai VMS (Vendor Management System) Integration
+VettedMe.ai VMS (Vendor Management System) Integration
 
 Unified shift ingest pipeline with concurrency guards and stress testing.
 Supports ShiftWise, Fieldglass, and custom facility VMS feeds.

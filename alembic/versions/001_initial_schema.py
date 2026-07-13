@@ -1,4 +1,4 @@
-"""Initial VettedCare.ai schema.
+"""Initial VettedMe.ai schema.
 
 Revision ID: 001_initial
 Revises:

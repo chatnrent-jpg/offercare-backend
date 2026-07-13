@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
-title VettedCare Clinician Portal
+title VettedMe Clinician Portal
 set "PYTHONPATH=%~dp0"
 set "PY=%~dp0.venv\Scripts\python.exe"
 
@@ -11,19 +11,19 @@ if not exist "%PY%" (
   exit /b 1
 )
 
-"%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedcare', timeout=4)" >nul 2>&1
+"%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedme', timeout=4)" >nul 2>&1
 if !errorlevel! neq 0 (
   echo Starting API on http://127.0.0.1:8000 ...
-  start "VettedCare API" cmd /k "title VettedCare API && cd /d %~dp0 && set PYTHONPATH=%~dp0 && %PY% -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+  start "VettedMe API" cmd /k "title VettedMe API && cd /d %~dp0 && set PYTHONPATH=%~dp0 && %PY% -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
   echo Waiting for API...
   set "TRIES=0"
   :wait_loop
   timeout /t 2 /nobreak >nul
-  "%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedcare', timeout=4)" >nul 2>&1
+  "%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedme', timeout=4)" >nul 2>&1
   if !errorlevel!==0 goto api_ready
   set /a TRIES+=1
   if !TRIES! LSS 30 goto wait_loop
-  echo [ERROR] API did not respond. Check the VettedCare API window for errors.
+  echo [ERROR] API did not respond. Check the VettedMe API window for errors.
   pause
   exit /b 1
   :api_ready

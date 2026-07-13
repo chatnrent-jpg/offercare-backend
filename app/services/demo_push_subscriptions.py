@@ -11,7 +11,7 @@ from app.services.push_subscriptions import register_push_subscription
 
 DEMO_PUSH_P256DH_KEY = "demo-p256dh-key"
 DEMO_PUSH_AUTH_KEY = "demo-auth-key"
-DEMO_PUSH_USER_AGENT = "VettedCare demo push subscription"
+DEMO_PUSH_USER_AGENT = "VettedMe demo push subscription"
 
 
 def demo_push_endpoint(provider_id: UUID) -> str:

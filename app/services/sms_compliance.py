@@ -17,14 +17,14 @@ START_KEYWORDS: frozenset[str] = frozenset({"START", "UNSTOP"})
 HELP_KEYWORDS: frozenset[str] = frozenset({"HELP", "INFO"})
 
 SMS_HELP_MESSAGE = (
-    "VettedCare.ai shift alerts. Reply YES to lock an offered shift. "
-    "Reply STOP to opt out. compliance@vettedcare.ai"
+    "VettedMe.ai shift alerts. Reply YES to lock an offered shift. "
+    "Reply STOP to opt out. compliance@vettedme.ai"
 )
 SMS_STOP_CONFIRMATION = (
-    "You are unsubscribed from VettedCare shift-offer texts. Reply START to re-subscribe."
+    "You are unsubscribed from VettedMe shift-offer texts. Reply START to re-subscribe."
 )
 SMS_START_CONFIRMATION = (
-    "VettedCare shift alerts re-enabled. Reply YES to lock an open shift. Reply STOP to opt out."
+    "VettedMe shift alerts re-enabled. Reply YES to lock an open shift. Reply STOP to opt out."
 )
 
 

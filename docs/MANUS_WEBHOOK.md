@@ -26,15 +26,15 @@ All require header `X-Manus-Key: <MANUS_API_KEY>`.
 
 |--------|------|---------|
 
-| GET | `/api/vettedcare/manus/config` | Integration map for Manus |
+| GET | `/api/vettedme/manus/config` | Integration map for Manus |
 
-| GET | `/api/vettedcare/manus/work-queue` | Who to vet today |
+| GET | `/api/vettedme/manus/work-queue` | Who to vet today |
 
-| GET | `/api/vettedcare/manus/providers/{id}` | Single work order + lookup fields |
+| GET | `/api/vettedme/manus/providers/{id}` | Single work order + lookup fields |
 
-| POST | `/api/vettedcare/manus/run` | Submit one vetting run |
+| POST | `/api/vettedme/manus/run` | Submit one vetting run |
 
-| POST | `/api/vettedcare/manus/batch` | Submit many runs + optional safety cycle |
+| POST | `/api/vettedme/manus/batch` | Submit many runs + optional safety cycle |
 
 
 
@@ -44,7 +44,7 @@ All require header `X-Manus-Key: <MANUS_API_KEY>`.
 
 ```
 
-POST http://127.0.0.1:8000/api/vettedcare/manus/run
+POST http://127.0.0.1:8000/api/vettedme/manus/run
 
 Header: X-Manus-Key: <MANUS_API_KEY from .env>
 
@@ -194,9 +194,9 @@ VettedMe will:
 
 $key = "YOUR_MANUS_KEY"
 
-curl.exe -s "http://127.0.0.1:8000/api/vettedcare/manus/work-queue?limit=5" -H "X-Manus-Key: $key"
+curl.exe -s "http://127.0.0.1:8000/api/vettedme/manus/work-queue?limit=5" -H "X-Manus-Key: $key"
 
-curl.exe -X POST "http://127.0.0.1:8000/api/vettedcare/manus/run" `
+curl.exe -X POST "http://127.0.0.1:8000/api/vettedme/manus/run" `
 
   -H "Content-Type: application/json" `
 

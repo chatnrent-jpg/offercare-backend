@@ -31,7 +31,7 @@ MD_LICENSE = "MD-SNF-215343"
 PROVIDERS = [
     {
         "full_name": "Aisha Thompson",
-        "email": "aisha.thompson@vettedcare.slice",
+        "email": "aisha.thompson@vettedme.slice",
         "phone_number": "3015558842",
         "md_license_number": "CNA-MD-88421",
         "has_gna_endorsement": True,
@@ -39,7 +39,7 @@ PROVIDERS = [
     },
     {
         "full_name": "Nia Patterson",
-        "email": "nia.patterson@vettedcare.slice",
+        "email": "nia.patterson@vettedme.slice",
         "phone_number": "3015559901",
         "md_license_number": "CNA-MD-99001",
         "has_gna_endorsement": True,
@@ -47,7 +47,7 @@ PROVIDERS = [
     },
     {
         "full_name": "Jordan Ellis",
-        "email": "jordan.ellis@vettedcare.slice",
+        "email": "jordan.ellis@vettedme.slice",
         "phone_number": "3015559902",
         "md_license_number": "CNA-MD-99002",
         "has_gna_endorsement": True,

@@ -1,4 +1,4 @@
-"""VettedCare.ai — Maryland Market Operations Console (isolated Streamlit UI)."""
+"""VettedMe.ai — Maryland Market Operations Console (isolated Streamlit UI)."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ BACKUP_NOTIFY_PATH = REPO_ROOT / "logs" / "manus" / "backup_notify_cascade.json"
 BACKUP_CASCADE_ACTIVE_PATH = REPO_ROOT / "logs" / "manus" / "backup_cascade_active.json"
 
 st.set_page_config(
-    page_title="VettedCare.ai — Maryland Operations",
+    page_title="VettedMe.ai — Maryland Operations",
     page_icon="🏥",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -292,7 +292,7 @@ def _render_desk_pipeline_live_feed(runs_df: pd.DataFrame, payload: dict) -> Non
     if runs_df.empty:
         st.info(
             "No desk pipeline runs yet. Trigger via **Run Full Desk Pipeline** or "
-            "`POST /api/vettedcare/manus/desk/run`."
+            "`POST /api/vettedme/manus/desk/run`."
         )
         return
 
@@ -810,7 +810,7 @@ def _require_ops_console_auth() -> bool:
         return True
 
     st.markdown("### Ops Console Access")
-    st.caption("Authenticate with your VettedCare `ADMIN_API_KEY` to unlock production controls.")
+    st.caption("Authenticate with your VettedMe `ADMIN_API_KEY` to unlock production controls.")
     entered = st.text_input("Admin API Key", type="password", key="ops_console_admin_key")
     if st.button("Unlock Console", type="primary", key="ops_console_unlock"):
         if entered == admin_key:
@@ -846,7 +846,7 @@ def main() -> None:
         '<span class="sys-chip">SYS_STATUS · MD_MARKET_OPS · STAGING</span>',
         unsafe_allow_html=True,
     )
-    st.title("VettedCare.ai — Maryland Market Operations Console")
+    st.title("VettedMe.ai — Maryland Market Operations Console")
     st.caption("Facility registry · Staging outreach queue · COMAR compliance guardrails")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -1567,10 +1567,10 @@ def main() -> None:
         f"runs log: `{DESK_PIPELINE_PATH.relative_to(REPO_ROOT)}`"
     )
     st.markdown(
-        "**FULL DESK CYCLE · MANUS + VETTEDCARE**  \n"
+        "**FULL DESK CYCLE · MANUS + VETTEDME**  \n"
         "Chains **match → conflict → surge → backup → penalty** across all five strategy engines. "
         "Commitments loaded from reconciled timesheets. Manus can also trigger via "
-        "`POST /api/vettedcare/manus/desk/run` (see `scripts/test-manus-desk-pipeline.ps1`)."
+        "`POST /api/vettedme/manus/desk/run` (see `scripts/test-manus-desk-pipeline.ps1`)."
     )
 
     _render_desk_pipeline_live_feed(desk_runs_df, desk_runs_meta)

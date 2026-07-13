@@ -1,7 +1,7 @@
 {
   "mode": "STAGING",
   "live_execution": false,
-  "product": "VettedCare.ai Timesheet Reconciliation Desk",
+  "product": "VettedMe.ai Timesheet Reconciliation Desk",
   "processed_at_utc": "2026-06-26T20:42:22.946396+00:00",
   "timesheet_count": 2,
   "overtime_compliance_holds": 1,

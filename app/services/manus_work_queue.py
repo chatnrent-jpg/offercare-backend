@@ -1,4 +1,4 @@
-"""Manus daily work queue — who VettedCare needs vetted next."""
+"""Manus daily work queue — who VettedMe needs vetted next."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ def _base_url() -> str:
 
 def build_manus_integration_config() -> dict:
     base = _base_url()
-    prefix = f"{base}/api/vettedcare/manus"
+    prefix = f"{base}/api/vettedme/manus"
     return {
         "product": settings.PROJECT_NAME,
         "tagline": settings.VETTED_TAGLINE,
@@ -55,7 +55,7 @@ def build_manus_integration_config() -> dict:
             "stale_clear_days": settings.MANUS_STALE_CLEAR_DAYS,
             "min_rerun_hours": settings.MANUS_MIN_RERUN_HOURS,
         },
-        "operator_note": "Manus acts. VettedCare decides. Submit evidence; do not override computed status.",
+        "operator_note": "Manus acts. VettedMe decides. Submit evidence; do not override computed status.",
     }
 
 
@@ -215,8 +215,8 @@ def build_manus_work_queue(
                 "reason": reason,
                 "last_manus_applied_at": last_manus_at.isoformat() if last_manus_at else None,
                 "required_checks": [row["check_type"] for row in _required_checks(provider)],
-                "work_order_url": f"{_base_url()}/api/vettedcare/manus/providers/{provider.provider_id}",
-                "submit_url": f"{_base_url()}/api/vettedcare/manus/run",
+                "work_order_url": f"{_base_url()}/api/vettedme/manus/providers/{provider.provider_id}",
+                "submit_url": f"{_base_url()}/api/vettedme/manus/run",
             }
         )
 
@@ -241,7 +241,7 @@ def build_manus_work_queue(
         "skipped_recent_runs": skipped_recent,
         "status_breakdown_due": status_breakdown,
         "items": selected,
-        "submit_batch_url": f"{_base_url()}/api/vettedcare/manus/batch",
+        "submit_batch_url": f"{_base_url()}/api/vettedme/manus/batch",
         "next_steps": [
             "Fetch one work order per provider.",
             "Run MBON, OIG, and JUDICIARY checks.",
@@ -277,7 +277,7 @@ def build_manus_provider_work_order(db: Session, provider_id: UUID) -> dict:
         "required_checks": _required_checks(provider),
         "submit": {
             "method": "POST",
-            "url": f"{_base_url()}/api/vettedcare/manus/run",
+            "url": f"{_base_url()}/api/vettedme/manus/run",
             "headers": {"X-Manus-Key": "<MANUS_API_KEY>", "Content-Type": "application/json"},
             "body_template": {
                 "run_id": f"manus-{provider.provider_id}-{{timestamp}}",

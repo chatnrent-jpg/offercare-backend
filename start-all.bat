@@ -18,7 +18,7 @@ if not exist "%PY%" (
 
 set "NEED_START=1"
 
-"%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedcare', timeout=4)" >nul 2>&1
+"%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedme', timeout=4)" >nul 2>&1
 if !errorlevel!==0 (
   echo [OK] API already running on http://127.0.0.1:8000
   set "NEED_START=0"
@@ -40,7 +40,7 @@ if "!NEED_START!"=="1" (
   set "TRIES=0"
   :wait_loop
   timeout /t 2 /nobreak >nul
-  "%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedcare', timeout=4)" >nul 2>&1
+  "%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/vettedme', timeout=4)" >nul 2>&1
   if !errorlevel!==0 goto api_ready
   set /a TRIES+=1
   if !TRIES! LSS 45 goto wait_loop
@@ -54,7 +54,7 @@ if "!NEED_START!"=="1" (
 
 echo.
 echo   Admin:  http://127.0.0.1:8000/admin
-echo   Health: http://127.0.0.1:8000/health/vettedcare
+echo   Health: http://127.0.0.1:8000/health/vettedme
 echo.
 echo Opening admin in your browser...
 start "" "http://127.0.0.1:8000/admin"

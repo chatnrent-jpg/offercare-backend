@@ -1,4 +1,4 @@
-# VettedCare.ai — local Docker deploy (Step 24)
+# VettedMe.ai — local Docker deploy (Step 24)
 # Usage: .\scripts\deploy-local.ps1
 
 $ErrorActionPreference = "Stop"
@@ -10,7 +10,7 @@ if (-not (Test-Path ".env")) {
     Write-Host "Created .env from .env.example — edit ADMIN_API_KEY and secrets before production."
 }
 
-Write-Host "Building and starting VettedCare.ai (db + api)..."
+Write-Host "Building and starting VettedMe.ai (db + api)..."
 docker compose up -d --build
 
 $deadline = (Get-Date).AddSeconds(90)
@@ -32,7 +32,7 @@ if (-not $healthy) {
 }
 
 Write-Host ""
-Write-Host "VettedCare.ai is online."
+Write-Host "VettedMe.ai is online."
 Write-Host "  Health:  http://127.0.0.1:8000/health"
 Write-Host "  Admin:   http://127.0.0.1:8000/admin"
 Write-Host "  Portal:  http://127.0.0.1:8000/portal"

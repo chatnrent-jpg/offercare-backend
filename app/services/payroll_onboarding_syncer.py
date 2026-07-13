@@ -168,7 +168,7 @@ def build_gusto_employee_payload(
         "work_email": str(profile.email or provider.email or "").strip().lower(),
         "phone": str(profile.phone_number or provider.phone_number or "").strip(),
         "metadata": {
-            "vettedcare_provider_id": str(provider.provider_id),
+            "vettedme_provider_id": str(provider.provider_id),
             "mbon_license_number": profile.mbon_license_number,
             "credential_type": profile.credential_type,
             "maryland_residence_county": w2_account.maryland_residence_county,
@@ -176,7 +176,7 @@ def build_gusto_employee_payload(
     }
     if provider.home_zip:
         payload["home_address"] = {
-            "street_1": "On file with VettedCare",
+            "street_1": "On file with VettedMe",
             "city": "Baltimore",
             "state": "MD",
             "zip": str(provider.home_zip).strip()[:10],
@@ -205,7 +205,7 @@ def build_checkhq_employee_payload(
         "workplaces": [workplace_id],
         "primary_workplace": workplace_id,
         "metadata": {
-            "vettedcare_provider_id": str(provider.provider_id),
+            "vettedme_provider_id": str(provider.provider_id),
             "mbon_license_number": profile.mbon_license_number,
             "maryland_residence_county": w2_account.maryland_residence_county,
         },
@@ -297,7 +297,7 @@ def execute_payroll_employee_create(
 
 def _deterministic_dry_run_employee_id_from_payload(payload: dict[str, Any]) -> str:
     meta = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
-    provider_id = str(meta.get("vettedcare_provider_id") or "unknown")
+    provider_id = str(meta.get("vettedme_provider_id") or "unknown")
     digest = re.sub(r"[^a-f0-9]", "", provider_id.replace("-", ""))[:12]
     return f"dry_gusto_emp_{digest}"
 

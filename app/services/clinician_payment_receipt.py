@@ -20,7 +20,7 @@ def _fmt_ts(value: datetime | None) -> str:
 
 def _build_receipt_text(provider: MarylandProvider, payment: dict) -> str:
     lines = [
-        "VettedCare.ai — Instant Pay Receipt",
+        "VettedMe.ai — Instant Pay Receipt",
         "=" * 42,
         f"Receipt ID: VC-PAY-{str(payment['payout_id']).replace('-', '')[:8].upper()}",
         f"Clinician: {provider.full_name}",
@@ -84,6 +84,6 @@ def get_clinician_payment_receipt(
         "paid_at": payment.get("paid_at"),
         "stripe_payout_id": payment.get("stripe_payout_id"),
         "payout_status": payment.get("payout_status"),
-        "receipt_filename": f"vettedcare-receipt-{token.lower()}.txt",
+        "receipt_filename": f"vettedme-receipt-{token.lower()}.txt",
         "receipt_text": receipt_text,
     }

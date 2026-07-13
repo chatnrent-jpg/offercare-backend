@@ -23,7 +23,7 @@ from app.services.worker_terms_of_service import (
 WORKER_CONSENT_VERSION = "2026-06-21"
 
 CONSENT_CREDENTIAL_SCREENING = (
-    "I authorize VettedCare.ai to verify my Maryland license/certification through MBON, "
+    "I authorize VettedMe.ai to verify my Maryland license/certification through MBON, "
     "OIG LEIE, and Maryland judiciary exclusion databases."
 )
 CONSENT_SMS_DISPATCH = (
@@ -31,16 +31,16 @@ CONSENT_SMS_DISPATCH = (
     "Message and data rates may apply. Reply STOP to opt out or YES to accept a shift."
 )
 CONSENT_HB1106_AUTOMATED_HIRING_ANTI_BIAS = (
-    "Under Maryland HB 1106, I acknowledge that VettedCare.ai may use automated tools in "
+    "Under Maryland HB 1106, I acknowledge that VettedMe.ai may use automated tools in "
     "hiring and shift-matching decisions. I consent to the 10-day automated hiring anti-bias "
     "disclosure and authorize storage of this consent for Maryland compliance reporting."
 )
 
 CONSENT_MARYLAND_AEDT_30_DAY = (
     "Maryland Automated Employment Decision Tool (AEDT) — 30-day notice: I understand that "
-    "VettedCare.ai uses an automated AI tool to process my Maryland license credentials, "
+    "VettedMe.ai uses an automated AI tool to process my Maryland license credentials, "
     "geographic proximity to open shifts, and experience parameters solely for per-diem shift "
-    "routing. I consent to this automated processing and authorize VettedCare.ai to store a "
+    "routing. I consent to this automated processing and authorize VettedMe.ai to store a "
     "timestamped record of this disclosure for Maryland compliance reporting."
 )
 

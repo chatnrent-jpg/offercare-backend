@@ -90,7 +90,7 @@ def build_ics_calendar(*, calendar_name: str, events: list[str]) -> str:
     header = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//VettedCare.ai//Grid//EN",
+        "PRODID:-//VettedMe.ai//Grid//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
         f"X-WR-CALNAME:{_escape_ics_text(calendar_name)}",
@@ -107,7 +107,7 @@ def _placement_calendar_events(rows: list[dict[str, Any]]) -> list[str]:
         start, end = _row_shift_window(row)
         summary = f"{row['clinical_unit']} @ {row['facility_name']}"
         description = (
-            f"Locked VettedCare.ai placement\\n"
+            f"Locked VettedMe.ai placement\\n"
             f"Rate: ${float(row['hourly_bill_rate']):.2f}/hr\\n"
             f"VMS: {row.get('vms_submission_status', 'PENDING')}"
         )
@@ -137,7 +137,7 @@ def _schedule_calendar_events(rows: list[dict[str, Any]]) -> list[str]:
 
         if event_type == "SHIFT_COMMITMENT":
             summary = f"{role or 'Shift'} @ {facility or 'Facility'}"
-            description = "Locked shift commitment on VettedCare.ai"
+            description = "Locked shift commitment on VettedMe.ai"
             status = "CONFIRMED"
         elif event_type == "BLACKOUT_UNAVAILABLE":
             summary = "Blackout — not available"
@@ -152,7 +152,7 @@ def _schedule_calendar_events(rows: list[dict[str, Any]]) -> list[str]:
             description = event_type
             status = "TENTATIVE"
 
-        location = facility or "VettedCare.ai"
+        location = facility or "VettedMe.ai"
         events.append(
             build_calendar_event(
                 uid=f"schedule-{event_id}@offercare.ai",
@@ -169,7 +169,7 @@ def _schedule_calendar_events(rows: list[dict[str, Any]]) -> list[str]:
 
 def placements_to_ics(rows: list[dict[str, Any]]) -> str:
     return build_ics_calendar(
-        calendar_name="VettedCare.ai Placements",
+        calendar_name="VettedMe.ai Placements",
         events=_placement_calendar_events(rows),
     )
 
@@ -181,7 +181,7 @@ def open_shifts_to_ics(rows: list[dict[str, Any]]) -> str:
         start, end = _row_shift_window(row)
         summary = f"{row['shift_role']} @ {row['facility_name']}"
         description = (
-            f"Open shift on VettedCare.ai\\n"
+            f"Open shift on VettedMe.ai\\n"
             f"Pay: ${float(row['hourly_pay_rate']):.2f}/hr\\n"
             f"Reply YES via SMS to lock."
         )
@@ -197,7 +197,7 @@ def open_shifts_to_ics(rows: list[dict[str, Any]]) -> str:
                 status="TENTATIVE",
             )
         )
-    return build_ics_calendar(calendar_name="VettedCare.ai Open Shifts", events=events)
+    return build_ics_calendar(calendar_name="VettedMe.ai Open Shifts", events=events)
 
 
 def placement_calendar_filename(provider_id: UUID) -> str:
@@ -212,7 +212,7 @@ def open_shifts_calendar_filename(*, prefix: str = "offercare-open-shifts") -> s
 def schedule_events_to_ics(rows: list[dict[str, Any]], *, calendar_token: str = "clinician") -> str:
     safe_token = str(calendar_token or "clinician").replace(" ", "-")[:32]
     return build_ics_calendar(
-        calendar_name=f"VettedCare.ai Schedule ({safe_token})",
+        calendar_name=f"VettedMe.ai Schedule ({safe_token})",
         events=_schedule_calendar_events(rows),
     )
 
@@ -226,7 +226,7 @@ def unified_clinician_calendar_to_ics(
     safe_token = str(calendar_token or "clinician").replace(" ", "-")[:32]
     events = _placement_calendar_events(placements) + _schedule_calendar_events(schedule_events)
     return build_ics_calendar(
-        calendar_name=f"VettedCare.ai — Placements & Schedule ({safe_token})",
+        calendar_name=f"VettedMe.ai — Placements & Schedule ({safe_token})",
         events=events,
     )
 

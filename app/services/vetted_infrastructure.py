@@ -1,4 +1,4 @@
-"""VettedCare infrastructure readiness — pre-flight checks without Manus or live operations."""
+"""VettedMe infrastructure readiness — pre-flight checks without Manus or live operations."""
 
 from __future__ import annotations
 
@@ -6,12 +6,12 @@ from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import CredentialSafetyAlert, ManusVettingRun, VettedCareAuditLog
+from app.models import CredentialSafetyAlert, ManusVettingRun, VettedMeAuditLog
 from app.services.manus_work_queue import build_manus_integration_config
 
 REQUIRED_TABLES = (
     "maryland_providers",
-    "vettedcare_audit_log",
+    "vettedme_audit_log",
     "credential_safety_alerts",
     "manus_vetting_runs",
 )
@@ -33,7 +33,7 @@ def _check(name: str, *, ok: bool, detail: str, level: str = "required") -> dict
     return {"name": name, "status": status, "detail": detail, "level": level}
 
 
-def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
+def build_vettedme_infrastructure_readiness(db: Session) -> dict:
     checks: list[dict] = []
 
     # Database
@@ -51,9 +51,9 @@ def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
     missing = [table for table in REQUIRED_TABLES if table not in existing_tables]
     checks.append(
         _check(
-            "vettedcare_schema",
+            "vettedme_schema",
             ok=not missing,
-            detail="All VettedCare tables present"
+            detail="All VettedMe tables present"
             if not missing
             else f"Missing tables: {', '.join(missing)}",
         )
@@ -80,7 +80,7 @@ def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
             ok=has_vetted_column,
             detail="maryland_providers.vetted_status column present"
             if has_vetted_column
-            else "Run alembic upgrade head (013_vettedcare_foundation)",
+            else "Run alembic upgrade head (013_vettedme_foundation)",
         )
     )
 
@@ -213,7 +213,7 @@ def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
 
     # Data layer smoke (counts only — not operational triage)
     try:
-        audit_count = db.query(VettedCareAuditLog).count()
+        audit_count = db.query(VettedMeAuditLog).count()
         alert_count = db.query(CredentialSafetyAlert).count()
         manus_count = db.query(ManusVettingRun).count()
         checks.append(
@@ -243,9 +243,9 @@ def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
     except Exception as exc:
         checks.append(
             _check(
-                "vettedcare_data_layer",
+                "vettedme_data_layer",
                 ok=False,
-                detail=f"Could not query VettedCare tables: {exc.__class__.__name__}",
+                detail=f"Could not query VettedMe tables: {exc.__class__.__name__}",
             )
         )
 
@@ -266,7 +266,7 @@ def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
         "product": settings.PROJECT_NAME,
         "overall": overall,
         "summary": (
-            "Core VettedCare infrastructure is ready for development and testing."
+            "Core VettedMe infrastructure is ready for development and testing."
             if overall == "infra_ready"
             else "Fix required checks before continuing infrastructure work."
         ),
@@ -278,7 +278,7 @@ def build_vettedcare_infrastructure_readiness(db: Session) -> dict:
         "checks": checks,
         "manus_endpoints": manus_config["endpoints"],
         "next_without_manus": [
-            "Run scripts/vettedcare-preflight.ps1",
+            "Run scripts/vettedme-preflight.ps1",
             "Open http://127.0.0.1:8000/admin — Credential Safety Dashboard",
             "Open http://127.0.0.1:8000/portal — My Safety Status (after login)",
             "Run scripts/test-manus-webhook.ps1 to simulate Manus (no Manus account)",

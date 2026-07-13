@@ -1655,7 +1655,7 @@ View detailed results in the admin dashboard.
 from celery import Celery
 from celery.schedules import crontab
 
-app = Celery('vettedcare')
+app = Celery('vettedme')
 
 app.conf.beat_schedule = {
     'weekly-mbon-sweep': {
@@ -1671,7 +1671,7 @@ app.conf.beat_schedule = {
 from celery import Celery
 from app.services.mbon_auto_sweeper import MBONAutoSweeper
 
-app = Celery('vettedcare')
+app = Celery('vettedme')
 
 @app.task
 async def run_mbon_weekly_sweep():

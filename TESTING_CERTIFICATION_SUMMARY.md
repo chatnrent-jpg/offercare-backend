@@ -234,7 +234,7 @@ All legacy tests remain functional via:
 ### **Run All New Enterprise Tests**
 
 ```bash
-cd vettedcare-backend
+cd vettedme-backend
 
 # Run all new component tests
 python -m pytest \
@@ -293,8 +293,8 @@ python -m pytest -m unit -v
 - [ ] Install dependencies: `pip install -r requirements.txt`
 - [ ] Configure `.env` with test database:
   ```bash
-  DATABASE_URL=postgresql://user:pass@localhost/vettedcare_test
-  ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/vettedcare_test
+  DATABASE_URL=postgresql://user:pass@localhost/vettedme_test
+  ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/vettedme_test
   ```
 - [ ] Run migrations: `alembic upgrade head`
 - [ ] Initialize component schemas (see Unified Runtime Integration Summary)
@@ -335,7 +335,7 @@ When executed, all enterprise component tests should:
 ```
 ============================= test session starts ==============================
 platform win32 -- Python 3.11.x, pytest-8.0.x, pluggy-1.x
-rootdir: C:\vettedcare.ai\vettedcare-backend
+rootdir: C:\vettedme.ai\vettedme-backend
 configfile: pytest.ini
 testpaths: tests
 plugins: asyncio-0.23.0
@@ -374,7 +374,7 @@ pip install asyncpg>=0.29.0
 #### **pgvector extension missing**
 ```sql
 -- Connect to test database
-psql -U postgres vettedcare_test
+psql -U postgres vettedme_test
 
 -- Install extension
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -466,7 +466,7 @@ The testing infrastructure is **PRODUCTION READY** with:
 **Next Step:** Execute the test suite to achieve 100% green certification.
 
 ```bash
-cd vettedcare-backend
+cd vettedme-backend
 python -m pytest tests/test_circuit_breaker.py tests/test_semantic_matcher.py tests/test_bias_auditor.py tests/test_vms_pipeline.py tests/test_unified_matching_engine.py tests/test_api_matching.py tests/test_api_shifts.py -v
 ```
 

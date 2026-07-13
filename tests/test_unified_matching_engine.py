@@ -39,7 +39,7 @@ def sample_caregiver():
     """Fixture: Sample MarylandProvider."""
     return MarylandProvider(
         provider_id=uuid.uuid4(),
-        email="test@vettedcare.ai",
+        email="test@vettedme.ai",
         full_name="Test Caregiver",
         credential_type="CNA",
         state="MD",

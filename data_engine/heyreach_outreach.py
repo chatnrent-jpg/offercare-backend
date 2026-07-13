@@ -120,8 +120,8 @@ def _message_tokens(lead_row: dict[str, str]) -> dict[str, str]:
         "county_phrase": county_phrase(county),
         "compliance_hook": compliance_hook(str(lead_row.get("flag_reason") or "")),
         "company_name": str(lead_row.get("facility_name") or "your facility").strip(),
-        "sender_name": str(os.environ.get("OUTREACH_SENDER_NAME") or "VettedCare Team").strip(),
-        "agency_name": str(os.environ.get("OUTREACH_AGENCY_NAME") or "VettedCare.ai").strip(),
+        "sender_name": str(os.environ.get("OUTREACH_SENDER_NAME") or "VettedMe Team").strip(),
+        "agency_name": str(os.environ.get("OUTREACH_AGENCY_NAME") or "VettedMe.ai").strip(),
     }
 
 

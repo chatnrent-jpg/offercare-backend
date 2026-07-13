@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "product": "VettedCare.ai Facility Recruitment Engine",
+  "product": "VettedMe.ai Facility Recruitment Engine",
   "generated_at_utc": "2026-06-26T17:30:43.718450+00:00",
   "summary": {
     "contracts_total": 1,
@@ -30,7 +30,7 @@
         "Hospital career directories",
         "Surge-staffing job aggregators"
       ],
-      "output": "CSV -> C:\\VettedCare.ai\\vettedcare-backend\\data_engine\\raw_leads"
+      "output": "CSV -> C:\\VettedMe.ai\\vettedme-backend\\data_engine\\raw_leads"
     },
     {
       "id": "b2b-contact-enrichment",
@@ -39,7 +39,7 @@
         "LinkedIn public profiles",
         "Hospital directory pages"
       ],
-      "output": "CSV with contact_role + email_domain -> C:\\VettedCare.ai\\vettedcare-backend\\data_engine\\raw_leads"
+      "output": "CSV with contact_role + email_domain -> C:\\VettedMe.ai\\vettedme-backend\\data_engine\\raw_leads"
     },
     {
       "id": "vms-open-shift-sync",
@@ -49,8 +49,8 @@
         "StaffReady",
         "ShiftWise"
       ],
-      "output": "JSON batch -> POST http://127.0.0.1:8000/api/vettedcare/manus/recruitment/shifts or drop in C:\\VettedCare.ai\\vettedcare-backend\\data_engine\\incoming_shifts",
-      "session_note": "Manus manages login cookies; VettedCare dedupes + matches locally"
+      "output": "JSON batch -> POST http://127.0.0.1:8000/api/vettedme/manus/recruitment/shifts or drop in C:\\VettedMe.ai\\vettedme-backend\\data_engine\\incoming_shifts",
+      "session_note": "Manus manages login cookies; VettedMe dedupes + matches locally"
     }
   ],
   "contracts_pending_review": [],

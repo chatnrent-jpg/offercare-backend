@@ -1,4 +1,4 @@
-"""Run Alembic migrations for VettedCare.ai."""
+"""Run Alembic migrations for VettedMe.ai."""
 
 from __future__ import annotations
 

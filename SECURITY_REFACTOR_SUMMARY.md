@@ -238,7 +238,7 @@ Authorization: Bearer eyJzdWI...
 
 **Request:**
 ```bash
-curl -X POST https://api.vettedcare.ai/api/v1/auth/register \
+curl -X POST https://api.vettedme.ai/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "full_name": "Jane Smith",
@@ -277,7 +277,7 @@ curl -X POST https://api.vettedcare.ai/api/v1/auth/register \
 
 **Request:**
 ```bash
-curl -X POST https://api.vettedcare.ai/api/v1/auth/login \
+curl -X POST https://api.vettedme.ai/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jane.smith@example.com",
@@ -299,7 +299,7 @@ curl -X POST https://api.vettedcare.ai/api/v1/auth/login \
 
 **Request:**
 ```bash
-curl -X GET https://api.vettedcare.ai/api/v1/auth/me \
+curl -X GET https://api.vettedme.ai/api/v1/auth/me \
   -H "Authorization: Bearer eyJzdWIiOiJhMWIyYzNkNC0uLi4i..."
 ```
 
@@ -381,7 +381,7 @@ app.include_router(api_v1_router)
 # .env
 JWT_SECRET_KEY=your-secret-key-here
 JWT_EXPIRE_MINUTES=60
-ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/vettedcare
+ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/vettedme
 ```
 
 ### **Step 3: Test Endpoints**

@@ -274,10 +274,10 @@ echo "VMS_INGEST_CONCURRENCY_LEVEL=20" >> .env
 
 ```bash
 # Install pgvector extension
-psql -U postgres -d vettedcare -c "CREATE EXTENSION IF NOT EXISTS pgvector;"
+psql -U postgres -d vettedme -c "CREATE EXTENSION IF NOT EXISTS pgvector;"
 
 # Verify extension
-psql -U postgres -d vettedcare -c "\dx"
+psql -U postgres -d vettedme -c "\dx"
 ```
 
 ### **Step 3: Schema Initialization**
@@ -303,17 +303,17 @@ await engine.initialize_infrastructure(db_session)
 
 ```bash
 # Check all tables created
-psql -U postgres -d vettedcare -c "\dt"
+psql -U postgres -d vettedme -c "\dt"
 
 # Verify indices
-psql -U postgres -d vettedcare -c "\di" | grep -E "provider_embedding|shift_embedding|hb1106|vms_shifts|compliance_audit"
+psql -U postgres -d vettedme -c "\di" | grep -E "provider_embedding|shift_embedding|hb1106|vms_shifts|compliance_audit"
 
 # Check table structure
-psql -U postgres -d vettedcare -c "\d provider_profile_embeddings"
-psql -U postgres -d vettedcare -c "\d shift_embeddings"
-psql -U postgres -d vettedcare -c "\d hb1106_bias_ledger"
-psql -U postgres -d vettedcare -c "\d vms_shifts_ingest"
-psql -U postgres -d vettedcare -c "\d compliance_audit_ledger"
+psql -U postgres -d vettedme -c "\d provider_profile_embeddings"
+psql -U postgres -d vettedme -c "\d shift_embeddings"
+psql -U postgres -d vettedme -c "\d hb1106_bias_ledger"
+psql -U postgres -d vettedme -c "\d vms_shifts_ingest"
+psql -U postgres -d vettedme -c "\d compliance_audit_ledger"
 ```
 
 ---

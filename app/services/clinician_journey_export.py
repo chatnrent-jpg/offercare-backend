@@ -23,7 +23,7 @@ def build_clinician_journey_export(db: Session, provider: MarylandProvider) -> d
     activity = list_clinician_activity(db, provider.provider_id, lockable_count=lockable)
 
     lines = [
-        "VettedCare.ai — Clinician Journey Export",
+        "VettedMe.ai — Clinician Journey Export",
         "=" * 44,
         f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
         f"Clinician: {provider.full_name}",
@@ -67,7 +67,7 @@ def build_clinician_journey_export(db: Session, provider: MarylandProvider) -> d
     text = "\n".join(lines)
     token = str(provider.provider_id).replace("-", "")[:8].lower()
     return {
-        "filename": f"vettedcare-journey-{token}.txt",
+        "filename": f"vettedme-journey-{token}.txt",
         "export_text": text,
         "phase": status.get("phase"),
         "phase_label": status.get("phase_label"),

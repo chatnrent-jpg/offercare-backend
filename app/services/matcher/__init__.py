@@ -1,5 +1,5 @@
 """
-VettedCare.ai Intelligent Matching Services
+VettedMe.ai Intelligent Matching Services
 
 Semantic pgvector matcher with local fallback strategy and strict license compliance.
 """

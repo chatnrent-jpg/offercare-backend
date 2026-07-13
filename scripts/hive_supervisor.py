@@ -41,7 +41,7 @@ class HiveState(TypedDict, total=False):
 
 _BANNER = r"""
 +==================================================================+
-|  VETTEDCARE HIVE SUPERVISOR                                      |
+|  VETTEDME HIVE SUPERVISOR                                      |
 |  LangGraph - Gatekeeper - 2-Strike Loop Guard                    |
 +==================================================================+
 """
@@ -108,7 +108,7 @@ def _notify_halt(message: str) -> None:
             ctypes.windll.user32.MessageBoxW(  # type: ignore[attr-defined]
                 0,
                 message,
-                "VettedCare Hive Supervisor",
+                "VettedMe Hive Supervisor",
                 0x10,  # MB_ICONHAND
             )
         except Exception:
@@ -296,7 +296,7 @@ def run_hive(*, target_file: str | None = None) -> HiveState:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="VettedCare LangGraph hive supervisor — pytest gatekeeper with 2-strike halt.",
+        description="VettedMe LangGraph hive supervisor — pytest gatekeeper with 2-strike halt.",
     )
     parser.add_argument(
         "--file",

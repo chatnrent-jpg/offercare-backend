@@ -1,20 +1,20 @@
-# Finish VettedCare.ai folder rename — run from ANY location (script jumps to C:\ first).
+# Finish VettedMe.ai folder rename — run from ANY location (script jumps to C:\ first).
 $ErrorActionPreference = 'Stop'
 Set-Location C:\
 
 $legacyRoot = 'C:\OFFERCARE.AI'
 $legacyBackend = Join-Path $legacyRoot 'offercare-backend'
-$legacyBackendRenamed = Join-Path $legacyRoot 'vettedcare-backend'
-$newRoot = 'C:\VettedCare.ai'
-$newBackend = Join-Path $newRoot 'vettedcare-backend'
+$legacyBackendRenamed = Join-Path $legacyRoot 'vettedme-backend'
+$newRoot = 'C:\VettedMe.ai'
+$newBackend = Join-Path $newRoot 'vettedme-backend'
 
-Write-Host 'Stopping processes under OFFERCARE.AI / VettedCare.ai...'
+Write-Host 'Stopping processes under OFFERCARE.AI / VettedMe.ai...'
 Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
     Where-Object {
         $cmd = [string]$_.CommandLine
         $exe = [string]$_.ExecutablePath
-        $cmd -like '*OFFERCARE.AI*' -or $cmd -like '*offercare-backend*' -or $cmd -like '*vettedcare-backend*' -or
-        $exe -like '*OFFERCARE.AI*' -or $exe -like '*offercare-backend*' -or $exe -like '*vettedcare-backend*'
+        $cmd -like '*OFFERCARE.AI*' -or $cmd -like '*offercare-backend*' -or $cmd -like '*vettedme-backend*' -or
+        $exe -like '*OFFERCARE.AI*' -or $exe -like '*offercare-backend*' -or $exe -like '*vettedme-backend*'
     } |
     ForEach-Object {
         Write-Host "  stop pid $($_.ProcessId) $($_.Name)"
@@ -66,8 +66,8 @@ Set-Location C:\
 $renamed = $false
 if ($source -eq $legacyBackend) {
     try {
-        Write-Host "Renaming backend -> vettedcare-backend"
-        Rename-Item -LiteralPath $legacyBackend -NewName 'vettedcare-backend' -ErrorAction Stop
+        Write-Host "Renaming backend -> vettedme-backend"
+        Rename-Item -LiteralPath $legacyBackend -NewName 'vettedme-backend' -ErrorAction Stop
         $source = $legacyBackendRenamed
         $renamed = $true
     } catch {
@@ -85,16 +85,16 @@ if (Test-Path -LiteralPath $legacyRoot) {
     if (Test-Path -LiteralPath $newRoot) {
         Write-Host "Target root already exists: $newRoot"
         Write-Host "Backend is at: $legacyBackendRenamed"
-        Write-Host "Move vettedcare-backend into VettedCare.ai manually if needed."
+        Write-Host "Move vettedme-backend into VettedMe.ai manually if needed."
     } else {
         try {
-            Write-Host 'Renaming root -> VettedCare.ai'
-            Rename-Item -LiteralPath $legacyRoot -NewName 'VettedCare.ai' -ErrorAction Stop
+            Write-Host 'Renaming root -> VettedMe.ai'
+            Rename-Item -LiteralPath $legacyRoot -NewName 'VettedMe.ai' -ErrorAction Stop
             Write-Host ''
             Write-Host "Done. Project root: $newBackend"
         } catch {
             Write-Host "Root rename blocked: $($_.Exception.Message)"
-            Write-Host "Backend renamed inside OFFERCARE.AI -> vettedcare-backend"
+            Write-Host "Backend renamed inside OFFERCARE.AI -> vettedme-backend"
             Write-Host "Run this script again from a NEW PowerShell window (not inside the project folder)."
         }
     }

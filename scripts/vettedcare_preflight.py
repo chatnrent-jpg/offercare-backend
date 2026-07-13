@@ -1,4 +1,4 @@
-"""VettedCare infrastructure pre-flight — no Manus or live operations required."""
+"""VettedMe infrastructure pre-flight — no Manus or live operations required."""
 
 from __future__ import annotations
 
@@ -18,14 +18,14 @@ def fetch_json(url: str) -> dict:
 
 def main() -> int:
     base = os.environ.get("VETTED_BASE_URL", DEFAULT_BASE).rstrip("/")
-    print(f"VettedCare pre-flight — {base}\n")
+    print(f"VettedMe pre-flight — {base}\n")
 
     try:
-        payload = fetch_json(f"{base}/health/vettedcare")
+        payload = fetch_json(f"{base}/health/vettedme")
     except urllib.error.URLError as exc:
         print(f"FAIL  API not reachable at {base}")
         print(f"      {exc}")
-        print("\nStart VettedCare first: double-click VettedCare.ai on desktop")
+        print("\nStart VettedMe first: double-click VettedMe.ai on desktop")
         return 1
 
     overall = payload.get("status", "unknown")

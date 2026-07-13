@@ -1,25 +1,25 @@
 version: '3.8'
 
 services:
-  vettedcare-backend:
+  vettedme-backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: vettedcare-backend-prod
+    container_name: vettedme-backend-prod
     restart: always
     ports:
       - "8503:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:%40Prowess247@vettedcare-db:5432/offercare_db
+      - DATABASE_URL=postgresql://postgres:%40Prowess247@vettedme-db:5432/offercare_db
       - PYTHONPATH=/app
     depends_on:
-      - vettedcare-db
+      - vettedme-db
     networks:
-      - vettedcare-network
+      - vettedme-network
 
-  vettedcare-db:
+  vettedme-db:
     image: postgres:15-alpine
-    container_name: vettedcare-db
+    container_name: vettedme-db
     restart: always
     ports:
       - "5432:5432"
@@ -28,13 +28,13 @@ services:
       - POSTGRES_PASSWORD=@Prowess247
       - POSTGRES_DB=offercare_db
     volumes:
-      - vettedcare-db-data:/var/lib/postgresql/data
+      - vettedme-db-data:/var/lib/postgresql/data
     networks:
-      - vettedcare-network
+      - vettedme-network
 
 volumes:
-  vettedcare-db-data:
+  vettedme-db-data:
 
 networks:
-  vettedcare-network:
+  vettedme-network:
     driver: bridge

@@ -685,7 +685,7 @@ function renderRecruitmentShifts(rows) {
 }
 
 async function loadRecruitmentDashboard() {
-  const data = await api("/api/vettedcare/recruitment/dashboard?limit=50");
+  const data = await api("/api/vettedme/recruitment/dashboard?limit=50");
   renderRecruitmentSummary(data);
   renderRecruitmentDropzones(data);
   renderRecruitmentContracts(data.contracts);
@@ -830,7 +830,7 @@ function renderInfraChecks(data) {
 }
 
 async function loadInfrastructureReadiness() {
-  const data = await api("/api/vettedcare/infrastructure");
+  const data = await api("/api/vettedme/infrastructure");
   renderInfraChecks(data);
   return data;
 }
@@ -863,7 +863,7 @@ function renderVettedSummary(data) {
   if (els.vettedTagline) els.vettedTagline.textContent = data.tagline || els.vettedTagline.textContent;
   if (els.vettedManusHint) {
     els.vettedManusHint.textContent =
-      "Manus worker: GET /api/vettedcare/manus/work-queue → run checks → POST /api/vettedcare/manus/run (header X-Manus-Key)";
+      "Manus worker: GET /api/vettedme/manus/work-queue → run checks → POST /api/vettedme/manus/run (header X-Manus-Key)";
   }
 }
 
@@ -944,8 +944,8 @@ function renderVettedAlerts(rows) {
     </table>`;
 }
 
-async function loadVettedCareDashboard() {
-  const data = await api("/api/vettedcare/dashboard?limit=100");
+async function loadVettedMeDashboard() {
+  const data = await api("/api/vettedme/dashboard?limit=100");
   renderVettedSummary(data);
   renderVettedProviders(data.providers || []);
   renderVettedAudit(data.recent_audit || []);
@@ -955,7 +955,7 @@ async function loadVettedCareDashboard() {
 
 async function viewVettedProfile(providerId) {
   try {
-    const data = await api(`/api/vettedcare/providers/${providerId}`);
+    const data = await api(`/api/vettedme/providers/${providerId}`);
     els.complianceBody.textContent = JSON.stringify(data, null, 2);
     els.complianceDialog.showModal();
   } catch (error) {
@@ -965,11 +965,11 @@ async function viewVettedProfile(providerId) {
 
 async function runVettedSafetyCycle() {
   try {
-    const data = await api("/api/vettedcare/monitor/run", { method: "POST" });
+    const data = await api("/api/vettedme/monitor/run", { method: "POST" });
     const changes = data.vetted_sync?.status_changes?.length || 0;
     const alerts = data.alerts_sent?.length || 0;
     showToast(`Safety cycle — ${changes} status change(s), ${alerts} alert(s) sent`);
-    await loadVettedCareDashboard();
+    await loadVettedMeDashboard();
     await loadComplianceDashboard();
     await refreshPendingAndStats();
   } catch (error) {
@@ -979,10 +979,10 @@ async function runVettedSafetyCycle() {
 
 async function syncVettedStatuses() {
   try {
-    const data = await api("/api/vettedcare/sync", { method: "POST" });
+    const data = await api("/api/vettedme/sync", { method: "POST" });
     const changes = data.status_changes?.length || 0;
     showToast(`Synced ${data.providers_synced} clinician(s) — ${changes} status change(s)`);
-    await loadVettedCareDashboard();
+    await loadVettedMeDashboard();
   } catch (error) {
     showToast(error.message, true);
   }
@@ -2526,7 +2526,7 @@ async function testTwilioSmsDelivery() {
   if (!phone) return;
   const data = await api("/api/integrations/test/sms", {
     method: "POST",
-    body: JSON.stringify({ phone_number: phone, message: "VettedCare.ai Twilio production test" }),
+    body: JSON.stringify({ phone_number: phone, message: "VettedMe.ai Twilio production test" }),
   });
   showToast(`Test SMS — ${data.status} (${data.mode})`);
 }
@@ -2803,7 +2803,7 @@ async function refreshAll() {
   renderShifts(shifts);
   renderPlacements(placements);
   await loadInfrastructureReadiness();
-  await loadVettedCareDashboard();
+  await loadVettedMeDashboard();
   await loadComplianceDashboard();
   await loadRecruitmentDashboard();
   await loadOutreachDashboard();
@@ -2843,7 +2843,7 @@ async function connect() {
     els.app.classList.remove("hidden");
     opened = true;
     await refreshAll();
-    showToast("Connected to VettedCare.ai admin API");
+    showToast("Connected to VettedMe.ai admin API");
   } catch (error) {
     setKey("");
     if (opened) {
@@ -3050,7 +3050,7 @@ els.closeComplianceDialog?.addEventListener("click", () => els.complianceDialog.
 els.runComplianceMonitorBtn?.addEventListener("click", () => runComplianceMonitor().catch((e) => showToast(e.message, true)));
 els.runVettedSafetyBtn?.addEventListener("click", () => runVettedSafetyCycle().catch((e) => showToast(e.message, true)));
 els.syncVettedStatusBtn?.addEventListener("click", () => syncVettedStatuses().catch((e) => showToast(e.message, true)));
-els.refreshVettedBtn?.addEventListener("click", () => loadVettedCareDashboard().catch((e) => showToast(e.message, true)));
+els.refreshVettedBtn?.addEventListener("click", () => loadVettedMeDashboard().catch((e) => showToast(e.message, true)));
 els.refreshInfraBtn?.addEventListener("click", () => loadInfrastructureReadiness().catch((e) => showToast(e.message, true)));
 els.scanCrisisSignalsBtn?.addEventListener("click", () => scanCrisisSignals().catch((e) => showToast(e.message, true)));
 els.scanJobBoardsBtn?.addEventListener("click", () => scanJobBoardCrisis().catch((e) => showToast(e.message, true)));
@@ -3065,7 +3065,7 @@ document.getElementById("refresh-recruitment-btn")?.addEventListener("click", ()
 );
 document.getElementById("import-recruitment-leads-btn")?.addEventListener("click", async () => {
   try {
-    const data = await api("/api/vettedcare/recruitment/leads/import-all", { method: "POST" });
+    const data = await api("/api/vettedme/recruitment/leads/import-all", { method: "POST" });
     await loadRecruitmentDashboard();
     showToast(`Lead import done (${(data.detail || []).length} file(s))`);
   } catch (error) {
@@ -3074,7 +3074,7 @@ document.getElementById("import-recruitment-leads-btn")?.addEventListener("click
 });
 document.getElementById("process-recruitment-contracts-btn")?.addEventListener("click", async () => {
   try {
-    await api("/api/vettedcare/recruitment/contracts/process", { method: "POST" });
+    await api("/api/vettedme/recruitment/contracts/process", { method: "POST" });
     await loadRecruitmentDashboard();
     showToast("Contracts processed");
   } catch (error) {
@@ -3083,7 +3083,7 @@ document.getElementById("process-recruitment-contracts-btn")?.addEventListener("
 });
 document.getElementById("process-recruitment-shifts-btn")?.addEventListener("click", async () => {
   try {
-    await api("/api/vettedcare/recruitment/shifts/process-dir", { method: "POST" });
+    await api("/api/vettedme/recruitment/shifts/process-dir", { method: "POST" });
     await loadRecruitmentDashboard();
     showToast("VMS JSON processed");
   } catch (error) {
@@ -3092,7 +3092,7 @@ document.getElementById("process-recruitment-shifts-btn")?.addEventListener("cli
 });
 document.getElementById("export-manus-recruitment-btn")?.addEventListener("click", async () => {
   try {
-    await downloadAdminFile("/api/vettedcare/recruitment/manus-snapshot", "vettedcare-recruitment-snapshot.json");
+    await downloadAdminFile("/api/vettedme/recruitment/manus-snapshot", "vettedme-recruitment-snapshot.json");
     showToast("Manus recruitment snapshot downloaded");
   } catch (error) {
     showToast(error.message, true);

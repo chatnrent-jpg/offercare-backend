@@ -259,11 +259,11 @@ function renderLanding(data) {
 }
 
 function mountAedtDisclosure(disclosures) {
-  if (!els.aedtMount || !window.VettedCareAedtDisclosure) return;
+  if (!els.aedtMount || !window.VettedMeAedtDisclosure) return;
   els.aedtMount.innerHTML = "";
-  aedtDisclosure = window.VettedCareAedtDisclosure.createAedtDisclosureBox({
+  aedtDisclosure = window.VettedMeAedtDisclosure.createAedtDisclosureBox({
     copy: {
-      body: disclosures.maryland_aedt_30_day || window.VettedCareAedtDisclosure.DEFAULT_COPY.body,
+      body: disclosures.maryland_aedt_30_day || window.VettedMeAedtDisclosure.DEFAULT_COPY.body,
     },
   });
   els.aedtMount.appendChild(aedtDisclosure.element);

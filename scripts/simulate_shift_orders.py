@@ -89,7 +89,7 @@ def write_active_shifts(orders: list[dict[str, Any]], path: Path = OUTPUT_PATH) 
         "mode": "STAGING",
         "live_execution": False,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "product": "VettedCare.ai Active Shift Order Simulator",
+        "product": "VettedMe.ai Active Shift Order Simulator",
         "count": len(orders),
         "shifts": orders,
     }

@@ -1,4 +1,4 @@
--- VettedCare.ai — Maryland LTC market expansion (reference SQL)
+-- VettedMe.ai — Maryland LTC market expansion (reference SQL)
 -- Segments: SNF · ALF · HHA  |  Clinicians: CNA · GNA · LPN
 -- Integrates with scheduling spine: maryland_facilities · maryland_providers
 

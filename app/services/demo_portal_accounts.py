@@ -16,7 +16,7 @@ SAMPLE_DEMO_PORTAL_EMAIL = "nj.snf.cna.a@offercare.demo"
 
 _PORTAL_EMAIL_SUFFIXES = (
     "%@offercare.demo",
-    "%@vettedcare.slice",
+    "%@vettedme.slice",
 )
 
 _DEMO_SEED_GROUPS: tuple[tuple[frozenset[str], str], ...] = (

@@ -25,7 +25,7 @@ from app.services.live_scrapers import live_scrapers_summary
 # from app.services.production_launch_perfection_manifest import build_production_launch_perfection_manifest
 # from app.services.twilio_sms_production_runbook import build_twilio_sms_production_runbook
 from app.services.states import grid_region_label
-from app.services.vetted_infrastructure import build_vettedcare_infrastructure_readiness
+from app.services.vetted_infrastructure import build_vettedme_infrastructure_readiness
 from app.database import engine, get_db
 import app.models  # noqa: F401 — register tables before migrations
 from app.migrations import run_migrations
@@ -52,7 +52,7 @@ from app.routers.landing import router as landing_router
 from app.routers.live_scraper_adapters import router as live_scraper_adapters_router
 from app.routers.outreach import router as outreach_router
 from app.routers.vms import router as vms_router
-from app.routers.vettedcare import router as vettedcare_router
+from app.routers.vettedme import router as vettedme_router
 from app.routers.twilio_webhooks import router as twilio_webhooks_router
 from app.routers.billing import router as billing_router
 from app.api.v1.ai_resume import router as ai_resume_router
@@ -128,7 +128,7 @@ app.include_router(compliance_router)
 app.include_router(landing_router)
 app.include_router(outreach_router)
 app.include_router(vms_router)
-app.include_router(vettedcare_router)
+app.include_router(vettedme_router)
 app.include_router(twilio_webhooks_router)
 app.include_router(billing_router)
 app.include_router(ai_resume_router)
@@ -278,7 +278,7 @@ def read_root():
     from app.config import settings
 
     return {
-        "status": "VettedCare.ai Engine Online",
+        "status": "VettedMe.ai Engine Online",
         "product": settings.PROJECT_NAME,
         "tagline": settings.VETTED_TAGLINE,
         "safety_first": True,
@@ -287,16 +287,16 @@ def read_root():
         "portal": "/portal/",
         "baltimore_instant_pay_cna": "/baltimore-instant-pay-cna/",
         "manus": {
-            "config": "/api/vettedcare/manus/config",
-            "work_queue": "/api/vettedcare/manus/work-queue",
-            "submit_run": "/api/vettedcare/manus/run",
+            "config": "/api/vettedme/manus/config",
+            "work_queue": "/api/vettedme/manus/work-queue",
+            "submit_run": "/api/vettedme/manus/run",
         },
     }
 
 
-@app.get("/health/vettedcare")
-def health_vettedcare(db: Session = Depends(get_db)):
-    payload = build_vettedcare_infrastructure_readiness(db)
+@app.get("/health/vettedme")
+def health_vettedme(db: Session = Depends(get_db)):
+    payload = build_vettedme_infrastructure_readiness(db)
     return {
         "status": payload["overall"],
         "product": payload["product"],

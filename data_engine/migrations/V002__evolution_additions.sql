@@ -1,5 +1,5 @@
 -- Migration: V002__evolution_additions.sql
--- Description: Core schema additions for VettedCare.ai scale enhancements mapped to canonical public tables
+-- Description: Core schema additions for VettedMe.ai scale enhancements mapped to canonical public tables
 
 BEGIN;
 

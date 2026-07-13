@@ -1,5 +1,5 @@
 """
-VettedCare.ai Core Resilience Module
+VettedMe.ai Core Resilience Module
 
 High-throughput circuit breaker and state fallback engine for external registry calls.
 Enforces strict 150ms latency ceiling for MBON/OIG compliance checks.

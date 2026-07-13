@@ -1,4 +1,4 @@
-"""VettedCare admin dashboard aggregates."""
+"""VettedMe admin dashboard aggregates."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import CredentialSafetyAlert, ManusVettingRun, MarylandProvider, VettedCareAuditLog
+from app.models import CredentialSafetyAlert, ManusVettingRun, MarylandProvider, VettedMeAuditLog
 from app.services.vetted_alerts import list_recent_alerts
 from app.services.vetted_audit import list_vetted_audit
 from app.services.vetted_status import ALL_VETTED_STATUSES, VETTED_CLEAR, sync_all_vetted_statuses
@@ -25,7 +25,7 @@ def _status_cache_stale(db: Session) -> bool:
     return unset == total
 
 
-def build_vettedcare_dashboard(db: Session, *, provider_limit: int = 100) -> dict:
+def build_vettedme_dashboard(db: Session, *, provider_limit: int = 100) -> dict:
     if _status_cache_stale(db):
         sync_all_vetted_statuses(db, actor="dashboard")
 
@@ -68,7 +68,7 @@ def build_vettedcare_dashboard(db: Session, *, provider_limit: int = 100) -> dic
     manus_applied = (
         db.query(func.count(ManusVettingRun.run_id)).filter(ManusVettingRun.status == "APPLIED").scalar() or 0
     )
-    audit_events = db.query(func.count(VettedCareAuditLog.audit_id)).scalar() or 0
+    audit_events = db.query(func.count(VettedMeAuditLog.audit_id)).scalar() or 0
     alerts_sent = db.query(func.count(CredentialSafetyAlert.alert_id)).scalar() or 0
 
     return {
@@ -85,5 +85,5 @@ def build_vettedcare_dashboard(db: Session, *, provider_limit: int = 100) -> dic
         "providers": provider_rows,
         "recent_audit": list_vetted_audit(db, limit=15),
         "recent_alerts": list_recent_alerts(db, limit=15),
-        "manus_webhook": "/api/vettedcare/manus/run",
+        "manus_webhook": "/api/vettedme/manus/run",
     }

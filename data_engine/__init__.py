@@ -1,4 +1,4 @@
-"""VettedCare B2B recruitment & contract data engine (Cursor-local parsing + matching)."""
+"""VettedMe B2B recruitment & contract data engine (Cursor-local parsing + matching)."""
 
 from data_engine.paths import (
     INCOMING_CONTRACTS_DIR,

@@ -58,14 +58,14 @@ def test_production_launch_ceremony_endpoint(client: TestClient) -> None:
     assert "checks" in body
     assert "steps" in body
     assert any(row["id"] == "production_launch_ceremony" for row in body["checks"])
-    assert "# VettedCare Maryland Production Launch Ceremony" in body["signoff_markdown"]
+    assert "# VettedMe Maryland Production Launch Ceremony" in body["signoff_markdown"]
 
 
 def test_production_launch_ceremony_markdown_download(client: TestClient) -> None:
     response = client.get("/api/deploy/production-launch-ceremony.md")
     assert response.status_code == 200
     assert PRODUCTION_LAUNCH_CEREMONY_MD_FILENAME in response.headers.get("content-disposition", "")
-    assert "# VettedCare Maryland Production Launch Ceremony" in response.text
+    assert "# VettedMe Maryland Production Launch Ceremony" in response.text
     assert "Stakeholder sign-off" in response.text
 
 
@@ -96,7 +96,7 @@ def test_production_launch_ceremony_run_endpoint(client: TestClient, production_
     assert body["ok"] is True
     assert body["perfection_check_ok"] is True
     assert body["deploy_bundle_file_count"] == 15
-    assert "# VettedCare Maryland Production Launch Ceremony" in body["signoff_markdown"]
+    assert "# VettedMe Maryland Production Launch Ceremony" in body["signoff_markdown"]
 
 
 def test_production_launch_ceremony_run_helper(db: Session, production_launch_live: None) -> None:

@@ -271,7 +271,7 @@ def portal_oauth_login(db: Session, profile: OAuthProfile) -> tuple[MarylandProv
 
 def oauth_error_message(code: str) -> str:
     messages = {
-        "oauth_account_not_found": "No VettedCare clinician account matches that email. Apply first, then link social sign-in.",
+        "oauth_account_not_found": "No VettedMe clinician account matches that email. Apply first, then link social sign-in.",
         "google_oauth_not_configured": "Google sign-in is not configured on this server.",
         "facebook_oauth_not_configured": "Facebook sign-in is not configured on this server.",
         "invalid_oauth_state": "Sign-in expired. Please try again.",

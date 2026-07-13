@@ -22,7 +22,7 @@ def main() -> int:
         portal = requests.get(f"{BASE}/portal/", timeout=10)
         js = requests.get(f"{BASE}/portal/app.js", timeout=10)
         shifts_js = requests.get(f"{BASE}/portal/shifts.js", timeout=10)
-        health = requests.get(f"{BASE}/health/vettedcare", timeout=10)
+        health = requests.get(f"{BASE}/health/vettedme", timeout=10)
     except requests.RequestException as exc:
         print(f"FAIL: API not reachable at {BASE} — {exc}")
         return 1

@@ -25,7 +25,7 @@
 ## Step 1 — Manus discovers the integration
 
 ```http
-GET /api/vettedcare/manus/config
+GET /api/vettedme/manus/config
 X-Manus-Key: <MANUS_API_KEY>
 ```
 
@@ -36,7 +36,7 @@ Returns all endpoints, required checks (`MBON`, `OIG`, `JUDICIARY`), and limits.
 ## Step 2 — Manus pulls today's work queue
 
 ```http
-GET /api/vettedcare/manus/work-queue?limit=25&queue=due
+GET /api/vettedme/manus/work-queue?limit=25&queue=due
 X-Manus-Key: <MANUS_API_KEY>
 ```
 
@@ -58,7 +58,7 @@ Each item includes `provider_id`, lookup fields, priority, and `work_order_url`.
 ## Step 3 — Manus fetches a work order (optional detail)
 
 ```http
-GET /api/vettedcare/manus/providers/{provider_id}
+GET /api/vettedme/manus/providers/{provider_id}
 X-Manus-Key: <MANUS_API_KEY>
 ```
 
@@ -83,7 +83,7 @@ Manus collects evidence URLs and short notes for each check.
 Single clinician:
 
 ```http
-POST /api/vettedcare/manus/run
+POST /api/vettedme/manus/run
 X-Manus-Key: <MANUS_API_KEY>
 Content-Type: application/json
 ```
@@ -93,7 +93,7 @@ Body: see `docs/manus-webhook-example.json`
 Batch (after a daily loop):
 
 ```http
-POST /api/vettedcare/manus/batch
+POST /api/vettedme/manus/batch
 X-Manus-Key: <MANUS_API_KEY>
 ```
 
@@ -136,11 +136,11 @@ Base URL: http://127.0.0.1:8000
 Auth header: X-Manus-Key: <your key>
 
 Daily loop:
-1. GET /api/vettedcare/manus/work-queue?limit=25&queue=due
+1. GET /api/vettedme/manus/work-queue?limit=25&queue=due
 2. For each item, GET work_order_url if you need lookup details
 3. Run MBON, OIG, and JUDICIARY checks using the lookup fields
-4. POST /api/vettedcare/manus/run with check evidence for each provider
-5. Optionally POST /api/vettedcare/manus/batch with run_cycle_after=true
+4. POST /api/vettedme/manus/run with check evidence for each provider
+5. Optionally POST /api/vettedme/manus/batch with run_cycle_after=true
 
 Rules:
 - Submit factual evidence only (source URLs + notes)
@@ -155,8 +155,8 @@ Rules:
 
 ```powershell
 $key = "YOUR_MANUS_KEY"
-curl.exe -s "http://127.0.0.1:8000/api/vettedcare/manus/config" -H "X-Manus-Key: $key"
-curl.exe -s "http://127.0.0.1:8000/api/vettedcare/manus/work-queue?limit=3" -H "X-Manus-Key: $key"
+curl.exe -s "http://127.0.0.1:8000/api/vettedme/manus/config" -H "X-Manus-Key: $key"
+curl.exe -s "http://127.0.0.1:8000/api/vettedme/manus/work-queue?limit=3" -H "X-Manus-Key: $key"
 ```
 
 See also: [MANUS_WEBHOOK.md](./MANUS_WEBHOOK.md)

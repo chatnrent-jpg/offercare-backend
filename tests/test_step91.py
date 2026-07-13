@@ -30,7 +30,7 @@ def test_build_demo_gates_clipboard_text_includes_matrix(db: Session) -> None:
     run_full_demo_setup(db, notify_matched=False)
     summary = build_demo_gates_summary(db)
     text = build_demo_gates_clipboard_text(summary)
-    assert "VettedCare Demo Confirmation Gates" in text
+    assert "VettedMe Demo Confirmation Gates" in text
     assert "Health: READY (green)" in text
     assert "Walkthrough intact: yes" in text
     assert "Active gates:" in text

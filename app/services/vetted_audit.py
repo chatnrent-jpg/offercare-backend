@@ -1,4 +1,4 @@
-"""Immutable VettedCare audit trail for credential safety events."""
+"""Immutable VettedMe audit trail for credential safety events."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.models import VettedCareAuditLog
+from app.models import VettedMeAuditLog
 
 
 def log_vetted_event(
@@ -21,8 +21,8 @@ def log_vetted_event(
     new_status: str | None = None,
     metadata: dict | None = None,
     commit: bool = False,
-) -> VettedCareAuditLog:
-    row = VettedCareAuditLog(
+) -> VettedMeAuditLog:
+    row = VettedMeAuditLog(
         provider_id=provider_id,
         event_type=event_type,
         actor=actor,
@@ -44,9 +44,9 @@ def list_vetted_audit(
     provider_id: UUID | None = None,
     limit: int = 50,
 ) -> list[dict]:
-    query = db.query(VettedCareAuditLog).order_by(VettedCareAuditLog.created_at.desc())
+    query = db.query(VettedMeAuditLog).order_by(VettedMeAuditLog.created_at.desc())
     if provider_id is not None:
-        query = query.filter(VettedCareAuditLog.provider_id == provider_id)
+        query = query.filter(VettedMeAuditLog.provider_id == provider_id)
     rows = query.limit(min(limit, 200)).all()
     return [
         {

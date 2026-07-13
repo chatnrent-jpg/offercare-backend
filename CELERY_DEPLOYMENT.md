@@ -72,7 +72,7 @@ After=network.target redis.service
 Type=forking
 User=vettedme
 Group=vettedme
-WorkingDirectory=/opt/vettedme/vettedcare-backend
+WorkingDirectory=/opt/vettedme/vettedme-backend
 Environment="PATH=/opt/vettedme/venv/bin"
 ExecStart=/opt/vettedme/venv/bin/celery -A app.core.celery_app worker \
           --loglevel=info \
@@ -96,7 +96,7 @@ After=network.target redis.service
 Type=simple
 User=vettedme
 Group=vettedme
-WorkingDirectory=/opt/vettedme/vettedcare-backend
+WorkingDirectory=/opt/vettedme/vettedme-backend
 Environment="PATH=/opt/vettedme/venv/bin"
 ExecStart=/opt/vettedme/venv/bin/celery -A app.core.celery_app beat \
           --loglevel=info \

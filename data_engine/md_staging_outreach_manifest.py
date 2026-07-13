@@ -37,8 +37,8 @@ def _build_staging_copy(
     facility_name = facility.company_name
     first = _salutation(contact, facility_name)
     addressee = _admin_addressee(contact)
-    agency = settings.OUTREACH_AGENCY_NAME or "VettedCare.ai"
-    sender = settings.OUTREACH_SENDER_NAME or "VettedCare Team"
+    agency = settings.OUTREACH_AGENCY_NAME or "VettedMe.ai"
+    sender = settings.OUTREACH_SENDER_NAME or "VettedMe Team"
 
     if facility_type == "SNF":
         compliance_hook = (
@@ -53,7 +53,7 @@ def _build_staging_copy(
             f"that stall admissions and force last-minute agency swaps."
         )
         body_value = (
-            f"VettedCare.ai's {compliance_hook}.\n\n"
+            f"VettedMe.ai's {compliance_hook}.\n\n"
             f"For {facility_name}, that means:\n"
             f"• Pre-shift GNA endorsement verification for every CNA placement\n"
             f"• Lookahead matching that blocks non-compliant profiles before they reach your floor\n"
@@ -149,7 +149,7 @@ def build_staging_outreach_manifest(db: Session) -> dict[str, Any]:
         "mode": "STAGING",
         "live_execution": False,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "product": "VettedCare.ai Maryland B2B Outreach — Staging Queue",
+        "product": "VettedMe.ai Maryland B2B Outreach — Staging Queue",
         "manus_action": "REVIEW_ONLY — read templates, do not dispatch email or SMS",
         "count": len(payloads),
         "payloads": payloads,

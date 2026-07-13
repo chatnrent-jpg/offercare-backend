@@ -1,4 +1,4 @@
-name: VettedCare.ai Production CI Pipeline
+name: VettedMe.ai Production CI Pipeline
 
 on:
   push:

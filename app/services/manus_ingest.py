@@ -1,4 +1,4 @@
-"""Manus autonomous vetting run ingestion — Manus acts, VettedCare decides."""
+"""Manus autonomous vetting run ingestion — Manus acts, VettedMe decides."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.models import ExclusionScreening, LicenseVerificationLog, ManusVettingRun, MarylandProvider
 from app.services.credentialing_pipeline import run_full_credentialing_screen
 from app.services.vetted_audit import log_vetted_event
-from app.services.vetted_monitor import run_vettedcare_safety_cycle
+from app.services.vetted_monitor import run_vettedme_safety_cycle
 from app.services.vetted_status import build_provider_vetted_profile, sync_provider_vetted_status
 
 _CHECK_TO_SCREENING = {
@@ -169,5 +169,5 @@ def ingest_manus_vetting_run(db: Session, payload: dict, *, actor: str = "manus"
 
 def run_manus_batch_and_cycle(db: Session, payloads: list[dict]) -> dict:
     results = [ingest_manus_vetting_run(db, item, actor="manus") for item in payloads]
-    cycle = run_vettedcare_safety_cycle(db, actor="manus_batch")
+    cycle = run_vettedme_safety_cycle(db, actor="manus_batch")
     return {"runs": results, "safety_cycle": cycle}

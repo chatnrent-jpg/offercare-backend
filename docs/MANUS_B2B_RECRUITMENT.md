@@ -16,10 +16,10 @@ Hybrid split: Manus runs external web workflows (RFP monitors, LinkedIn/director
 
 | Method | Endpoint |
 |--------|----------|
-| GET | `/api/vettedcare/manus/recruitment/config` |
-| POST | `/api/vettedcare/manus/recruitment/leads/import` `{ "csv_filename": "leads.csv" }` |
-| POST | `/api/vettedcare/manus/recruitment/shifts` `{ "shifts": [ ... ] }` |
-| POST | `/api/vettedcare/manus/recruitment/contracts/process` |
+| GET | `/api/vettedme/manus/recruitment/config` |
+| POST | `/api/vettedme/manus/recruitment/leads/import` `{ "csv_filename": "leads.csv" }` |
+| POST | `/api/vettedme/manus/recruitment/shifts` `{ "shifts": [ ... ] }` |
+| POST | `/api/vettedme/manus/recruitment/contracts/process` |
 
 ## Lead CSV required columns
 
@@ -48,7 +48,7 @@ Parsed MSAs with margin below `CONTRACT_MIN_MARGIN_PCT` (default 18%) → `PENDI
 Run migration:
 
 ```powershell
-cd C:\VettedMe.ai\vettedcare-backend
+cd C:\VettedMe.ai\vettedme-backend
 alembic upgrade head
 ```
 

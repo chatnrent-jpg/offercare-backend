@@ -24,13 +24,13 @@ def _base_url() -> str:
 def build_manus_recruitment_config() -> dict:
     ensure_data_engine_dirs()
     base = _base_url()
-    prefix = f"{base}/api/vettedcare/manus/recruitment"
+    prefix = f"{base}/api/vettedme/manus/recruitment"
     repo = Path(__file__).resolve().parents[2]
     md_leads_path = RAW_LEADS_DIR / "md_facilities.csv"
     ohcq_citation_csv = LEADS_DIR / "ohcq_staffing_citation_flags_md.csv"
     return {
-        "product": "VettedCare.ai Maryland LTC Recruitment Engine",
-        "architecture": "Manus acts (OHCQ/RFP/VMS) · VettedCare decides (parse, MBON gate, dispatch)",
+        "product": "VettedMe.ai Maryland LTC Recruitment Engine",
+        "architecture": "Manus acts (OHCQ/RFP/VMS) · VettedMe decides (parse, MBON gate, dispatch)",
         "market_focus": {
             "state": "MD",
             "facility_segments": ["SNF", "ALF", "HHA"],
@@ -49,8 +49,8 @@ def build_manus_recruitment_config() -> dict:
             "import_md_facilities": f"{prefix}/leads/import-md",
             "submit_shifts": f"{prefix}/shifts",
             "process_contracts": f"{prefix}/contracts/process",
-            "outreach_queue": f"{base}/api/vettedcare/recruitment/md-outreach-queue",
-            "sync_facility_outreach": f"{base}/api/vettedcare/recruitment/md-outreach/sync-facilities",
+            "outreach_queue": f"{base}/api/vettedme/recruitment/md-outreach-queue",
+            "sync_facility_outreach": f"{base}/api/vettedme/recruitment/md-outreach/sync-facilities",
         },
         "filesystem_handoff": {
             "raw_leads_csv": str(RAW_LEADS_DIR),
@@ -186,7 +186,7 @@ def build_manus_recruitment_config() -> dict:
                     "Import heyreach_md_don_ohcq_import.csv into HeyReach, apply "
                     "heyreach_md_don_ohcq_sequence.json via UpdateSequence, and start campaign. "
                     "Copy dynamically inserts cited Maryland county names and focuses on "
-                    "VettedCare.ai routing credentialed GNAs/LPNs to open shifts within 15 minutes."
+                    "VettedMe.ai routing credentialed GNAs/LPNs to open shifts within 15 minutes."
                 ),
             },
             {
@@ -210,7 +210,7 @@ def build_manus_recruitment_config() -> dict:
                 "title": "VMS portal open-shift scrape",
                 "targets": ["Fieldglass", "StaffReady", "ShiftWise"],
                 "output": f"JSON batch -> POST {prefix}/shifts or drop in {INCOMING_SHIFTS_DIR}",
-                "session_note": "Manus manages login cookies; VettedCare dedupes + MBON-gated matching locally",
+                "session_note": "Manus manages login cookies; VettedMe dedupes + MBON-gated matching locally",
             },
             {
                 "id": "b2b-outreach-execution",

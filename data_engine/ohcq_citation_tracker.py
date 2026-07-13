@@ -495,7 +495,7 @@ def run_ohcq_staffing_citation_sweep(
         }
 
     owns_client = client is None
-    http = client or httpx.Client(headers={"User-Agent": "VettedCare-OHCQ-CitationTracker/1.0"})
+    http = client or httpx.Client(headers={"User-Agent": "VettedMe-OHCQ-CitationTracker/1.0"})
     try:
         portal_links = sweep_ohcq_portal_links(http)
         registry = load_ohcq_facility_registry(http)

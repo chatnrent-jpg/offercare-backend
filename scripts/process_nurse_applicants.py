@@ -160,7 +160,7 @@ def process_applicants(applicants: list[dict[str, Any]]) -> dict[str, Any]:
         "mode": "STAGING",
         "live_execution": False,
         "processed_at_utc": datetime.now(timezone.utc).isoformat(),
-        "product": "VettedCare.ai Nurse Applicant Pipeline",
+        "product": "VettedMe.ai Nurse Applicant Pipeline",
         "applicant_count": len(applicants),
         "placement_eligible_count": eligible,
         "processing_errors": errors,

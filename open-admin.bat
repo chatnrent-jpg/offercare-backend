@@ -6,7 +6,7 @@ set "PYTHONPATH=%~dp0"
 .venv\Scripts\python.exe -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/admin', timeout=4)" >nul 2>&1
 if %errorlevel%==0 goto open_admin
 
-echo VettedCare API is not running — starting it...
+echo VettedMe API is not running — starting it...
 call "%~dp0start-all.bat"
 exit /b 0
 

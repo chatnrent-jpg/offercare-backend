@@ -23,13 +23,13 @@ Write-Host ("Montgomery live call-out test - " + $Base)
 Write-Host ""
 
 Write-Host "[1/2] GET handoff"
-$handoff = Invoke-RestMethod -Uri ($Base + "/api/vettedcare/manus/desk/handoff") -Headers $Headers -TimeoutSec 30
+$handoff = Invoke-RestMethod -Uri ($Base + "/api/vettedme/manus/desk/handoff") -Headers $Headers -TimeoutSec 30
 Write-Host ("OK    " + $handoff.api_endpoints.run_production_live)
 Write-Host ""
 
 Write-Host "[2/2] POST run-production-live"
 $body = @{ original_provider_id = "CNA-MD-88421" } | ConvertTo-Json
-$result = Invoke-RestMethod -Method Post -Uri ($Base + "/api/vettedcare/manus/desk/run-production-live") -Headers $Headers -Body $body -TimeoutSec 60
+$result = Invoke-RestMethod -Method Post -Uri ($Base + "/api/vettedme/manus/desk/run-production-live") -Headers $Headers -Body $body -TimeoutSec 60
 Write-Host ("OK    live_execution=" + $result.live_execution + " status=" + $result.dispatch.status + " backups=" + $result.dispatch.backup_candidates.Count)
 if ($result.notify_cascade) {
   Write-Host ("OK    notify=" + $result.notify_cascade.status + " dry_run=" + $result.notify_cascade.sms_dry_run)

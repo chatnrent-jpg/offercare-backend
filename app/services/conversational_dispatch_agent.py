@@ -103,7 +103,7 @@ class ConversationalDispatchAgent:
         
         Args:
             from_phone: Facility phone number (E.164 format)
-            to_phone: VettedCare.ai Twilio number
+            to_phone: VettedMe.ai Twilio number
             message_body: SMS message text
             twilio_message_sid: Twilio message SID for logging
         

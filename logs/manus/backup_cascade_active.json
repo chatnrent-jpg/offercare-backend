@@ -33,7 +33,7 @@
           "phone_number": "3015559901",
           "status": "DRY_RUN",
           "mode": "dry_run",
-          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+          "message_preview": "VettedMe.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
           "notified_at_utc": "2026-06-26T23:37:40.213235+00:00"
         }
       ],
@@ -84,7 +84,7 @@
           "phone_number": "3015559901",
           "status": "DRY_RUN",
           "mode": "dry_run",
-          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
+          "message_preview": "VettedMe.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #1. Urgent same-day coverage needed…",
           "notified_at_utc": "2026-06-26T23:44:41.489438+00:00"
         },
         {
@@ -95,7 +95,7 @@
           "phone_number": "3015559902",
           "status": "DRY_RUN",
           "mode": "dry_run",
-          "message_preview": "VettedCare.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #2. Urgent same-day coverage needed…",
+          "message_preview": "VettedMe.ai EMERGENCY CALLOUT · Arbor Ridge at Riderwood · Montgomery · CNA backup #2. Urgent same-day coverage needed…",
           "notified_at_utc": "2026-06-26T23:46:24.030967+00:00"
         }
       ],

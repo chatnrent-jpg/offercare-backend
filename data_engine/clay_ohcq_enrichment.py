@@ -44,7 +44,7 @@ class ClayOhcqLeadRow:
             "MD License Number": self.md_license_number,
             "CMS CCN": self.cms_ccn,
             "Search Location": self.search_location,
-            "VettedCare Record ID": self.record_id,
+            "VettedMe Record ID": self.record_id,
         }
 
     def to_clay_cells(self, field_map: dict[str, str]) -> dict[str, str]:

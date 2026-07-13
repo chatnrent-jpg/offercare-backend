@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import SessionLocal
-from app.services.vetted_monitor import run_vettedcare_safety_cycle
+from app.services.vetted_monitor import run_vettedme_safety_cycle
 from app.services.ops_metrics import log_ops_event
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ def run_compliance_monitor_tick(db: Session) -> dict:
     if not settings.COMPLIANCE_MONITOR_WORKER_ENABLED:
         return {"skipped": True, "reason": "compliance_monitor_worker_disabled"}
 
-    result = run_vettedcare_safety_cycle(db, actor="compliance_scheduler")
+    result = run_vettedme_safety_cycle(db, actor="compliance_scheduler")
     compliance = result["compliance"]
     sync = result["vetted_sync"]
     _last_run_at = datetime.now(timezone.utc)
@@ -69,12 +69,12 @@ def run_compliance_monitor_tick(db: Session) -> dict:
     }
     log_ops_event(
         db,
-        event_type="VETTEDCARE_SAFETY_TICK",
+        event_type="VETTEDME_SAFETY_TICK",
         actor="compliance_scheduler",
         entity_type="system",
         entity_id=None,
         summary=(
-            f"VettedCare safety cycle — {compliance['documents_checked']} doc(s), "
+            f"VettedMe safety cycle — {compliance['documents_checked']} doc(s), "
             f"{len(sync['status_changes'])} status change(s), "
             f"{len(result['alerts_sent'])} alert(s) sent"
         ),
@@ -82,7 +82,7 @@ def run_compliance_monitor_tick(db: Session) -> dict:
         commit=True,
     )
     logger.info(
-        "VettedCare safety tick: documents=%s status_changes=%s alerts=%s suspended=%s",
+        "VettedMe safety tick: documents=%s status_changes=%s alerts=%s suspended=%s",
         compliance["documents_checked"],
         len(sync["status_changes"]),
         len(result["alerts_sent"]),

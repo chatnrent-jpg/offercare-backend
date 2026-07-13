@@ -1,4 +1,4 @@
--- VettedCare.ai — Facility Recruitment & Contract Sourcing Engine
+-- VettedMe.ai — Facility Recruitment & Contract Sourcing Engine
 -- Standalone reference SQL (Alembic head: 014_facility_recruitment)
 
 CREATE TABLE IF NOT EXISTS facility_contracts (

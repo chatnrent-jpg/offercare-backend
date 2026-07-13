@@ -1,4 +1,4 @@
-"""VettedCare.ai — credential safety status engine (CLEAR / EXPIRING / ACTION_NEEDED / BLOCKED)."""
+"""VettedMe.ai — credential safety status engine (CLEAR / EXPIRING / ACTION_NEEDED / BLOCKED)."""
 
 from __future__ import annotations
 

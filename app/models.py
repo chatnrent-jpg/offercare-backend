@@ -295,8 +295,8 @@ class OpsAuditLog(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
-class VettedCareAuditLog(Base):
-    __tablename__ = "vettedcare_audit_log"
+class VettedMeAuditLog(Base):
+    __tablename__ = "vettedme_audit_log"
 
     audit_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     provider_id = Column(UUID(as_uuid=True), ForeignKey("maryland_providers.provider_id"), nullable=True)
@@ -1169,7 +1169,7 @@ class EHRShiftSyncLog(Base):
     """
     EHR shift synchronization log.
     
-    Tracks bidirectional shift sync between VettedCare and EHR systems.
+    Tracks bidirectional shift sync between VettedMe and EHR systems.
     """
     __tablename__ = "ehr_shift_sync_log"
 

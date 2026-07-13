@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "product": "VettedCare.ai Maryland Ops Desk — Manus Handoff",
-  "architecture": "Manus acts (scrape, stage JSON, trigger scripts) · VettedCare decides (engine chain)",
+  "product": "VettedMe.ai Maryland Ops Desk — Manus Handoff",
+  "architecture": "Manus acts (scrape, stage JSON, trigger scripts) · VettedMe decides (engine chain)",
   "live_execution": false,
   "operator_workflows": [
     {
@@ -40,22 +40,22 @@
     "strategy/desk_orchestrator.py"
   ],
   "filesystem_paths": {
-    "repo_root": "C:\\VettedCare.ai\\vettedcare-backend",
-    "processed_providers": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\processed_providers.json",
-    "active_shifts": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\active_shifts.json",
-    "reconciled_timesheets": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\reconciled_timesheets.json",
-    "backup_dispatches": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\backup_dispatches.json",
-    "desk_pipeline_runs": "C:\\VettedCare.ai\\vettedcare-backend\\logs\\manus\\desk_pipeline_runs.json",
-    "ops_console": "C:\\VettedCare.ai\\vettedcare-backend\\ui_dashboard\\ops_console.py"
+    "repo_root": "C:\\VettedMe.ai\\vettedme-backend",
+    "processed_providers": "C:\\VettedMe.ai\\vettedme-backend\\logs\\manus\\processed_providers.json",
+    "active_shifts": "C:\\VettedMe.ai\\vettedme-backend\\logs\\manus\\active_shifts.json",
+    "reconciled_timesheets": "C:\\VettedMe.ai\\vettedme-backend\\logs\\manus\\reconciled_timesheets.json",
+    "backup_dispatches": "C:\\VettedMe.ai\\vettedme-backend\\logs\\manus\\backup_dispatches.json",
+    "desk_pipeline_runs": "C:\\VettedMe.ai\\vettedme-backend\\logs\\manus\\desk_pipeline_runs.json",
+    "ops_console": "C:\\VettedMe.ai\\vettedme-backend\\ui_dashboard\\ops_console.py"
   },
-  "api_recruitment_prefix": "/api/vettedcare/manus/recruitment",
-  "api_credential_prefix": "/api/vettedcare/manus",
+  "api_recruitment_prefix": "/api/vettedme/manus/recruitment",
+  "api_credential_prefix": "/api/vettedme/manus",
   "generated_at_utc": "2026-06-26T23:44:41.552135+00:00",
   "api_endpoints": {
-    "handoff": "http://127.0.0.1:8000/api/vettedcare/manus/desk/handoff",
-    "run": "http://127.0.0.1:8000/api/vettedcare/manus/desk/run",
-    "run_production": "http://127.0.0.1:8000/api/vettedcare/manus/desk/run-production",
-    "run_production_live": "http://127.0.0.1:8000/api/vettedcare/manus/desk/run-production-live"
+    "handoff": "http://127.0.0.1:8000/api/vettedme/manus/desk/handoff",
+    "run": "http://127.0.0.1:8000/api/vettedme/manus/desk/run",
+    "run_production": "http://127.0.0.1:8000/api/vettedme/manus/desk/run-production",
+    "run_production_live": "http://127.0.0.1:8000/api/vettedme/manus/desk/run-production-live"
   },
   "auth_header": "X-Manus-Key"
 }

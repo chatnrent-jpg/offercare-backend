@@ -6,7 +6,7 @@ from sqlalchemy import inspect
 from sqlalchemy.dialects.postgresql import UUID
 
 revision = "014_facility_recruitment"
-down_revision = "013_vettedcare_foundation"
+down_revision = "013_vettedme_foundation"
 branch_labels = None
 depends_on = None
 

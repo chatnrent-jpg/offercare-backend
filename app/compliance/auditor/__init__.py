@@ -1,5 +1,5 @@
 """
-VettedCare.ai Bias Auditor
+VettedMe.ai Bias Auditor
 
 HB 1106 compliance engine with cryptographic hash-chaining.
 """

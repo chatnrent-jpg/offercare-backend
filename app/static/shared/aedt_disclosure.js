@@ -3,7 +3,7 @@
     eyebrow: "Required · Maryland AEDT 30-day notice",
     title: "Automated shift-routing disclosure",
     body:
-      "VettedCare.ai uses an automated AI tool to evaluate your Maryland license credentials, " +
+      "VettedMe.ai uses an automated AI tool to evaluate your Maryland license credentials, " +
       "geographic proximity to open shifts, and experience parameters when routing per-diem " +
       "shift opportunities. Maryland law requires this notice before automated employment " +
       "decision tools are used in hiring and shift matching.",
@@ -82,7 +82,7 @@
       : `<div class="aedt-disclosure-status is-pending">Maryland AEDT disclosure not yet recorded. Complete registration at <a href="/join">/join</a>.</div>`;
   }
 
-  global.VettedCareAedtDisclosure = {
+  global.VettedMeAedtDisclosure = {
     DEFAULT_COPY,
     createAedtDisclosureBox,
     renderAedtConsentStatus,

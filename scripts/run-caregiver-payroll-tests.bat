@@ -1,12 +1,12 @@
 @echo off
 cd /d "%~dp0\.."
 echo.
-echo === VettedCare backend tests ===
+echo === VettedMe backend tests ===
 echo Repo: %CD%
 echo.
 
 if not exist ".venv\Scripts\python.exe" (
-    echo ERROR: .venv not found. Run from vettedcare-backend folder.
+    echo ERROR: .venv not found. Run from vettedme-backend folder.
     pause
     exit /b 1
 )

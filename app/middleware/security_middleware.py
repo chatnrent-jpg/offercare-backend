@@ -306,7 +306,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 }
                 for i in range(20)
             ],
-            "_watermark": "VETTEDCARE_DECOY_RESPONSE"
+            "_watermark": "VETTEDME_DECOY_RESPONSE"
         }
         
         return JSONResponse(

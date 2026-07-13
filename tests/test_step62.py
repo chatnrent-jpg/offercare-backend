@@ -32,7 +32,7 @@ def test_demo_walkthrough_download_endpoint(client: TestClient) -> None:
     assert "text/markdown" in response.headers.get("content-type", "")
     assert "offercare-demo-walkthrough.md" in response.headers.get("content-disposition", "")
     body = response.text
-    assert "# VettedCare Mid-Atlantic Demo Walkthrough" in body
+    assert "# VettedMe Mid-Atlantic Demo Walkthrough" in body
     assert "Paramus SNF at Bergen" in body
     assert "/portal/?offer=" in body
 

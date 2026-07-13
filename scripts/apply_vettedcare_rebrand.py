@@ -1,4 +1,4 @@
-"""One-shot VettedCare → VettedCare rebrand (paths + user-facing strings)."""
+"""One-shot VettedMe → VettedMe rebrand (paths + user-facing strings)."""
 
 from __future__ import annotations
 
@@ -25,21 +25,21 @@ EXTS = {
 
 
 def transform(text: str) -> str:
-    text = text.replace("C:\\OFFERCARE.AI", "C:\\VettedCare.ai")
-    text = text.replace("C:/VettedCare.ai", "C:/VettedCare.ai")
-    text = text.replace("C:\\VettedCare.ai", "C:\\VettedCare.ai")
-    text = text.replace("C:/VettedCare.ai", "C:/VettedCare.ai")
-    text = text.replace("vettedcare-backend", "vettedcare-backend")
-    text = text.replace("VettedCare.ai", "VettedCare.ai")
-    text = re.sub(r"VettedCare(?!JobOffer)", "VettedCare", text)
-    text = text.replace("vettedcare_clinician_token", "vettedcare_clinician_token")
-    text = text.replace("vettedcare_install_dismissed", "vettedcare_install_dismissed")
-    text = text.replace("vettedcare-open-shifts.ics", "vettedcare-open-shifts.ics")
-    text = text.replace("vettedcare-matched-shifts.ics", "vettedcare-matched-shifts.ics")
-    text = text.replace("vettedcare-placements.ics", "vettedcare-placements.ics")
-    text = text.replace("vettedcare-portal-v1", "vettedcare-portal-v1")
-    text = text.replace("container_name: vettedcare-api", "container_name: vettedcare-api")
-    text = text.replace("container_name: vettedcare-db", "container_name: vettedcare-db")
+    text = text.replace("C:\\OFFERCARE.AI", "C:\\VettedMe.ai")
+    text = text.replace("C:/VettedMe.ai", "C:/VettedMe.ai")
+    text = text.replace("C:\\VettedMe.ai", "C:\\VettedMe.ai")
+    text = text.replace("C:/VettedMe.ai", "C:/VettedMe.ai")
+    text = text.replace("vettedme-backend", "vettedme-backend")
+    text = text.replace("VettedMe.ai", "VettedMe.ai")
+    text = re.sub(r"VettedMe(?!JobOffer)", "VettedMe", text)
+    text = text.replace("vettedme_clinician_token", "vettedme_clinician_token")
+    text = text.replace("vettedme_install_dismissed", "vettedme_install_dismissed")
+    text = text.replace("vettedme-open-shifts.ics", "vettedme-open-shifts.ics")
+    text = text.replace("vettedme-matched-shifts.ics", "vettedme-matched-shifts.ics")
+    text = text.replace("vettedme-placements.ics", "vettedme-placements.ics")
+    text = text.replace("vettedme-portal-v1", "vettedme-portal-v1")
+    text = text.replace("container_name: vettedme-api", "container_name: vettedme-api")
+    text = text.replace("container_name: vettedme-db", "container_name: vettedme-db")
     return text
 
 
@@ -50,7 +50,7 @@ def main() -> int:
             continue
         if any(part in SKIP_DIRS for part in path.parts):
             continue
-        if path.suffix.lower() not in EXTS and path.name not in {".env.example", ".env.vettedcare.example"}:
+        if path.suffix.lower() not in EXTS and path.name not in {".env.example", ".env.vettedme.example"}:
             continue
         original = path.read_text(encoding="utf-8")
         updated = transform(original)

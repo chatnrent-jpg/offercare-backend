@@ -27,12 +27,12 @@ def manus_headers() -> dict[str, str]:
 
 
 def test_manus_config_requires_key(client: TestClient) -> None:
-    response = client.get("/api/vettedcare/manus/config")
+    response = client.get("/api/vettedme/manus/config")
     assert response.status_code == 401
 
 
 def test_manus_config_returns_endpoints(client: TestClient, manus_headers: dict[str, str]) -> None:
-    response = client.get("/api/vettedcare/manus/config", headers=manus_headers)
+    response = client.get("/api/vettedme/manus/config", headers=manus_headers)
     assert response.status_code == 200
     body = response.json()
     assert body["auth_header"] == "X-Manus-Key"
@@ -41,7 +41,7 @@ def test_manus_config_returns_endpoints(client: TestClient, manus_headers: dict[
 
 
 def test_manus_work_queue_returns_items(client: TestClient, manus_headers: dict[str, str]) -> None:
-    response = client.get("/api/vettedcare/manus/work-queue?limit=5", headers=manus_headers)
+    response = client.get("/api/vettedme/manus/work-queue?limit=5", headers=manus_headers)
     assert response.status_code == 200
     body = response.json()
     assert body["queue"] == "due"
@@ -50,7 +50,7 @@ def test_manus_work_queue_returns_items(client: TestClient, manus_headers: dict[
 
 
 def test_manus_provider_work_order_not_found(client: TestClient, manus_headers: dict[str, str]) -> None:
-    response = client.get(f"/api/vettedcare/manus/providers/{uuid4()}", headers=manus_headers)
+    response = client.get(f"/api/vettedme/manus/providers/{uuid4()}", headers=manus_headers)
     assert response.status_code == 404
 
 

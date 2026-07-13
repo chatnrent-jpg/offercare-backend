@@ -82,7 +82,7 @@ def _build_attestation_markdown(attestation: dict) -> str:
     summary = attestation["summary"]
     digest = attestation.get("digest_sha256") or "—"
     lines = [
-        "# VettedCare Maryland Production Launch Attestation",
+        "# VettedMe Maryland Production Launch Attestation",
         "",
         f"Generated: {summary.get('refreshed_at', datetime.now(timezone.utc).isoformat())}",
         "",

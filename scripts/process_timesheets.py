@@ -162,7 +162,7 @@ def process_timesheets() -> dict[str, Any]:
     return {
         "mode": "STAGING",
         "live_execution": False,
-        "product": "VettedCare.ai Timesheet Reconciliation Desk",
+        "product": "VettedMe.ai Timesheet Reconciliation Desk",
         "processed_at_utc": datetime.now(timezone.utc).isoformat(),
         "timesheet_count": len(reconciled),
         "overtime_compliance_holds": holds,

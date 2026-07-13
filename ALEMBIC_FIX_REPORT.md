@@ -6,8 +6,8 @@ The `alembic upgrade head` failure is caused by a **database state mismatch**, n
 
 ## Root Cause
 
-The C:\vettedcare.ai database's `alembic_version` table contains:
-- **D-drive merge hash**: `6d70c89a31e3` (from D:\VETTEDCARE.AI)
+The C:\vettedme.ai database's `alembic_version` table contains:
+- **D-drive merge hash**: `6d70c89a31e3` (from D:\VETTEDME.AI)
 - This hash points to a merge file that **does NOT exist** on C-drive
 
 ## Investigation Summary
@@ -52,7 +52,7 @@ Expected state (to allow C-drive merge to apply):
 
 Run the fix script:
 ```bash
-cd C:\vettedcare.ai\vettedcare-backend
+cd C:\vettedme.ai\vettedme-backend
 python fix_alembic_database.py
 ```
 
@@ -93,9 +93,9 @@ This will apply the C-drive merge (`585f0d1d3e09`) and complete the migration.
 
 ## Files Analyzed
 
-- ✓ `C:\vettedcare.ai\vettedcare-backend\alembic\versions\028_ai_audit_logs.py`
-- ✓ `C:\vettedcare.ai\vettedcare-backend\alembic\versions\585f0d1d3e09_merge_ai_and_production_heads.py`
-- ✓ `C:\vettedcare.ai\vettedcare-backend\alembic\versions\038_security_hardening_tables.py`
+- ✓ `C:\vettedme.ai\vettedme-backend\alembic\versions\028_ai_audit_logs.py`
+- ✓ `C:\vettedme.ai\vettedme-backend\alembic\versions\585f0d1d3e09_merge_ai_and_production_heads.py`
+- ✓ `C:\vettedme.ai\vettedme-backend\alembic\versions\038_security_hardening_tables.py`
 - ✓ All 39 migration files in versions directory
 
 **Conclusion**: Migration files are correct. The fix is database-only.

@@ -79,7 +79,7 @@ def list_clinician_alerts(
                     "channel": "SMS",
                     "title": ALERT_TITLES["SHIFT_MATCH"],
                     "body": (
-                        f"VettedCare: {role} at {facility}"
+                        f"VettedMe: {role} at {facility}"
                         f"{f' · ${rate:.2f}/hr' if rate else ''} — reply YES or lock in portal."
                     ),
                     "reference": str(placement.get("offer_id")),
@@ -147,7 +147,7 @@ def ensure_demo_portal_alerts(db: Session, provider) -> int:
             channel="SMS",
             status="DELIVERED",
             message_body=(
-                f"VettedCare: {role} at {facility}"
+                f"VettedMe: {role} at {facility}"
                 f"{f' · ${rate:.2f}/hr' if rate else ''} — reply YES to lock."
             ),
         )

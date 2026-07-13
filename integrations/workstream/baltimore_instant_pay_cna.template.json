@@ -1,5 +1,5 @@
 {
-  "template_id": "vettedcare-baltimore-instant-pay-cna-workstream",
+  "template_id": "vettedme-baltimore-instant-pay-cna-workstream",
   "template_version": "2026-07-03",
   "description": "Workstream job distribution bridge — Baltimore instant-pay CNA text-to-apply posts for Indeed and ZipRecruiter.",
   "manus_instructions": [
@@ -13,7 +13,7 @@
   "landing": {
     "slug": "baltimore-instant-pay-cna",
     "apply_path": "/baltimore-instant-pay-cna/",
-    "public_base_url_fallback": "https://vettedcare.ai"
+    "public_base_url_fallback": "https://vettedme.ai"
   },
   "location": {
     "name": "Baltimore Metro — SNF/ALF",

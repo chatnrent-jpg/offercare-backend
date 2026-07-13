@@ -63,7 +63,7 @@ CHECK = [
 def fetch(name, url, subdir):
     dest = ROOT / subdir / name
     dest.parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url, headers={"User-Agent": "VettedCare-Docs-Mirror/1.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "VettedMe-Docs-Mirror/1.0"})
     with urllib.request.urlopen(req, timeout=60) as resp:
         dest.write_bytes(resp.read())
     print(f"ok {subdir}/{name} ({dest.stat().st_size} bytes)")

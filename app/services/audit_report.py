@@ -48,7 +48,7 @@ def build_provider_audit_packet(db: Session, provider_id: UUID) -> bytes:
             "README.txt",
             "\n".join(
                 [
-                    "VettedCare Maryland COMAR Audit Packet",
+                    "VettedMe Maryland COMAR Audit Packet",
                     f"Worker: {provider.full_name}",
                     f"License: {provider.md_license_number}",
                     f"Dispatch status: {provider.dispatch_status}",

@@ -37,7 +37,7 @@ def db() -> Session:
 def test_admin_dashboard_static_page(client: TestClient) -> None:
     response = client.get("/admin/")
     assert response.status_code == 200
-    assert "VettedCare.ai Admin" in response.text
+    assert "VettedMe.ai Admin" in response.text
     assert "/admin/app.js" in response.text
 
 

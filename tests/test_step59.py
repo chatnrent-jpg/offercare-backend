@@ -58,7 +58,7 @@ def test_build_demo_walkthrough_script_lists_all_demo_shifts(db: Session) -> Non
     run_full_demo_setup(db, notify_matched=False)
     script = build_demo_walkthrough_script(db)
     assert script["offer_count"] == 10
-    assert "# VettedCare Mid-Atlantic Demo Walkthrough" in script["markdown"]
+    assert "# VettedMe Mid-Atlantic Demo Walkthrough" in script["markdown"]
     assert "Paramus SNF at Bergen" in script["markdown"]
     assert "nj.snf.cna.a@offercare.demo" in script["markdown"]
     assert "/portal/?offer=" in script["markdown"]

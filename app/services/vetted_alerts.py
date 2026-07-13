@@ -14,10 +14,10 @@ from app.services.vetted_status import ALL_VETTED_STATUSES
 
 
 def _brand_name() -> str:
-    name = str(settings.PROJECT_NAME or "VettedCare.ai")
+    name = str(settings.PROJECT_NAME or "VettedMe.ai")
     if "vetted" in name.lower():
-        return name.split("—")[0].split("-")[0].strip() or "VettedCare.ai"
-    return "VettedCare.ai"
+        return name.split("—")[0].split("-")[0].strip() or "VettedMe.ai"
+    return "VettedMe.ai"
 
 
 def build_clinician_safety_message(*, full_name: str, vetted_status: str, reason: str) -> str:

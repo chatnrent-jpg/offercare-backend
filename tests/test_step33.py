@@ -10,7 +10,7 @@ def test_portal_manifest_is_valid_json(client: TestClient) -> None:
     response = client.get("/portal/manifest.webmanifest")
     assert response.status_code == 200
     manifest = json.loads(response.text)
-    assert manifest["name"] == "VettedCare.ai Clinician Portal"
+    assert manifest["name"] == "VettedMe.ai Clinician Portal"
     assert manifest["display"] == "standalone"
     assert manifest["start_url"] == "/portal/"
     assert manifest["icons"][0]["src"] == "/portal/icon.svg"

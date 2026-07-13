@@ -873,7 +873,7 @@ class IntegrationsStatusResponse(BaseModel):
 
 class TestSmsRequest(BaseModel):
     phone_number: str = Field(min_length=10, max_length=20)
-    message: str = Field(default="VettedCare.ai integration test", max_length=320)
+    message: str = Field(default="VettedMe.ai integration test", max_length=320)
 
 
 class TestSmsResponse(BaseModel):
@@ -911,8 +911,8 @@ class TwilioLockReplySmokeResponse(BaseModel):
 
 class TestEmailRequest(BaseModel):
     email_address: EmailStr
-    subject: str = Field(default="VettedCare.ai integration test", max_length=200)
-    message: str = Field(default="VettedCare.ai email alert test", max_length=2000)
+    subject: str = Field(default="VettedMe.ai integration test", max_length=200)
+    message: str = Field(default="VettedMe.ai email alert test", max_length=2000)
 
 
 class TestEmailResponse(BaseModel):
@@ -959,8 +959,8 @@ class TestPushRequest(BaseModel):
     endpoint: str = Field(min_length=10, max_length=500)
     p256dh_key: str = Field(min_length=10, max_length=255)
     auth_key: str = Field(min_length=10, max_length=255)
-    title: str = Field(default="VettedCare.ai push test", max_length=200)
-    message: str = Field(default="VettedCare push alert test", max_length=500)
+    title: str = Field(default="VettedMe.ai push test", max_length=200)
+    message: str = Field(default="VettedMe push alert test", max_length=500)
 
 
 class TestPushResponse(BaseModel):
@@ -2197,7 +2197,7 @@ class VettedAlertOut(BaseModel):
     sent_at: str | None = None
 
 
-class VettedCareDashboardResponse(BaseModel):
+class VettedMeDashboardResponse(BaseModel):
     product: str
     tagline: str
     safety_first: bool = True

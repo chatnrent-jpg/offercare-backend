@@ -1,5 +1,5 @@
 """
-Full Test Sweep Execution Script — VettedCare.ai
+Full Test Sweep Execution Script — VettedMe.ai
 
 Runs complete test suite with diagnostics and reporting.
 Verifies enterprise components and legacy tests co-exist without conflicts.
@@ -49,7 +49,7 @@ def run_command(cmd: list[str], description: str) -> tuple[bool, str, float]:
 
 def main():
     """Execute full test sweep with diagnostics."""
-    print_header("🚀 VettedCare.ai — Full Test Sweep Execution")
+    print_header("🚀 VettedMe.ai — Full Test Sweep Execution")
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Working Directory: {Path.cwd()}")
     
@@ -198,7 +198,7 @@ def main():
     report_file = Path("test_sweep_report.txt")
     with open(report_file, "w") as f:
         f.write("=" * 80 + "\n")
-        f.write("VettedCare.ai — Full Test Sweep Report\n")
+        f.write("VettedMe.ai — Full Test Sweep Report\n")
         f.write("=" * 80 + "\n\n")
         f.write(f"Timestamp: {datetime.now().isoformat()}\n\n")
         

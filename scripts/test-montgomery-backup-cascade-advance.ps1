@@ -40,7 +40,7 @@ if (-not $DispatchId) {
 $body = @{ dispatch_id = $DispatchId; force = [bool]$Force } | ConvertTo-Json
 $headers = @{ "X-Manus-Key" = $ManusKey; "Content-Type" = "application/json" }
 
-$result = Invoke-RestMethod -Method Post -Uri ($BaseUrl + "/api/vettedcare/manus/desk/advance-backup-cascade") -Headers $headers -Body $body -TimeoutSec 60
+$result = Invoke-RestMethod -Method Post -Uri ($BaseUrl + "/api/vettedme/manus/desk/advance-backup-cascade") -Headers $headers -Body $body -TimeoutSec 60
 Write-Host ("OK    status=" + $result.status + " message=" + $result.message)
 if ($result.cascade) {
     Write-Host ("OK    cascade_status=" + $result.cascade.status + " sent=" + $result.cascade.sent_count + " wait=" + $result.cascade.seconds_until_eligible + "s")

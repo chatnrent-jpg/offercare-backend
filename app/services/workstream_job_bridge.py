@@ -34,7 +34,7 @@ def _public_base_url(config: dict[str, Any]) -> str:
     configured = str(os.environ.get("PUBLIC_BASE_URL") or "").strip().rstrip("/")
     if configured:
         return configured
-    return str((config.get("landing") or {}).get("public_base_url_fallback") or "https://vettedcare.ai").rstrip("/")
+    return str((config.get("landing") or {}).get("public_base_url_fallback") or "https://vettedme.ai").rstrip("/")
 
 
 def _workstream_headers(config: dict[str, Any], access_token: str) -> dict[str, str]:

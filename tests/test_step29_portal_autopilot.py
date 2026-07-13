@@ -50,4 +50,4 @@ def test_demo_journey_export_endpoint(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert "export_text" in body
-    assert "VettedCare.ai" in body["export_text"]
+    assert "VettedMe.ai" in body["export_text"]

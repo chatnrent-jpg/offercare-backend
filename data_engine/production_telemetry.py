@@ -11,7 +11,7 @@ class CircuitTelemetryReport:
     last_latency_ms: float
     timestamp: str
 
-class VettedCareTelemetry:
+class VettedMeTelemetry:
     """Tracks systemic vitals, circuit breaker loops, and performance bounds."""
     
     def __init__(self):

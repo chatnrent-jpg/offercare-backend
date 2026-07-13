@@ -51,7 +51,7 @@ def _build_callout_message(
     county: str,
 ) -> str:
     return (
-        f"VettedCare.ai EMERGENCY CALLOUT · {facility_name} · {county} · "
+        f"VettedMe.ai EMERGENCY CALLOUT · {facility_name} · {county} · "
         f"{required_role} backup #{rank}. Urgent same-day coverage needed. "
         f"Reply YES to accept. Reply STOP to opt out."
     )
@@ -90,7 +90,7 @@ def _persist_notify_log(payload: dict[str, Any]) -> Path:
     else:
         existing = {
             "mode": "PRODUCTION_SLICE",
-            "product": "VettedCare.ai Backup Notify Cascade",
+            "product": "VettedMe.ai Backup Notify Cascade",
             "events": [],
         }
         events = []

@@ -51,7 +51,7 @@ def test_demo_payment_receipt_endpoint(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["receipt_id"].startswith("VC-PAY-")
-    assert "VettedCare.ai" in body["receipt_text"]
+    assert "VettedMe.ai" in body["receipt_text"]
     assert body["gross_pay_amount"] > 0
 
 

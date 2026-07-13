@@ -1,10 +1,10 @@
-"""Add VettedCare.ai credential safety foundation."""
+"""Add VettedMe.ai credential safety foundation."""
 
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
 
-revision = "013_vettedcare_foundation"
+revision = "013_vettedme_foundation"
 down_revision = "012_sms_opt_out"
 branch_labels = None
 depends_on = None
@@ -21,7 +21,7 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "vettedcare_audit_log",
+        "vettedme_audit_log",
         sa.Column("audit_id", UUID(as_uuid=True), primary_key=True),
         sa.Column("provider_id", UUID(as_uuid=True), sa.ForeignKey("maryland_providers.provider_id"), nullable=True),
         sa.Column("event_type", sa.String(length=50), nullable=False),
@@ -62,6 +62,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table("manus_vetting_runs")
     op.drop_table("credential_safety_alerts")
-    op.drop_table("vettedcare_audit_log")
+    op.drop_table("vettedme_audit_log")
     op.drop_column("maryland_providers", "vetted_status_updated_at")
     op.drop_column("maryland_providers", "vetted_status")

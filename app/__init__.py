@@ -1,3 +1,3 @@
-"""VettedCare.ai backend application package."""
+"""VettedMe.ai backend application package."""
 
 __version__ = "0.1.0"

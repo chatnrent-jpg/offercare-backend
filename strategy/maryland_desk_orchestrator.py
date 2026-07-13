@@ -535,13 +535,13 @@ class MarylandDeskOrchestrator:
             "live_execution": not self._use_fixture_layer,
             "mode": "FIXTURES" if self._use_fixture_layer else "LIVE",
             "data_source": self.data_source,
-            "product": "VettedCare.ai Maryland Desk Orchestrator",
+            "product": "VettedMe.ai Maryland Desk Orchestrator",
             "booking": booking,
             "callout": callout,
             "penalty": penalty,
             "open_shift_count": len(self.open_shifts),
             "provider_pool_count": len(self.workforce_registry.get("applicants") or []),
-            "manus_operator_note": "Manus acts on filesystem/API handoff · VettedCare decides via engine chain.",
+            "manus_operator_note": "Manus acts on filesystem/API handoff · VettedMe decides via engine chain.",
         }
 
     @staticmethod
@@ -556,7 +556,7 @@ class MarylandDeskOrchestrator:
             existing = {
                 "mode": payload.get("mode", "LIVE"),
                 "live_execution": bool(payload.get("live_execution")),
-                "product": "VettedCare.ai Desk Pipeline Runs",
+                "product": "VettedMe.ai Desk Pipeline Runs",
                 "runs": [],
             }
             runs = []
@@ -580,8 +580,8 @@ def build_manus_desk_manifest(repo_root: Path | None = None) -> dict[str, Any]:
     root = repo_root or _REPO_ROOT
     return {
         "schema_version": "1.1",
-        "product": "VettedCare.ai Maryland Ops Desk — Manus Handoff",
-        "architecture": "Manus acts (scrape, stage JSON, trigger scripts) · VettedCare decides (engine chain)",
+        "product": "VettedMe.ai Maryland Ops Desk — Manus Handoff",
+        "architecture": "Manus acts (scrape, stage JSON, trigger scripts) · VettedMe decides (engine chain)",
         "live_execution": True,
         "default_data_source": "postgresql",
         "fixture_flags": ["testing_mode", "use_fixtures"],
@@ -617,8 +617,8 @@ def build_manus_desk_manifest(repo_root: Path | None = None) -> dict[str, Any]:
             "desk_pipeline_runs": str(root / "logs/manus/desk_pipeline_runs.json"),
             "ops_console": str(root / "ui_dashboard/ops_console.py"),
         },
-        "api_recruitment_prefix": "/api/vettedcare/manus/recruitment",
-        "api_credential_prefix": "/api/vettedcare/manus",
+        "api_recruitment_prefix": "/api/vettedme/manus/recruitment",
+        "api_credential_prefix": "/api/vettedme/manus",
         "generated_at_utc": _utc_now_iso(),
     }
 

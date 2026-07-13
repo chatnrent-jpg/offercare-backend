@@ -1,6 +1,6 @@
-const STORAGE_KEY = "vettedcare_clinician_token";
-const INSTALL_DISMISS_KEY = "vettedcare_install_dismissed";
-const PAYOUT_TOAST_KEY = "vettedcare_notified_payouts";
+const STORAGE_KEY = "vettedme_clinician_token";
+const INSTALL_DISMISS_KEY = "vettedme_install_dismissed";
+const PAYOUT_TOAST_KEY = "vettedme_notified_payouts";
 const PORTAL_VIEWS = ["overview", "shifts", "schedule", "placements", "payments", "alerts"];
 const FATIGUE_SOFT_THRESHOLD = 2.5;
 const FATIGUE_HARD_THRESHOLD = 4.0;
@@ -207,10 +207,10 @@ async function installPortalApp() {
     deferredInstallPrompt = null;
     hideInstallPrompt(true);
     els.installAppTopBtn?.classList.add("hidden");
-    showToast("VettedCare installed");
+    showToast("VettedMe installed");
     return;
   }
-  showToast("Use your browser menu to add VettedCare to your home screen");
+  showToast("Use your browser menu to add VettedMe to your home screen");
 }
 
 window.addEventListener("beforeinstallprompt", (event) => {
@@ -644,7 +644,7 @@ async function downloadJourneyExport() {
   } catch (error) {
     console.error("journey export failed", error);
     const lines = [
-      "VettedCare.ai — Clinician Journey Export (offline)",
+      "VettedMe.ai — Clinician Journey Export (offline)",
       `Clinician: ${lastProviderProfile?.full_name || "Demo"}`,
       `Phase: ${lastJourneyStatus?.phase_label || "—"}`,
       `Lifetime paid: ${formatPayAmountPlain(lastJourneyStatus?.lifetime_paid_amount || 0)}`,
@@ -660,7 +660,7 @@ async function downloadJourneyExport() {
         (row) => `- ${formatPayAmountPlain(row.gross_pay_amount)} · ${row.payout_status}`,
       ),
     ];
-    downloadTextFile("vettedcare-journey-offline.txt", lines.join("\n"));
+    downloadTextFile("vettedme-journey-offline.txt", lines.join("\n"));
     showToast("Journey export downloaded (offline copy)");
   }
 }
@@ -685,7 +685,7 @@ function buildReceiptFallbackFromPayment(row, provider) {
   const clinicianName = provider?.full_name || "Clinician";
   const clinicianEmail = provider?.email || "";
   const text = [
-    "VettedCare.ai — Instant Pay Receipt",
+    "VettedMe.ai — Instant Pay Receipt",
     "=".repeat(42),
     `Receipt ID: ${receiptId}`,
     `Clinician: ${clinicianName}`,
@@ -703,7 +703,7 @@ function buildReceiptFallbackFromPayment(row, provider) {
     "Demo dry-run receipt — no live bank transfer.",
   ].join("\n");
   return {
-    receipt_filename: `vettedcare-receipt-${token.toLowerCase()}.txt`,
+    receipt_filename: `vettedme-receipt-${token.toLowerCase()}.txt`,
     receipt_text: text,
   };
 }
@@ -1871,7 +1871,7 @@ function buildAlertsFallbackFromActivity(activity, placements = []) {
       alert_type: "SHIFT_MATCH",
       channel: "SMS",
       title: "Matched shift alert",
-      body: `VettedCare: ${row.clinical_unit || "CNA"} at ${row.facility_name}${rate ? ` · $${rate.toFixed(2)}/hr` : ""} — reply YES or lock in portal.`,
+      body: `VettedMe: ${row.clinical_unit || "CNA"} at ${row.facility_name}${rate ? ` · $${rate.toFixed(2)}/hr` : ""} — reply YES or lock in portal.`,
       reference: row.offer_id,
       sent_at: row.outbound_payload_timestamp || row.shift_starts_at,
       status: "DELIVERED",
@@ -2359,7 +2359,7 @@ els.lockableOnlyToggle?.addEventListener("change", async (event) => {
 });
 els.downloadMatchedCalendarBtn?.addEventListener("click", async () => {
   try {
-    const filename = "vettedcare-open-shifts.ics";
+    const filename = "vettedme-open-shifts.ics";
     await downloadFile(buildShiftCalendarQuery(), filename);
     showToast("Shift calendar downloaded");
   } catch (error) {
@@ -2368,7 +2368,7 @@ els.downloadMatchedCalendarBtn?.addEventListener("click", async () => {
 });
 els.downloadPlacementsCalendarBtn?.addEventListener("click", async () => {
   try {
-    await downloadFile("/api/clinicians/me/calendar.ics", "vettedcare-placements.ics");
+    await downloadFile("/api/clinicians/me/calendar.ics", "vettedme-placements.ics");
     showToast("Placement calendar downloaded");
   } catch (error) {
     showToast(error.message, true);
@@ -2376,7 +2376,7 @@ els.downloadPlacementsCalendarBtn?.addEventListener("click", async () => {
 });
 els.downloadScheduleCalendarBtn?.addEventListener("click", async () => {
   try {
-    await downloadFile("/api/clinicians/me/schedule/calendar.ics", "vettedcare-schedule.ics");
+    await downloadFile("/api/clinicians/me/schedule/calendar.ics", "vettedme-schedule.ics");
     showToast("Schedule calendar downloaded");
   } catch (error) {
     showToast(error.message, true);
@@ -2384,7 +2384,7 @@ els.downloadScheduleCalendarBtn?.addEventListener("click", async () => {
 });
 els.downloadUnifiedCalendarBtn?.addEventListener("click", async () => {
   try {
-    await downloadFile("/api/clinicians/me/unified/calendar.ics", "vettedcare-full-calendar.ics");
+    await downloadFile("/api/clinicians/me/unified/calendar.ics", "vettedme-full-calendar.ics");
     showToast("Full calendar downloaded");
   } catch (error) {
     showToast(error.message, true);
@@ -2422,15 +2422,15 @@ els.lockPrecheckConfirmBtn?.addEventListener("click", async () => {
 els.lockPrecheckCancelBtn?.addEventListener("click", hideLockPrecheckModal);
 
 function renderAedtConsentStatus(signedAtIso) {
-  if (!els.aedtConsentStatus || !window.VettedCareAedtDisclosure) return;
+  if (!els.aedtConsentStatus || !window.VettedMeAedtDisclosure) return;
   els.aedtConsentStatus.classList.remove("hidden");
-  window.VettedCareAedtDisclosure.renderAedtConsentStatus(els.aedtConsentStatus, signedAtIso);
+  window.VettedMeAedtDisclosure.renderAedtConsentStatus(els.aedtConsentStatus, signedAtIso);
 }
 
 function mountPortalAedtDisclosure() {
-  if (!els.portalAedtMount || !window.VettedCareAedtDisclosure) return;
+  if (!els.portalAedtMount || !window.VettedMeAedtDisclosure) return;
   els.portalAedtMount.innerHTML = "";
-  portalAedtDisclosure = window.VettedCareAedtDisclosure.createAedtDisclosureBox();
+  portalAedtDisclosure = window.VettedMeAedtDisclosure.createAedtDisclosureBox();
   els.portalAedtMount.appendChild(portalAedtDisclosure.element);
 }
 

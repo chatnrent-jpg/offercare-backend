@@ -53,8 +53,8 @@ def build_outreach_copy(lead: OutreachLeadLike) -> dict[str, str]:
     name = str(lead.decision_maker_name or lead.contact_name or "").strip()
     title = str(lead.decision_maker_title or lead.contact_role or "Administrator").strip()
     facility = str(lead.facility_name or "your facility").strip()
-    agency = settings.OUTREACH_AGENCY_NAME or "VettedCare.ai"
-    sender = settings.OUTREACH_SENDER_NAME or "VettedCare Team"
+    agency = settings.OUTREACH_AGENCY_NAME or "VettedMe.ai"
+    sender = settings.OUTREACH_SENDER_NAME or "VettedMe Team"
     first = _salutation(name, title)
 
     email_subject = (
@@ -256,7 +256,7 @@ def export_manus_outreach_queue(
     )
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "product": "VettedCare.ai Maryland B2B Outreach Sequencer",
+        "product": "VettedMe.ai Maryland B2B Outreach Sequencer",
         "count": len(rows),
         "manus_action": "Execute READY outreach payloads via configured email/SMS channels",
         "payloads": [

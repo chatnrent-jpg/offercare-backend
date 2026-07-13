@@ -1,4 +1,4 @@
-"""VettedCare.ai — Maryland LTC rollout monitoring dashboard (Streamlit)."""
+"""VettedMe.ai — Maryland LTC rollout monitoring dashboard (Streamlit)."""
 
 
 
@@ -26,7 +26,7 @@ CSV_PATH = REPO_ROOT / "data_engine" / "raw_leads" / "md_facilities_scraped.csv"
 
 st.set_page_config(
 
-    page_title="VettedCare.ai — Maryland Rollout",
+    page_title="VettedMe.ai — Maryland Rollout",
 
     page_icon="🏥",
 

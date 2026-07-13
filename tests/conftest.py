@@ -1,5 +1,5 @@
 """
-Test Configuration & Fixtures — VettedCare.ai
+Test Configuration & Fixtures — VettedMe.ai
 
 Provides both legacy sync and modern async test fixtures.
 Supports gradual migration from synchronous to asynchronous testing.
@@ -172,7 +172,7 @@ async def mock_provider(async_db: AsyncSession) -> MarylandProvider:
     provider = MarylandProvider(
         provider_id=uuid_module.uuid4(),
         full_name="Test CNA Provider",
-        email=f"test.{uuid_module.uuid4().hex[:8]}@vettedcare.test",
+        email=f"test.{uuid_module.uuid4().hex[:8]}@vettedme.test",
         phone_number="4101234567",
         npi_number="1234567893",  # Valid Luhn checksum
         md_license_number="CNA-MD-TEST123",

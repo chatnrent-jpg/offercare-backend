@@ -1,5 +1,5 @@
 """
-VettedCare.ai Compliance Module
+VettedMe.ai Compliance Module
 
 Maryland HB 1106 AEDT (Algorithmic Employment Decision Tracking) enforcement.
 Implements tamper-evident hash-chaining for bias audit trail.

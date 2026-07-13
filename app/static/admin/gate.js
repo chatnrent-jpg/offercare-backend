@@ -10,7 +10,7 @@
   const status = document.getElementById("gate-status");
 
   if (!gate || !app || !input || !btn || !err) {
-    console.error("VettedCare admin gate: missing DOM nodes");
+    console.error("VettedMe admin gate: missing DOM nodes");
     return;
   }
 
@@ -31,13 +31,13 @@
     status.textContent = "Checking API…";
     status.className = "muted gate-status";
     try {
-      const response = await fetch("/health/vettedcare", { cache: "no-store" });
+      const response = await fetch("/health/vettedme", { cache: "no-store" });
       if (!response.ok) throw new Error("health check failed");
       status.textContent = "API is running — paste your key and click Connect.";
       status.className = "muted gate-status ok";
     } catch {
       status.textContent =
-        "API is not running. Double-click VettedCare Admin on your desktop, or run start-all.bat.";
+        "API is not running. Double-click VettedMe Admin on your desktop, or run start-all.bat.";
       status.className = "muted gate-status fail";
     }
   }

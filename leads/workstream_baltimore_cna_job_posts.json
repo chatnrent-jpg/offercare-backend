@@ -1,9 +1,9 @@
 {
-  "template_id": "vettedcare-baltimore-instant-pay-cna-workstream",
+  "template_id": "vettedme-baltimore-instant-pay-cna-workstream",
   "landing_slug": "baltimore-instant-pay-cna",
   "position": {
     "title": "Baltimore CNA \u2014 Instant Pay via Stripe | W-2 Per-Diem Shifts",
-    "overview": "W-2 floor staff with automated Maryland tax withholding and Stripe instant payout after supervisor sign-off \u2014 no waiting until payday.\n\n\u2022 Instant shift payout: When your timesheet is signed, our payroll tax intercept bridge calculates Maryland W-2 withholdings and routes net pay through Stripe instant payout \u2014 typically within 30 minutes of shift completion.\n\u2022 Automated W-2 compliance: You are a W-2 employee \u2014 not a 1099 contractor. Federal FICA, Maryland state tax, and county piggyback withholding run automatically before any payout hits your account.\n\nText-to-apply or visit https://vettedcare.ai/baltimore-instant-pay-cna/",
+    "overview": "W-2 floor staff with automated Maryland tax withholding and Stripe instant payout after supervisor sign-off \u2014 no waiting until payday.\n\n\u2022 Instant shift payout: When your timesheet is signed, our payroll tax intercept bridge calculates Maryland W-2 withholdings and routes net pay through Stripe instant payout \u2014 typically within 30 minutes of shift completion.\n\u2022 Automated W-2 compliance: You are a W-2 employee \u2014 not a 1099 contractor. Federal FICA, Maryland state tax, and county piggyback withholding run automatically before any payout hits your account.\n\nText-to-apply or visit https://vettedme.ai/baltimore-instant-pay-cna/",
     "status": "published",
     "access": "public",
     "job_type": "part_time",
@@ -12,7 +12,7 @@
     "remote_type": "on_site",
     "credential_type": "CNA",
     "application_method": "text_to_apply",
-    "apply_url": "https://vettedcare.ai/baltimore-instant-pay-cna/",
+    "apply_url": "https://vettedme.ai/baltimore-instant-pay-cna/",
     "text_apply_keyword": "CNA"
   },
   "location": {
@@ -36,7 +36,7 @@
     "W-2 Status": "Tier 1 W-2 Employee"
   },
   "webhook": {
-    "url": "https://vettedcare.ai/api/v1/webhooks/workstream/text-apply",
+    "url": "https://vettedme.ai/api/v1/webhooks/workstream/text-apply",
     "events": [
       "text_to_apply_reply",
       "position_application.created"

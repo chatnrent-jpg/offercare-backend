@@ -1,14 +1,14 @@
 {
   "mode": "STAGING",
   "live_execution": false,
-  "product": "VettedCare.ai Desk Pipeline Runs",
+  "product": "VettedMe.ai Desk Pipeline Runs",
   "runs": [
     {
       "run_id": "desk-2026-06-26T21:57:08.838757+00:00",
       "staged_at_utc": "2026-06-26T21:57:08.838761+00:00",
       "live_execution": false,
       "mode": "STAGING",
-      "product": "VettedCare.ai Maryland Desk Orchestrator",
+      "product": "VettedMe.ai Maryland Desk Orchestrator",
       "booking": {
         "pipeline": "BOOKING",
         "status": "BOOKING_READY",
@@ -76,7 +76,7 @@
       },
       "callout": null,
       "penalty": null,
-      "manus_operator_note": "Manus acts on filesystem/API handoff · VettedCare decides via engine chain."
+      "manus_operator_note": "Manus acts on filesystem/API handoff · VettedMe decides via engine chain."
     },
     {
       "pipeline": "CALLOUT",
@@ -132,7 +132,7 @@
         "staged_at_utc": "2026-06-26T22:34:12.774954+00:00",
         "live_execution": false,
         "mode": "STAGING",
-        "product": "VettedCare.ai Maryland Desk Orchestrator",
+        "product": "VettedMe.ai Maryland Desk Orchestrator",
         "booking": {
           "pipeline": "BOOKING",
           "status": "BOOKING_READY",
@@ -200,7 +200,7 @@
         },
         "callout": null,
         "penalty": null,
-        "manus_operator_note": "Manus acts on filesystem/API handoff · VettedCare decides via engine chain."
+        "manus_operator_note": "Manus acts on filesystem/API handoff · VettedMe decides via engine chain."
       }
     }
   ],

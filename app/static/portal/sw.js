@@ -1,4 +1,4 @@
-const CACHE_NAME = "vettedcare-portal-v2";
+const CACHE_NAME = "vettedme-portal-v2";
 const SHELL_URLS = [
   "/portal/",
   "/portal/index.html",
@@ -48,7 +48,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "VettedCare.ai", body: "New shift alert" };
+  let payload = { title: "VettedMe.ai", body: "New shift alert" };
   try {
     if (event.data) {
       payload = { ...payload, ...event.data.json() };
@@ -57,7 +57,7 @@ self.addEventListener("push", (event) => {
     // keep defaults
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title || "VettedCare.ai", {
+    self.registration.showNotification(payload.title || "VettedMe.ai", {
       body: payload.body || "New shift alert",
       data: payload,
       icon: "/portal/icon.svg",

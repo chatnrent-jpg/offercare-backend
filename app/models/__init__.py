@@ -78,7 +78,7 @@ __all__ = [
     "ShiftNotificationLog",
     "CredentialSafetyAlert",
     "ManusVettingRun",
-    "VettedCareAuditLog",
+    "VettedMeAuditLog",
     "LicenseVerificationLog",
     "ExclusionScreening",
     "FacilityCrisisSignal",

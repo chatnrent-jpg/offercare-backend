@@ -154,7 +154,7 @@ def build_manus_recruitment_snapshot(db: Session) -> dict[str, Any]:
     dashboard = build_recruitment_dashboard(db, limit=25)
     return {
         "schema_version": "1.0",
-        "product": "VettedCare.ai Facility Recruitment Engine",
+        "product": "VettedMe.ai Facility Recruitment Engine",
         "generated_at_utc": dashboard["generated_at_utc"],
         "summary": dashboard["summary"],
         "drop_zones": dashboard["drop_zones"],

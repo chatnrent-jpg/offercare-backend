@@ -1,12 +1,12 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title VettedCare Ops Console
+title VettedMe Ops Console
 set "PYTHONPATH=%~dp0"
 set "PY=%~dp0.venv\Scripts\python.exe"
 
 echo.
-echo VettedCare.ai - Maryland Ops Console
+echo VettedMe.ai - Maryland Ops Console
 echo.
 
 if not exist "%PY%" (

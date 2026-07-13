@@ -10,7 +10,7 @@
 
 ```bash
 # Navigate to backend
-cd C:\vettedcare.ai\vettedcare-backend
+cd C:\vettedme.ai\vettedme-backend
 
 # Run automated test sweep
 python run_full_test_sweep.py
@@ -58,8 +58,8 @@ python -c "import asyncpg; print(f'asyncpg: {asyncpg.__version__}')"
 ls .env
 
 # Verify database URL (should be set)
-# DATABASE_URL=postgresql://user:pass@localhost/vettedcare_test
-# ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/vettedcare_test
+# DATABASE_URL=postgresql://user:pass@localhost/vettedme_test
+# ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/vettedme_test
 ```
 
 ### **4. Database Running**
@@ -69,10 +69,10 @@ ls .env
 pg_isready
 
 # Verify test database exists
-psql -U postgres -l | grep vettedcare_test
+psql -U postgres -l | grep vettedme_test
 
 # If not exists, create it
-psql -U postgres -c "CREATE DATABASE vettedcare_test;"
+psql -U postgres -c "CREATE DATABASE vettedme_test;"
 ```
 
 ### **5. Migrations Applied**
@@ -82,7 +82,7 @@ psql -U postgres -c "CREATE DATABASE vettedcare_test;"
 alembic upgrade head
 
 # Verify tables exist
-psql -U postgres -d vettedcare_test -c "\dt"
+psql -U postgres -d vettedme_test -c "\dt"
 ```
 
 ### **6. Component Schemas Initialized**
@@ -127,7 +127,7 @@ python run_full_test_sweep.py
 ================================================================================
 
 Started: 2026-07-06 18:20:00
-Working Directory: C:\vettedcare.ai\vettedcare-backend
+Working Directory: C:\vettedme.ai\vettedme-backend
 
 ================================================================================
   Step 1: Verify Test Infrastructure
@@ -168,7 +168,7 @@ Full Test Suite: ✅ PASS
 
 Completed: 2026-07-06 18:22:40
 
-📝 Detailed report saved to: C:\vettedcare.ai\vettedcare-backend\test_sweep_report.txt
+📝 Detailed report saved to: C:\vettedme.ai\vettedme-backend\test_sweep_report.txt
 
 🎉 SUCCESS: All tests passed!
 ```

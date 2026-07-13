@@ -85,7 +85,7 @@ def test_build_deploy_export_bundle_json_matches_checklist_snapshot(db: Session)
         readme = archive.read("README.txt").decode("utf-8")
     assert checklist["summary"]["demo_health_status"] == "green"
     assert demo_status["health"]["status"] == "green"
-    assert "VettedCare Deploy Bundle" in readme
+    assert "VettedMe Deploy Bundle" in readme
     assert DEPLOY_CHECKLIST_JSON_FILENAME in readme
     assert "Active gates:" in readme
     assert DEMO_GATES_JSON_FILENAME in readme

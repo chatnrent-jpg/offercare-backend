@@ -4,10 +4,10 @@ Work through these **in order**. None require live operations, real clinicians, 
 
 | # | Task | How to verify | Status |
 |---|------|---------------|--------|
-| 1 | **Pre-flight script** | `scripts/vettedcare-preflight.ps1` → all required checks pass | ☐ |
-| 2 | **Health endpoint** | `GET http://127.0.0.1:8000/health/vettedcare` → `"status": "infra_ready"` | ☐ |
-| 3 | **Slim env template** | Copy `.env.vettedcare.example` → compare with your `.env` | ☐ |
-| 4 | **Database + migration** | `alembic upgrade head` — table `vettedcare_audit_log` exists | ☐ |
+| 1 | **Pre-flight script** | `scripts/vettedme-preflight.ps1` → all required checks pass | ☐ |
+| 2 | **Health endpoint** | `GET http://127.0.0.1:8000/health/vettedme` → `"status": "infra_ready"` | ☐ |
+| 3 | **Slim env template** | Copy `.env.vettedme.example` → compare with your `.env` | ☐ |
+| 4 | **Database + migration** | `alembic upgrade head` — table `vettedme_audit_log` exists | ☐ |
 | 5 | **Admin safety dashboard** | http://127.0.0.1:8000/admin — Credential Safety + Infra panels load | ☐ |
 | 6 | **Portal safety status** | http://127.0.0.1:8000/portal — login → Credential safety status shows | ☐ |
 | 7 | **Simulated Manus webhook** | `scripts/test-manus-webhook.ps1` — POST test without Manus account | ☐ |
@@ -37,13 +37,13 @@ Work through these **in order**. None require live operations, real clinicians, 
 ## Quick commands
 
 ```powershell
-cd C:\VettedMe.ai\vettedcare-backend
+cd C:\VettedMe.ai\vettedme-backend
 
 # Start platform
 ..\start-all.bat   # or desktop VettedMe.ai shortcut
 
 # Pre-flight
-.\scripts\vettedcare-preflight.ps1
+.\scripts\vettedme-preflight.ps1
 
 # Tests
 $env:PYTHONPATH = (Get-Location).Path

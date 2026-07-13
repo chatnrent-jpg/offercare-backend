@@ -44,7 +44,7 @@ def _base_url() -> str:
 
 def build_manus_desk_handoff() -> dict[str, Any]:
     manifest = build_manus_desk_manifest(_repo_root())
-    prefix = f"{_base_url()}/api/vettedcare/manus/desk"
+    prefix = f"{_base_url()}/api/vettedme/manus/desk"
     manifest["api_endpoints"] = {
         "handoff": f"{prefix}/handoff",
         "run": f"{prefix}/run",

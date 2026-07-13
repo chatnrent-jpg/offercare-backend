@@ -224,10 +224,10 @@ async def process_data():
 
 ```bash
 # Async database URL (use asyncpg driver)
-ASYNC_DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/vettedcare
+ASYNC_DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/vettedme
 
 # Legacy sync URL (for gradual migration)
-DATABASE_URL=postgresql://user:password@localhost:5432/vettedcare
+DATABASE_URL=postgresql://user:password@localhost:5432/vettedme
 ```
 
 ### **Update `app/config.py`:**
@@ -289,7 +289,7 @@ settings = Settings()
 pip install asyncpg
 
 # Run pgvector migration
-psql -U postgres -d vettedcare -c "CREATE EXTENSION IF NOT EXISTS pgvector;"
+psql -U postgres -d vettedme -c "CREATE EXTENSION IF NOT EXISTS pgvector;"
 
 # Create all new tables
 python -c "
@@ -318,13 +318,13 @@ await engine.initialize_infrastructure(db_session)
 
 ```bash
 # Check table creation
-psql -U postgres -d vettedcare -c "\dt"
+psql -U postgres -d vettedme -c "\dt"
 
 # Verify indices
-psql -U postgres -d vettedcare -c "\di"
+psql -U postgres -d vettedme -c "\di"
 
 # Check pgvector extension
-psql -U postgres -d vettedcare -c "\dx"
+psql -U postgres -d vettedme -c "\dx"
 ```
 
 ### **Step 4: Run Tests**

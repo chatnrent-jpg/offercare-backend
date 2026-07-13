@@ -333,7 +333,7 @@ if not match_result.compliance_passed:
 
 1. **Database Migration**
    ```bash
-   cd vettedcare-backend
+   cd vettedme-backend
    alembic revision --autogenerate -m "unified_runtime_integration"
    alembic upgrade head
    ```

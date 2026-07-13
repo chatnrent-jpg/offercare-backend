@@ -1,10 +1,10 @@
-"""Tests for VettedCare infrastructure readiness."""
+"""Tests for VettedMe infrastructure readiness."""
 
 from fastapi.testclient import TestClient
 
 
-def test_health_vettedcare_endpoint(client: TestClient) -> None:
-    response = client.get("/health/vettedcare")
+def test_health_vettedme_endpoint(client: TestClient) -> None:
+    response = client.get("/health/vettedme")
     assert response.status_code == 200
     body = response.json()
     assert body["manus_worker_required"] is False
@@ -12,8 +12,8 @@ def test_health_vettedcare_endpoint(client: TestClient) -> None:
     assert body["required_total"] >= 1
 
 
-def test_vettedcare_infrastructure_admin(client: TestClient, admin_headers: dict[str, str]) -> None:
-    response = client.get("/api/vettedcare/infrastructure", headers=admin_headers)
+def test_vettedme_infrastructure_admin(client: TestClient, admin_headers: dict[str, str]) -> None:
+    response = client.get("/api/vettedme/infrastructure", headers=admin_headers)
     assert response.status_code == 200
     body = response.json()
     assert body["overall"] in {"infra_ready", "not_ready"}

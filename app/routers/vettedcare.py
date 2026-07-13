@@ -1,4 +1,4 @@
-"""VettedCare.ai — credential safety API (Manus acts, VettedCare decides)."""
+"""VettedMe.ai — credential safety API (Manus acts, VettedMe decides)."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ from app.schemas import (
     RecruitmentDashboardResponse,
     VettedAlertOut,
     VettedAuditEventOut,
-    VettedCareDashboardResponse,
+    VettedMeDashboardResponse,
     VettedInfrastructureResponse,
     VettedProviderProfileResponse,
     VettedSafetyCycleResponse,
@@ -47,14 +47,14 @@ from app.services.md_desk_pipeline import (
     run_md_desk_production_live_callout,
 )
 from app.services.recruitment_dashboard import build_recruitment_dashboard
-from app.services.vetted_infrastructure import build_vettedcare_infrastructure_readiness
+from app.services.vetted_infrastructure import build_vettedme_infrastructure_readiness
 from app.services.vetted_alerts import list_recent_alerts
 from app.services.vetted_audit import list_vetted_audit
-from app.services.vetted_dashboard import build_vettedcare_dashboard
-from app.services.vetted_monitor import run_vettedcare_safety_cycle
+from app.services.vetted_dashboard import build_vettedme_dashboard
+from app.services.vetted_monitor import run_vettedme_safety_cycle
 from app.services.vetted_status import build_provider_vetted_profile, sync_all_vetted_statuses
 
-router = APIRouter(prefix="/api/vettedcare", tags=["vettedcare"])
+router = APIRouter(prefix="/api/vettedme", tags=["vettedme"])
 
 
 @router.get(
@@ -62,20 +62,20 @@ router = APIRouter(prefix="/api/vettedcare", tags=["vettedcare"])
     response_model=VettedInfrastructureResponse,
     dependencies=[Depends(require_admin_api_key)],
 )
-def vettedcare_infrastructure(db: Session = Depends(get_db)):
-    return VettedInfrastructureResponse(**build_vettedcare_infrastructure_readiness(db))
+def vettedme_infrastructure(db: Session = Depends(get_db)):
+    return VettedInfrastructureResponse(**build_vettedme_infrastructure_readiness(db))
 
 
 @router.get(
     "/dashboard",
-    response_model=VettedCareDashboardResponse,
+    response_model=VettedMeDashboardResponse,
     dependencies=[Depends(require_admin_api_key)],
 )
-def vettedcare_dashboard(
+def vettedme_dashboard(
     limit: int = Query(default=100, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    return build_vettedcare_dashboard(db, provider_limit=limit)
+    return build_vettedme_dashboard(db, provider_limit=limit)
 
 
 @router.get(
@@ -106,7 +106,7 @@ def sync_vetted_statuses(db: Session = Depends(get_db)):
     dependencies=[Depends(require_admin_api_key)],
 )
 def run_vetted_safety_cycle(db: Session = Depends(get_db)):
-    return VettedSafetyCycleResponse(**run_vettedcare_safety_cycle(db, actor="admin"))
+    return VettedSafetyCycleResponse(**run_vettedme_safety_cycle(db, actor="admin"))
 
 
 @router.get(
@@ -191,7 +191,7 @@ def manus_batch_runs(payload: ManusBatchRunIn, db: Session = Depends(get_db)):
     failed = sum(1 for row in runs if row.get("status") == "FAILED")
     safety_cycle = None
     if payload.run_cycle_after and applied:
-        safety_cycle = VettedSafetyCycleResponse(**run_vettedcare_safety_cycle(db, actor="manus_batch"))
+        safety_cycle = VettedSafetyCycleResponse(**run_vettedme_safety_cycle(db, actor="manus_batch"))
     return ManusBatchRunResponse(
         submitted=len(payload.runs),
         applied=applied,

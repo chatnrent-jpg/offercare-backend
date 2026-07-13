@@ -1,4 +1,4 @@
-"""VettedCare safety cycle — monitor, sync statuses, audit, and alert."""
+"""VettedMe safety cycle — monitor, sync statuses, audit, and alert."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from app.services.vetted_audit import log_vetted_event
 from app.services.vetted_status import VETTED_ACTION_NEEDED, VETTED_BLOCKED, VETTED_EXPIRING
 
 
-def run_vettedcare_safety_cycle(db: Session, *, actor: str = "vettedcare_monitor") -> dict:
+def run_vettedme_safety_cycle(db: Session, *, actor: str = "vettedme_monitor") -> dict:
     compliance = run_compliance_monitor(db)
     sync = sync_all_vetted_statuses(db, actor=actor)
 

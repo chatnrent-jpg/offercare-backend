@@ -108,7 +108,7 @@ def test_email_live_smtp_send(mock_smtp_cls, monkeypatch: pytest.MonkeyPatch) ->
 def test_integrations_test_email_endpoint(client: TestClient) -> None:
     response = client.post(
         "/api/integrations/test/email",
-        json={"email_address": "nurse.a@offercare.demo", "message": "VettedCare test"},
+        json={"email_address": "nurse.a@offercare.demo", "message": "VettedMe test"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "DRY_RUN"
