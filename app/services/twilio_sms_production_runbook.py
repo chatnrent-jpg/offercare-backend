@@ -162,28 +162,32 @@ def build_twilio_sms_production_runbook(db: Session) -> dict:
         "Deploy checklist live_sms_ready should flip to READY when credentials, HTTPS, and webhook are green",
     ]
 
+    # New OHCQ-compliant schema format
     return {
-        "production_ready": production_ready,
-        "live_sms_ready": twilio.live_ready and https_ok and bool(webhook_url),
-        "summary": {
-            "ready": ready,
-            "warnings": warnings,
-            "blocked": blocked,
-            "twilio_live_ready": twilio.live_ready,
-            "inbound_webhook_url": webhook_url,
-            "signature_validation": signatures_ok,
-            "reply_keyword": reply_keyword,
-        },
-        "checks": checks,
+        "sms_ready": twilio.live_ready and https_ok and bool(webhook_url) and not settings.SMS_DRY_RUN,
+        "account_sid_configured": twilio.configured,
+        "webhook_secure": https_ok and bool(webhook_url) and signatures_ok,
         "steps": steps,
         "env_snippet": "\n".join(env_lines),
-        "twilio_console_steps": [
-            "Twilio Console → Phone Numbers → Manage → Active numbers → select your VettedCare number",
-            "Messaging configuration → A MESSAGE COMES IN → Webhook",
-            f"URL: {webhook_url or '<PUBLIC_BASE_URL>/shift-sniper/twilio/sms'}",
-            "HTTP method: POST",
-            "Save — clinicians can reply YES to lock shifts",
-        ],
+        "metrics": {
+            "production_ready": production_ready,
+            "live_sms_ready": twilio.live_ready and https_ok and bool(webhook_url),
+            "ready_count": ready,
+            "warnings_count": warnings,
+            "blocked_count": blocked,
+            "twilio_live_ready": twilio.live_ready,
+            "inbound_webhook_url": webhook_url or "",
+            "signature_validation": signatures_ok,
+            "reply_keyword": reply_keyword,
+            "checks": checks,
+            "twilio_console_steps": [
+                "Twilio Console → Phone Numbers → Manage → Active numbers → select your VettedCare number",
+                "Messaging configuration → A MESSAGE COMES IN → Webhook",
+                f"URL: {webhook_url or '<PUBLIC_BASE_URL>/shift-sniper/twilio/sms'}",
+                "HTTP method: POST",
+                "Save — clinicians can reply YES to lock shifts",
+            ],
+        },
     }
 
 

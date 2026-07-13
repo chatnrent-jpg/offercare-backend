@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -23,91 +24,67 @@ def build_maryland_launch_capstone(db: Session, *, include_probes: bool = False)
     md_production = build_maryland_production_runbook(db, include_probes=include_probes)
     sms_production = build_twilio_sms_production_runbook(db)
     md_summary = md_production["summary"]
-    sms_summary = sms_production["summary"]
+    sms_metrics = sms_production["metrics"]
+    checked_at = datetime.now(timezone.utc).isoformat()
 
     checks: list[dict] = []
 
     if md_production["production_ready"]:
-        md_status = "ready"
-        md_detail = "Maryland production runbook green — live scrapers, schedulers, HTTPS, and production adapter mode"
-        md_action = None
+        md_status = "PASSED"
     elif md_summary["blocked"] > 0:
-        md_status = "blocked"
-        md_detail = (
-            f"Maryland production blocked — {md_summary['blocked']} blocker(s), "
-            f"{md_summary['warnings']} warning(s)"
-        )
-        md_action = "Admin → Deploy → Maryland production runbook — resolve blockers"
+        md_status = "BLOCKED"
     else:
-        md_status = "warning"
-        md_detail = (
-            f"Maryland production partial — {md_summary['ready']} ready, "
-            f"{md_summary['warnings']} warning(s); "
-            f"live scrapers {md_summary['live_scrapers_live_count']}/5"
-        )
-        md_action = "Complete live scraper go-live, disable mock adapters, and set PUBLIC_BASE_URL"
+        md_status = "WARNING"
+    
     checks.append(
         {
             "id": "maryland_production",
-            "title": "Maryland production readiness",
+            "gate_name": "Maryland Production Readiness",
             "status": md_status,
-            "detail": md_detail,
-            "action": md_action,
+            "passed": md_production["production_ready"],
+            "critical": True,
         }
     )
 
-    if sms_production["production_ready"]:
-        sms_status = "ready"
-        sms_detail = "Twilio live SMS production ready — outbound, inbound webhook, and signatures configured"
-        sms_action = None
-    elif sms_summary["blocked"] > 0:
-        sms_status = "blocked"
-        sms_detail = (
-            f"Live SMS blocked — {sms_summary['blocked']} blocker(s), {sms_summary['warnings']} warning(s)"
-        )
-        sms_action = "Admin → Integrations → Copy Twilio go-live .env and wire Twilio Console webhook"
+    sms_production_ready = sms_metrics["production_ready"]
+    if sms_production_ready:
+        sms_status = "PASSED"
+    elif sms_metrics["blocked_count"] > 0:
+        sms_status = "BLOCKED"
     else:
-        sms_status = "warning"
-        sms_detail = (
-            f"Live SMS partial — {sms_summary['ready']} ready, {sms_summary['warnings']} warning(s)"
-        )
-        sms_action = "Set SMS_DRY_RUN=false, PUBLIC_BASE_URL, and TWILIO_VALIDATE_SIGNATURES=true"
+        sms_status = "WARNING"
+    
     checks.append(
         {
             "id": "live_sms_production",
-            "title": "Live SMS production",
+            "gate_name": "Live SMS Production",
             "status": sms_status,
-            "detail": sms_detail,
-            "action": sms_action,
+            "passed": sms_production_ready,
+            "critical": True,
         }
     )
 
-    launch_ready = md_production["production_ready"] and sms_production["production_ready"]
+    launch_ready = md_production["production_ready"] and sms_production_ready
     if launch_ready:
-        launch_status = "ready"
-        launch_detail = "Maryland launch capstone green — production scrapers and live SMS both ready for go-live"
-        launch_action = None
-    elif md_status == "blocked" or sms_status == "blocked":
-        launch_status = "blocked"
-        launch_detail = "Maryland launch blocked — resolve Maryland production and live SMS blockers first"
-        launch_action = "Admin → Deploy → Run launch smoke after both runbooks are green"
+        launch_status = "PASSED"
+    elif md_status == "BLOCKED" or sms_status == "BLOCKED":
+        launch_status = "BLOCKED"
     else:
-        launch_status = "warning"
-        launch_detail = "Maryland launch partial — complete Maryland production and live SMS runbooks"
-        launch_action = "Admin → Deploy → Maryland launch capstone — finish remaining warnings"
+        launch_status = "WARNING"
+    
     checks.append(
         {
             "id": "maryland_launch_capstone",
-            "title": "Maryland launch capstone",
+            "gate_name": "Maryland Launch Capstone (HB 1106 AEDT Compliance)",
             "status": launch_status,
-            "detail": launch_detail,
-            "action": launch_action,
+            "passed": launch_ready,
+            "critical": True,
         }
     )
 
-    blocked = sum(1 for row in checks if row["status"] == "blocked")
-    warnings = sum(1 for row in checks if row["status"] == "warning")
-    ready = sum(1 for row in checks if row["status"] == "ready")
+    blocked = sum(1 for row in checks if row["status"] == "BLOCKED")
+    warnings = sum(1 for row in checks if row["status"] == "WARNING")
+    ready = sum(1 for row in checks if row["status"] == "PASSED")
 
     steps = [
         "Confirm Maryland production runbook is green — live scraper gateway, all five channels live, schedulers on",
@@ -135,19 +112,19 @@ def build_maryland_launch_capstone(db: Session, *, include_probes: bool = False)
     return {
         "launch_ready": launch_ready,
         "maryland_production_ready": md_production["production_ready"],
-        "twilio_sms_production_ready": sms_production["production_ready"],
-        "live_sms_ready": sms_production["live_sms_ready"],
+        "twilio_sms_production_ready": sms_production_ready,
+        "live_sms_ready": sms_production["sms_ready"],
         "live_scrapers_all_live": md_summary["live_scrapers_all_live"],
         "summary": {
             "ready": ready,
             "warnings": warnings,
             "blocked": blocked,
             "maryland_production_ready": md_production["production_ready"],
-            "twilio_sms_production_ready": sms_production["production_ready"],
-            "live_sms_ready": sms_production["live_sms_ready"],
+            "twilio_sms_production_ready": sms_production_ready,
+            "live_sms_ready": sms_production["sms_ready"],
             "live_scrapers_all_live": md_summary["live_scrapers_all_live"],
             "live_scrapers_live_count": md_summary["live_scrapers_live_count"],
-            "inbound_webhook_url": sms_summary.get("inbound_webhook_url"),
+            "inbound_webhook_url": sms_metrics.get("inbound_webhook_url", ""),
             "launch_urls": md_production["launch_urls"],
         },
         "checks": checks,

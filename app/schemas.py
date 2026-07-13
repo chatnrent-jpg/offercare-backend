@@ -468,30 +468,6 @@ class DemoGateOut(BaseModel):
     active: bool
 
 
-class DemoAdminActionOut(BaseModel):
-    action: str
-    endpoint: str
-    field: str
-
-
-class DemoGatesResponse(BaseModel):
-    walkthrough_intact: bool
-    health_status: str
-    health_label: str
-    summary: str
-    issues: list[str]
-    present_facility_count: int | None = None
-    broadcasting_facility_count: int | None = None
-    expected_facility_count: int | None = None
-    gate_hints: list[str]
-    active_gates: list[str]
-    gate_count: int
-    demo_admin_action_count: int = 0
-    gates: list[DemoGateOut]
-    clipboard_text: str
-    demo_admin_actions: list[DemoAdminActionOut] = []
-
-
 class DemoWalkthroughResponse(BaseModel):
     markdown: str
     offer_count: int
@@ -915,16 +891,6 @@ class TwilioSmsProductionCheckOut(BaseModel):
     action: str | None = None
 
 
-class TwilioSmsProductionRunbookResponse(BaseModel):
-    production_ready: bool
-    live_sms_ready: bool
-    summary: dict
-    checks: list[TwilioSmsProductionCheckOut]
-    steps: list[str]
-    env_snippet: str
-    twilio_console_steps: list[str]
-
-
 class TwilioLockReplySmokeRequest(BaseModel):
     phone_number: str | None = None
 
@@ -1180,6 +1146,56 @@ class DeployCheckItemOut(BaseModel):
     action: str | None = None
 
 
+# ============================================================================
+# OHCQ Compliance Base Components (Maryland Department of Health)
+# Must be declared ABOVE DeployChecklistSummary to prevent NameError
+# ============================================================================
+
+class DemoGatesResponse(BaseModel):
+    gates_active: bool
+    bypassed_gates: list[str] = []
+    enforced_gates: list[str] = []
+
+
+class DemoAdminActionOut(BaseModel):
+    id: str
+    action_type: str
+    description: str
+    executed: bool
+    executed_at: str | None = None
+
+
+class MarylandProductionCheckOut(BaseModel):
+    id: str
+    name: str  # e.g., "MBON Registry Connection"
+    layer: str  # e.g., "OHCQ / MBON Validation"
+    status: str  # "PASSED", "WARNING", "BLOCKED"
+    checked_at: str
+    passed: bool
+
+
+class MarylandLaunchCapstoneCheckOut(BaseModel):
+    id: str
+    gate_name: str  # e.g., "HB 1106 AEDT Disclosure Consent"
+    status: str
+    passed: bool
+    critical: bool = True
+
+
+class TwilioSmsProductionRunbookResponse(BaseModel):
+    sms_ready: bool
+    account_sid_configured: bool
+    webhook_secure: bool
+    steps: list[str] = []
+    env_snippet: str
+    metrics: dict[str, Any] = {}
+
+
+# ============================================================================
+# End OHCQ Base Components
+# ============================================================================
+
+
 class DeployChecklistSummary(BaseModel):
     ready: int
     warnings: int
@@ -1246,14 +1262,6 @@ class DeployChecklistSummary(BaseModel):
     production_launch_bundle_verified_blocked_count: int | None = None
 
 
-class MarylandProductionCheckOut(BaseModel):
-    id: str
-    title: str
-    status: str
-    detail: str
-    action: str | None = None
-
-
 class MarylandProductionRunbookResponse(BaseModel):
     production_ready: bool
     summary: dict
@@ -1262,14 +1270,6 @@ class MarylandProductionRunbookResponse(BaseModel):
     env_snippet: str
     launch_urls: dict[str, str]
     probes: list[dict] = []
-
-
-class MarylandLaunchCapstoneCheckOut(BaseModel):
-    id: str
-    title: str
-    status: str
-    detail: str
-    action: str | None = None
 
 
 class MarylandLaunchCapstoneResponse(BaseModel):

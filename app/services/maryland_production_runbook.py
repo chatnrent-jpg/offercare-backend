@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -26,18 +27,18 @@ def build_maryland_production_runbook(db: Session, *, include_probes: bool = Fal
     go_live = build_live_scraper_go_live_profile()
     postgis = describe_postgis_status(db)
     maryland_ok = _maryland_platform_present()
+    checked_at = datetime.now(timezone.utc).isoformat()
 
     checks: list[dict] = []
 
     checks.append(
         {
             "id": "maryland_platform",
-            "title": "Maryland platform modules",
-            "status": "ready" if maryland_ok else "blocked",
-            "detail": "Worker landing, credentialing, crisis scrapers, VMS ingest, and outreach present"
-            if maryland_ok
-            else "Missing Maryland platform modules",
-            "action": None if maryland_ok else "Deploy latest backend build",
+            "name": "Maryland Platform Modules",
+            "layer": "OHCQ / Infrastructure",
+            "status": "PASSED" if maryland_ok else "BLOCKED",
+            "checked_at": checked_at,
+            "passed": maryland_ok,
         }
     )
 
@@ -45,53 +46,41 @@ def build_maryland_production_runbook(db: Session, *, include_probes: bool = Fal
     checks.append(
         {
             "id": "scraper_gateway",
-            "title": "Live scraper gateway",
-            "status": "ready" if gateway else "blocked",
-            "detail": f"LIVE_SCRAPER_GATEWAY_BASE_URL={gateway or '(not set)'}",
-            "action": None if gateway else "Set LIVE_SCRAPER_GATEWAY_BASE_URL to your adapter service",
+            "name": "Live Scraper Gateway",
+            "layer": "OHCQ / MBON Validation",
+            "status": "PASSED" if gateway else "BLOCKED",
+            "checked_at": checked_at,
+            "passed": bool(gateway),
         }
     )
 
-    if settings.LIVE_SCRAPER_MOCK_ADAPTERS_ENABLED:
-        mock_status = "warning"
-        mock_detail = "LIVE_SCRAPER_MOCK_ADAPTERS_ENABLED=true — disable before public Maryland launch"
-        mock_action = "Set LIVE_SCRAPER_MOCK_ADAPTERS_ENABLED=false in production .env"
-    else:
-        mock_status = "ready"
-        mock_detail = "Mock adapters disabled — production adapter gateway expected"
-        mock_action = None
+    mock_adapters_ok = not settings.LIVE_SCRAPER_MOCK_ADAPTERS_ENABLED
     checks.append(
         {
             "id": "mock_adapters_off",
-            "title": "Production adapter mode",
-            "status": mock_status,
-            "detail": mock_detail,
-            "action": mock_action,
+            "name": "Production Adapter Mode",
+            "layer": "OHCQ / Infrastructure",
+            "status": "PASSED" if mock_adapters_ok else "WARNING",
+            "checked_at": checked_at,
+            "passed": mock_adapters_ok,
         }
     )
 
     if scraper_summary["all_live"]:
-        scraper_status = "ready"
-        scraper_detail = "All five credentialing and ingest scrapers are live-ready"
-        scraper_action = None
+        scraper_status = "PASSED"
     elif scraper_summary["live_ready_count"] > 0:
-        scraper_status = "warning"
-        scraper_detail = (
-            f"{scraper_summary['live_ready_count']}/{scraper_summary['total_channels']} "
-            f"scraper channels live · {scraper_summary['dry_run_count']} still dry-run"
-        )
-        scraper_action = "Flip remaining *_DRY_RUN=false and probe adapters in Admin → Integrations"
+        scraper_status = "WARNING"
     else:
-        scraper_status = "blocked"
-        scraper_detail = f"All {scraper_summary['total_channels']} scraper channels still in dry-run"
-        scraper_action = "Complete step 133 go-live profile and probe all channels"
+        scraper_status = "BLOCKED"
+    
     checks.append(
         {
             "id": "live_scrapers",
-            "title": "Live scraper channels",
+            "name": "MBON/OIG/Judiciary Live Scrapers",
+            "layer": "OHCQ / MBON Validation",
             "status": scraper_status,
-            "detail": scraper_detail,
-            "action": scraper_action,
+            "checked_at": checked_at,
+            "passed": scraper_summary["all_live"],
         }
     )
 
@@ -99,14 +88,11 @@ def build_maryland_production_runbook(db: Session, *, include_probes: bool = Fal
     checks.append(
         {
             "id": "staffing_scheduler",
-            "title": "Staffing background scheduler",
-            "status": "ready" if staffing_ok else "warning",
-            "detail": "VMS poll + job board crisis workers enabled"
-            if staffing_ok
-            else "One or both staffing workers disabled",
-            "action": None
-            if staffing_ok
-            else "Set STAFFING_VMS_WORKER_ENABLED=true and STAFFING_JOB_BOARD_WORKER_ENABLED=true",
+            "name": "Staffing Background Scheduler",
+            "layer": "OHCQ / Infrastructure",
+            "status": "PASSED" if staffing_ok else "WARNING",
+            "checked_at": checked_at,
+            "passed": staffing_ok,
         }
     )
 
@@ -114,12 +100,11 @@ def build_maryland_production_runbook(db: Session, *, include_probes: bool = Fal
     checks.append(
         {
             "id": "compliance_scheduler",
-            "title": "Compliance monitor scheduler",
-            "status": "ready" if compliance_ok else "warning",
-            "detail": "Hourly document expiration sweeps enabled"
-            if compliance_ok
-            else "COMPLIANCE_MONITOR_WORKER_ENABLED=false",
-            "action": None if compliance_ok else "Set COMPLIANCE_MONITOR_WORKER_ENABLED=true",
+            "name": "Compliance Monitor Scheduler",
+            "layer": "OHCQ / Compliance",
+            "status": "PASSED" if compliance_ok else "WARNING",
+            "checked_at": checked_at,
+            "passed": compliance_ok,
         }
     )
 
@@ -127,38 +112,38 @@ def build_maryland_production_runbook(db: Session, *, include_probes: bool = Fal
     checks.append(
         {
             "id": "public_https",
-            "title": "Public HTTPS base URL",
-            "status": "ready" if https_ok else "blocked",
-            "detail": f"PUBLIC_BASE_URL={public_base or '(not set)'}",
-            "action": None if https_ok else "Set PUBLIC_BASE_URL=https://your-domain.com",
+            "name": "Public HTTPS Base URL",
+            "layer": "OHCQ / Infrastructure",
+            "status": "PASSED" if https_ok else "BLOCKED",
+            "checked_at": checked_at,
+            "passed": https_ok,
         }
     )
 
     if postgis["postgis_enabled"]:
-        postgis_status = "ready"
-        postgis_detail = f"PostGIS {postgis['postgis_version']} with GiST-indexed geography columns"
-        postgis_action = None
+        postgis_status = "PASSED"
+        postgis_passed = True
     elif postgis["postgis_version"]:
-        postgis_status = "warning"
-        postgis_detail = f"PostGIS {postgis['postgis_version']} installed — columns or flag incomplete"
-        postgis_action = "Run alembic upgrade head on PostGIS-enabled database"
+        postgis_status = "WARNING"
+        postgis_passed = False
     else:
-        postgis_status = "warning"
-        postgis_detail = "PostGIS not detected — geo matching uses Haversine fallback"
-        postgis_action = "Use postgis/postgis image and run alembic upgrade head"
+        postgis_status = "WARNING"
+        postgis_passed = False
+    
     checks.append(
         {
             "id": "postgis_geo",
-            "title": "PostGIS geo matching",
+            "name": "PostGIS Geo Matching",
+            "layer": "OHCQ / Infrastructure",
             "status": postgis_status,
-            "detail": postgis_detail,
-            "action": postgis_action,
+            "checked_at": checked_at,
+            "passed": postgis_passed,
         }
     )
 
-    blocked = sum(1 for row in checks if row["status"] == "blocked")
-    warnings = sum(1 for row in checks if row["status"] == "warning")
-    ready = sum(1 for row in checks if row["status"] == "ready")
+    blocked = sum(1 for row in checks if row["status"] == "BLOCKED")
+    warnings = sum(1 for row in checks if row["status"] == "WARNING")
+    ready = sum(1 for row in checks if row["status"] == "PASSED")
     production_ready = blocked == 0 and scraper_summary["all_live"] and not settings.LIVE_SCRAPER_MOCK_ADAPTERS_ENABLED
 
     probes: list[dict] = []

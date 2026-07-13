@@ -23,13 +23,13 @@ else:
     _main_models = sys.modules["app._models_main_file"]
 
 # Export commonly used main models
-ClinicalPlacementLedger = _main_models.ClinicalPlacementLedger
-ClinicianPortalAccount = _main_models.ClinicianPortalAccount
-ClinicianPushSubscription = _main_models.ClinicianPushSubscription
-MarylandFacility = _main_models.MarylandFacility
-MarylandProvider = _main_models.MarylandProvider
-OfferCareJobOffer = _main_models.OfferCareJobOffer
-VmsSubmissionLog = _main_models.VmsSubmissionLog
+# Export ALL models from the main models.py file dynamically
+# This prevents having to manually add each one
+for name in dir(_main_models):
+    obj = getattr(_main_models, name)
+    if isinstance(obj, type) and hasattr(obj, '__tablename__'):
+        # This is a SQLAlchemy model
+        globals()[name] = obj
 
 # Import models from submodules ONLY if they're not already defined in models.py
 # This prevents duplicate table registration errors
@@ -46,6 +46,13 @@ if AIAuditLog is None:
 # Import healthcare credential (new model from submodule)
 from app.models.healthcare_credential import HealthcareCredential
 
+# Define employment tier constants here to avoid double-registration
+# (These are also defined in caregiver_accounts.py but importing from there
+# would cause SQLAlchemy table registration conflicts)
+EMPLOYMENT_TIER_W2 = "TIER1_W2"
+EMPLOYMENT_TIER_1099 = "TIER2_1099"
+EMPLOYMENT_TIERS = (EMPLOYMENT_TIER_W2, EMPLOYMENT_TIER_1099)
+
 # NOTE: We're NOT importing clinician_calendar, compliance_audit_ledger, etc.
 # because those models are already registered when models.py is loaded.
 # Direct imports of those submodules elsewhere in the codebase will still work.
@@ -56,8 +63,18 @@ __all__ = [
     "ClinicalPlacementLedger",
     "ClinicianPortalAccount",
     "ClinicianPushSubscription",
+    "ClinicianOAuthIdentity",
+    "ClinicianComplianceDocument",
     "MarylandFacility",
     "MarylandProvider",
     "OfferCareJobOffer",
     "VmsSubmissionLog",
+    "ShiftNotificationLog",
+    "CredentialSafetyAlert",
+    "ManusVettingRun",
+    "VettedCareAuditLog",
+    "LicenseVerificationLog",
+    "ExclusionScreening",
+    "FacilityCrisisSignal",
+    "OpsAuditLog",
 ]

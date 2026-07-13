@@ -110,13 +110,12 @@ def _maryland_production_runbook_response(runbook: dict) -> MarylandProductionRu
 
 def _twilio_sms_production_runbook_response(runbook: dict) -> TwilioSmsProductionRunbookResponse:
     return TwilioSmsProductionRunbookResponse(
-        production_ready=runbook["production_ready"],
-        live_sms_ready=runbook["live_sms_ready"],
-        summary=runbook["summary"],
-        checks=runbook["checks"],
+        sms_ready=runbook["sms_ready"],
+        account_sid_configured=runbook["account_sid_configured"],
+        webhook_secure=runbook["webhook_secure"],
         steps=runbook["steps"],
         env_snippet=runbook["env_snippet"],
-        twilio_console_steps=runbook["twilio_console_steps"],
+        metrics=runbook["metrics"],
     )
 
 
