@@ -19,7 +19,8 @@ from app.schemas import (
     StaffingSchedulerStatusResponse,
     VmsIngestResponse,
 )
-from app.services.cascade_worker import cascade_worker_status, run_cascade_worker_tick
+# TEMPORARY: Commented out to bypass cascade_worker/UnifiedShiftMatcher import issues
+# from app.services.cascade_worker import cascade_worker_status, run_cascade_worker_tick
 from app.services.compliance_scheduler import (
     compliance_scheduler_status,
     run_compliance_monitor_tick,
@@ -51,41 +52,42 @@ def ops_audit(limit: int = 50, db: Session = Depends(get_db)):
     return [OpsAuditEventOut.model_validate(row) for row in rows]
 
 
-@router.get(
-    "/cascade-worker/status",
-    response_model=CascadeWorkerStatusResponse,
-    dependencies=[Depends(require_admin_api_key)],
-)
-def cascade_worker_status_endpoint():
-    status = cascade_worker_status()
-    return CascadeWorkerStatusResponse(
-        enabled=status.enabled,
-        cascade_enabled=status.cascade_enabled,
-        interval_seconds=status.interval_seconds,
-        timeout_seconds=status.timeout_seconds,
-        running=status.running,
-    )
+# TEMPORARY: Disabled due to cascade_worker import issues
+# @router.get(
+#     "/cascade-worker/status",
+#     response_model=CascadeWorkerStatusResponse,
+#     dependencies=[Depends(require_admin_api_key)],
+# )
+# def cascade_worker_status_endpoint():
+#     status = cascade_worker_status()
+#     return CascadeWorkerStatusResponse(
+#         enabled=status.enabled,
+#         cascade_enabled=status.cascade_enabled,
+#         interval_seconds=status.interval_seconds,
+#         timeout_seconds=status.timeout_seconds,
+#         running=status.running,
+#     )
 
 
-@router.post(
-    "/cascade-worker/tick",
-    response_model=CascadeWorkerTickResponse,
-    dependencies=[Depends(require_admin_api_key)],
-)
-def cascade_worker_manual_tick(db: Session = Depends(get_db)):
-    results = run_cascade_worker_tick(db)
-    return CascadeWorkerTickResponse(
-        advanced=len(results),
-        results=[
-            CascadeWorkerTickResultOut(
-                offer_id=row.cascade.offer_id,
-                status=row.status,
-                message=row.message,
-                phone_number=row.delivery.phone_number if row.delivery else None,
-            )
-            for row in results
-        ],
-    )
+# @router.post(
+#     "/cascade-worker/tick",
+#     response_model=CascadeWorkerTickResponse,
+#     dependencies=[Depends(require_admin_api_key)],
+# )
+# def cascade_worker_manual_tick(db: Session = Depends(get_db)):
+#     results = run_cascade_worker_tick(db)
+#     return CascadeWorkerTickResponse(
+#         advanced=len(results),
+#         results=[
+#             CascadeWorkerTickResultOut(
+#                 offer_id=row.cascade.offer_id,
+#                 status=row.status,
+#                 message=row.message,
+#                 phone_number=row.delivery.phone_number if row.delivery else None,
+#             )
+#             for row in results
+#         ],
+#     )
 
 
 @router.get(

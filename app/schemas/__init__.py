@@ -1197,88 +1197,10 @@ class TwilioSmsProductionRunbookResponse(BaseModel):
 
 
 # ============================================================================
-# Operations, Governance & Ceremony Capstones
-# Production visibility dashboards and Maryland compliance audit tracking
-# ============================================================================
-
-class ProductionOpsDashboardResponse(BaseModel):
-    """Production operations dashboard - unified worker, metrics, and system health."""
-    dashboard_ready: bool
-    active_alerts_count: int
-    system_load_status: str
-    metrics_url: str
-    probes: list[dict[str, Any]] = []
-
-
-class ProductionPerfectionCapstoneResponse(BaseModel):
-    """Production perfection capstone - code quality and security gates."""
-    perfection_ready: bool
-    linting_passed: bool
-    test_coverage_percentage: float
-    security_scan_clean: bool
-    vulnerabilities_found: int = 0
-
-
-class ProductionLaunchCeremonyResponse(BaseModel):
-    """Production launch ceremony - stakeholder approval and deployment window."""
-    ceremony_ready: bool
-    stakeholders_notified: bool
-    deployment_window_approved: bool
-    scheduled_launch_time: str | None = None
-
-
-class ProductionGoLiveRecordResponse(BaseModel):
-    """Production go-live record - immutable deployment audit trail."""
-    record_ready: bool
-    deployment_id: str
-    git_commit_sha: str
-    deployed_by: str
-    timestamp: str
-
-
-class ProductionLaunchAttestationResponse(BaseModel):
-    """Production launch attestation - legal and OHCQ compliance signoff."""
-    attestation_ready: bool
-    legal_signoff: bool
-    compliance_signoff_ohcq: bool
-    attestation_statement: str
-    signee_digital_footprint: str | None = None
-
-
-class ProductionLaunchPerfectionSealResponse(BaseModel):
-    """Production launch perfection seal - tamper-proof integrity verification."""
-    seal_ready: bool
-    integrity_hash: str
-    seal_signature: str
-    is_tamper_proof: bool
-
-
-class ProductionLaunchArchiveResponse(BaseModel):
-    """Production launch archive - backup snapshots and retention policy."""
-    archive_ready: bool
-    backup_snapshot_url: str | None = None
-    migration_logs_archived: bool
-    retention_policy_years: int = 7
-
-
-class ProductionLaunchFinaleResponse(BaseModel):
-    """Production launch finale - final cutover and OHCQ certification."""
-    finale_ready: bool
-    server_status: str  # "RUNNING_100"
-    traffic_switched: bool
-    congratulatory_message: str = "FastAPI Production Server is fully live and OHCQ certified."
-
-
-class ProductionLaunchPerfectionManifestResponse(BaseModel):
-    """Production launch perfection manifest - artifact verification checksums."""
-    manifest_verified: bool
-    total_artifacts_counted: int
-    missing_artifacts_count: int = 0
-    verification_checksum: str
-
-
-# ============================================================================
-# End Operations, Governance & Ceremony Capstones
+# NOTE: Operations, Governance & Ceremony Capstone schemas are defined
+# in their comprehensive form later in this file (lines ~1400+).
+# The comprehensive versions include additional fields for production readiness
+# checks, steps, summaries, and nested runbook integration.
 # ============================================================================
 
 
