@@ -38,20 +38,42 @@ celery_app.conf.beat_schedule = {
 }
 
 
-# Task implementation will be added in the next step
-# This placeholder ensures the scheduled task name is registered
+# ============================================================================
+# Task Implementation: MBON Scraper Synchronization
+# ============================================================================
+
+import asyncio
+from app.database import SessionLocal  # Standard SQLAlchemy sessionmaker
+from app.workers.mbon_scraper import MBONScraperPool
+
+
 @celery_app.task(name="app.core.celery_app.execute_mbon_sync_job")
 def execute_mbon_sync_job():
     """
-    Placeholder task for MBON scraper synchronization.
+    Celery entry point that safely wraps the async MBON synchronization pool loop
+    and injects a clean, short-lived production database session handler.
     
-    This task will be implemented to:
-    1. Initialize database connection
-    2. Create MBONScraperPool instance
-    3. Run sync cycle
-    4. Log results
+    Process:
+    1. Creates fresh database session via SessionLocal()
+    2. Instantiates MBONScraperPool with optional proxy rotation
+    3. Executes async run_sync_cycle() via asyncio.run()
+    4. Handles errors with rollback
+    5. Ensures session cleanup in finally block
     
-    Scheduled to run every hour at minute 0.
+    Scheduled: Hourly at minute 0 via Celery Beat
+    
+    Raises:
+        RuntimeError: If MBON synchronization fails
     """
-    # Implementation will be added in next step
-    pass
+    db = SessionLocal()
+    try:
+        # Instantiate scraper pool with custom rotation proxies if available
+        scraper_pool = MBONScraperPool(proxies=[])
+        
+        # Drive the async execution loop cleanly inside the synchronous Celery worker thread
+        asyncio.run(scraper_pool.run_sync_cycle(db))
+    except Exception as e:
+        db.rollback()
+        raise RuntimeError(f"Automated background MBON synchronization failed: {str(e)}")
+    finally:
+        db.close()
