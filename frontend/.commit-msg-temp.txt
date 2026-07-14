@@ -1,0 +1,8 @@
+feat(ui): add advanced interactive dashboard components
+
+Implements three production-ready React components:
+- DocUploadForm: Drag-and-drop PDF certification uploads with validation
+- ShiftMatchPanel: Ranked OHCQ-cleared candidate matching visualization
+- ScraperControlHeader: Manual MBON registry sync trigger with live status
+
+All components integrate seamlessly with FastAPI backend endpoints.
