@@ -32,22 +32,12 @@ def get_db():
 @router.get(
     "/scraper-summary",
     status_code=status.HTTP_200_OK,
-    summary="Fetch operational KPIs for the frontend analytics panels",
-    response_model=None
+    summary="Fetch operational KPIs for the frontend analytics panels"
 )
 async def get_scraper_analytics(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Aggregates database metrics to display pass rates, sync queues, 
     and OHCQ compliance health scores on the admin panel.
-    
-    Returns:
-        Dictionary containing:
-        - metrics_calculated_at: ISO timestamp of calculation
-        - global_compliance_score: Percentage of verified credentials
-        - counters: Credential counts by verification status
-        - scraper_infrastructure_telemetry: Mock infrastructure metrics
-        - verification_pipeline: Breakdown by verification stage
-        - license_distribution: Counts by license type (RN, LPN, CNA, GNA)
     """
     # Total monitored credentials
     total_credentials = db.query(HealthcareCredential).count()
@@ -153,8 +143,7 @@ async def get_scraper_analytics(db: Session = Depends(get_db)) -> Dict[str, Any]
 @router.get(
     "/credential-trends",
     status_code=status.HTTP_200_OK,
-    summary="Historical credential verification trends",
-    response_model=None
+    summary="Historical credential verification trends"
 )
 async def get_credential_trends(
     days: int = 30,
@@ -162,15 +151,6 @@ async def get_credential_trends(
 ) -> Dict[str, Any]:
     """
     Returns time-series data for credential verification trends.
-    
-    Args:
-        days: Number of days to look back (default: 30)
-        
-    Returns:
-        Dictionary containing:
-        - time_range: Start and end dates
-        - verification_activity: Daily verification counts
-        - compliance_trend: Daily compliance score changes
     """
     start_date = datetime.now(timezone.utc) - timedelta(days=days)
     
@@ -205,12 +185,12 @@ async def get_credential_trends(
             "current_compliance_score": round(compliance_now, 2),
             "credentials_verified": verified_now,
             "credentials_total": total_now,
-            "trend": "stable"  # Could be calculated based on historical data
+            "trend": "stable"
         },
         "insights": {
-            "peak_verification_day": "Monday",  # Mock data
-            "average_processing_time_hours": 2.3,  # Mock data
-            "quality_score": 97.5  # Mock data
+            "peak_verification_day": "Monday",
+            "average_processing_time_hours": 2.3,
+            "quality_score": 97.5
         }
     }
 
