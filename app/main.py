@@ -58,6 +58,7 @@ from app.routers.billing import router as billing_router
 from app.routers.analytics import router as analytics_router
 from app.routers.matching import router as matching_router
 from app.routers.documents import router as documents_router
+from app.routers.ai_extraction import router as ai_extraction_router
 from app.api.v1.ai_resume import router as ai_resume_router
 from api.intake_webhooks import register_intake_webhooks
 from api.vector_match_engine import register_vector_match_engine
@@ -137,6 +138,7 @@ app.include_router(billing_router)
 app.include_router(analytics_router)
 app.include_router(matching_router)
 app.include_router(documents_router)
+app.include_router(ai_extraction_router)
 app.include_router(ai_resume_router)
 register_intake_webhooks(app)
 register_vector_match_engine(app)
