@@ -1,19 +1,12 @@
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
-from app.db.session import SessionLocal
+from app.database import get_db
 from app.services.document_processing import DocumentProcessingEngine
 
 router = APIRouter(
     prefix="/api/v1/documents",
     tags=["Compliance Document Capture Pipeline"]
 )
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post(
     "/{credential_id}/upload-pdf",

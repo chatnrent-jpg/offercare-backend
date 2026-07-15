@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center - VettedMe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #121a2b;
+            --panel-border: #243049;
+            --text: #e8eef8;
+            --muted: #93a4c3;
+            --accent: #2dd4bf;
+            --accent-dim: #0f766e;
+        }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #12203a, var(--bg) 45%);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .gradient-bg { 
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+        }
+        .card-panel {
+            background: rgba(18, 26, 43, 0.92);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s ease;
+        }
+        .card-panel:hover { 
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(45, 212, 191, 0.2); 
+        }
+        nav {
+            background: rgba(18, 26, 43, 0.92);
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .nav-link { color: var(--muted); }
+        .nav-link:hover { color: var(--text); }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">VettedMe</h1>
+                    </a>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Home</a>
+                        <a href="/dashboard" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Dashboard</a>
+                        <a href="/api-docs" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">API Docs</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/help" class="nav-link text-sm font-medium" style="color: var(--accent);">Help</a>
+                    <a href="/account" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); border: 1px solid var(--panel-border);">Account</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-4">📚 Help Center</h1>
+            <p class="text-xl" style="color: var(--muted);">Find answers and get support</p>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+            <a href="/docs" class="card-panel p-6 text-center">
+                <div class="text-4xl mb-3">📖</div>
+                <h3 class="font-bold mb-2">API Documentation</h3>
+                <p class="text-sm" style="color: var(--muted);">Complete reference for developers</p>
+            </a>
+            <a href="/sdks" class="card-panel p-6 text-center">
+                <div class="text-4xl mb-3">💻</div>
+                <h3 class="font-bold mb-2">SDKs & Tools</h3>
+                <p class="text-sm" style="color: var(--muted);">Integration guides and code examples</p>
+            </a>
+            <a href="/documentation" class="card-panel p-6 text-center">
+                <div class="text-4xl mb-3">🏗️</div>
+                <h3 class="font-bold mb-2">Technical Docs</h3>
+                <p class="text-sm" style="color: var(--muted);">Architecture and deployment guides</p>
+            </a>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="card-panel p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
+            
+            <div class="space-y-6">
+                <!-- FAQ Item 1 -->
+                <div>
+                    <h3 class="font-semibold mb-2 flex items-center">
+                        <span style="color: var(--accent);" class="mr-2">Q:</span>
+                        How do I get started with VettedMe?
+                    </h3>
+                    <p style="color: var(--muted);" class="ml-6">
+                        Start by creating an account and generating an API key from the <a href="/dashboard" style="color: var(--accent);">Dashboard</a>. 
+                        Then install one of our <a href="/sdks" style="color: var(--accent);">SDKs</a> and follow the quick start guide.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div>
+                    <h3 class="font-semibold mb-2 flex items-center">
+                        <span style="color: var(--accent);" class="mr-2">Q:</span>
+                        What is a VettedMe Passport?
+                    </h3>
+                    <p style="color: var(--muted);" class="ml-6">
+                        A VettedMe Passport is a cryptographically signed digital credential that contains verified identity information. 
+                        It uses Ed25519 signatures to ensure tamper-proof authenticity and can be instantly verified by anyone.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div>
+                    <h3 class="font-semibold mb-2 flex items-center">
+                        <span style="color: var(--accent);" class="mr-2">Q:</span>
+                        How much does VettedMe cost?
+                    </h3>
+                    <p style="color: var(--muted);" class="ml-6">
+                        VettedMe charges $0.10 per verification - 100x cheaper than traditional background checks. 
+                        No monthly fees, no setup costs. Pay only for what you use.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div>
+                    <h3 class="font-semibold mb-2 flex items-center">
+                        <span style="color: var(--accent);" class="mr-2">Q:</span>
+                        Is VettedMe HIPAA compliant?
+                    </h3>
+                    <p style="color: var(--muted);" class="ml-6">
+                        Yes! VettedMe is SOC 2 Type II certified, HIPAA compliant, and ISO 27001 certified. 
+                        View our <a href="/documentation?doc=security" style="color: var(--accent);">Security & Compliance</a> documentation for details.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 5 -->
+                <div>
+                    <h3 class="font-semibold mb-2 flex items-center">
+                        <span style="color: var(--accent);" class="mr-2">Q:</span>
+                        What programming languages do you support?
+                    </h3>
+                    <p style="color: var(--muted);" class="ml-6">
+                        We currently support Python, JavaScript/TypeScript, and have a CLI tool. 
+                        Ruby and Go SDKs are coming soon. Check out our <a href="/sdks" style="color: var(--accent);">SDKs page</a>.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 6 -->
+                <div>
+                    <h3 class="font-semibold mb-2 flex items-center">
+                        <span style="color: var(--accent);" class="mr-2">Q:</span>
+                        How fast are API responses?
+                    </h3>
+                    <p style="color: var(--muted);" class="ml-6">
+                        VettedMe API responses average under 50ms with 99.99% uptime. 
+                        Verifications complete in less than 1 second.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="card-panel p-8" style="background: linear-gradient(135deg, rgba(45, 212, 191, 0.1) 0%, rgba(15, 118, 110, 0.1) 100%);">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold mb-4">Still need help?</h2>
+                <p style="color: var(--muted);" class="mb-6">Our support team is here to help you succeed</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="mailto:support@vettedme.ai" class="px-6 py-3 rounded-lg font-medium" style="background: var(--accent); color: var(--bg);">
+                        📧 Email Support
+                    </a>
+                    <a href="/docs" class="px-6 py-3 rounded-lg font-medium" style="background: rgba(45, 212, 191, 0.1); color: var(--muted); border: 1px solid var(--panel-border);">
+                        📚 View Docs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - VettedMe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #121a2b;
+            --panel-border: #243049;
+            --text: #e8eef8;
+            --muted: #93a4c3;
+            --accent: #2dd4bf;
+            --accent-dim: #0f766e;
+        }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #12203a, var(--bg) 45%);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .gradient-bg { 
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+        }
+        .card-panel {
+            background: rgba(18, 26, 43, 0.92);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s ease;
+        }
+        .card-panel:hover { 
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(45, 212, 191, 0.2); 
+        }
+        nav {
+            background: rgba(18, 26, 43, 0.92);
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .nav-link { color: var(--muted); }
+        .nav-link:hover { color: var(--text); }
+        .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .sidebar { background: rgba(18, 26, 43, 0.92); border-right: 1px solid var(--panel-border); }
+        .sidebar-link { color: var(--muted); transition: all 0.2s; }
+        .sidebar-link:hover { background: rgba(45, 212, 191, 0.1); color: var(--accent); }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">VettedMe</h1>
+                    </a>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">
+                            Home
+                        </a>
+                        <a href="/dashboard" class="nav-link active border-b-2 inline-flex items-center px-1 pt-1 text-sm font-medium">
+                            Dashboard
+                        </a>
+                        <a href="/api-docs" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">
+                            API Docs
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/help" class="nav-link text-sm font-medium">Help</a>
+                    <a href="/account" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); border: 1px solid var(--panel-border);">
+                        Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex h-screen" style="background: radial-gradient(circle at top left, #12203a, var(--bg) 45%);">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 shadow-lg">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold mb-4">Platform</h2>
+                
+                <!-- Passport Section -->
+                <div class="mb-6">
+                    <div class="text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--muted);">Identity</div>
+                    <a href="/passport/dashboard" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">🔐</span>
+                        Passport
+                    </a>
+                    <a href="/widgets/demo" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">🎨</span>
+                        Widgets
+                    </a>
+                    <a href="/docs#biometric" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">👤</span>
+                        Biometrics API
+                    </a>
+                </div>
+
+                <!-- Healthcare Section -->
+                <div class="mb-6">
+                    <div class="text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--muted);">Healthcare</div>
+                    <a href="/portal/" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">🏥</span>
+                        Provider Portal
+                    </a>
+                    <a href="/admin/" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">⚙️</span>
+                        Admin Panel
+                    </a>
+                    <a href="/api/deploy/checklist" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">✅</span>
+                        Deploy Status
+                    </a>
+                </div>
+
+                <!-- Developer Tools -->
+                <div class="mb-6">
+                    <div class="text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--muted);">Developer</div>
+                    <a href="/docs" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">📚</span>
+                        API Docs
+                    </a>
+                    <a href="/redoc" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">📖</span>
+                        ReDoc
+                    </a>
+                    <a href="/sdks" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                        <span class="mr-2">💻</span>
+                        SDKs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Welcome Section -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold">Welcome to VettedMe</h1>
+                    <p style="color: var(--muted);" class="mt-2">Your unified platform for identity verification and healthcare staffing</p>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid md:grid-cols-4 gap-6 mb-8">
+                    <div class="card-panel p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🔐</span>
+                            <span class="text-xs font-semibold px-2 py-1 rounded" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.35);">ACTIVE</span>
+                        </div>
+                        <div class="text-2xl font-bold mb-1">1,247</div>
+                        <div class="text-sm" style="color: var(--muted);">Passports Issued</div>
+                    </div>
+                    <div class="card-panel p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">✅</span>
+                            <span class="text-xs font-semibold px-2 py-1 rounded" style="background: rgba(45, 212, 191, 0.12); color: var(--accent); border: 1px solid rgba(45, 212, 191, 0.35);">LIVE</span>
+                        </div>
+                        <div class="text-2xl font-bold mb-1">12,489</div>
+                        <div class="text-sm" style="color: var(--muted);">Verifications</div>
+                    </div>
+                    <div class="card-panel p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🏥</span>
+                            <span class="text-xs font-semibold px-2 py-1 rounded" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.35);">ACTIVE</span>
+                        </div>
+                        <div class="text-2xl font-bold mb-1">156</div>
+                        <div class="text-sm" style="color: var(--muted);">Healthcare Providers</div>
+                    </div>
+                    <div class="card-panel p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">⚡</span>
+                            <span class="text-xs font-semibold px-2 py-1 rounded" style="background: rgba(45, 212, 191, 0.12); color: var(--accent); border: 1px solid rgba(45, 212, 191, 0.35);">47ms</span>
+                        </div>
+                        <div class="text-2xl font-bold mb-1">99.9%</div>
+                        <div class="text-sm" style="color: var(--muted);">API Uptime</div>
+                    </div>
+                </div>
+
+                <!-- Quick Access Cards -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Quick Access</h2>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <a href="/documentation?doc=architecture" class="card-panel flex items-center p-3">
+                            <span class="text-2xl mr-3">🏗️</span>
+                            <div>
+                                <div class="font-semibold">Architecture Docs</div>
+                                <div class="text-sm" style="color: var(--muted);">Technical design & schemas</div>
+                            </div>
+                        </a>
+                        <a href="/documentation?doc=security" class="card-panel flex items-center p-3">
+                            <span class="text-2xl mr-3">🔒</span>
+                            <div>
+                                <div class="font-semibold">Security & Compliance</div>
+                                <div class="text-sm" style="color: var(--muted);">SOC 2, HIPAA, ISO 27001</div>
+                            </div>
+                        </a>
+                        <a href="/documentation?doc=deployment" class="card-panel flex items-center p-3">
+                            <span class="text-2xl mr-3">🚀</span>
+                            <div>
+                                <div class="font-semibold">Deployment Guide</div>
+                                <div class="text-sm" style="color: var(--muted);">AWS, GCP, Azure infrastructure</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Main Products Grid -->
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Passport Card -->
+                    <div class="card-panel p-8">
+                        <div class="flex items-center mb-4">
+                            <span class="text-4xl mr-3">🔐</span>
+                            <div>
+                                <h3 class="text-xl font-bold">VettedMe Passport</h3>
+                                <p class="text-sm" style="color: var(--muted);">Digital Identity Platform</p>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted);" class="mb-4 text-sm">
+                            Issue and verify tamper-proof digital credentials with Ed25519 cryptographic signatures.
+                        </p>
+                        <a href="/passport/dashboard" class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium" style="background: var(--accent); color: var(--bg);">
+                            Open Dashboard
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    </div>
+
+                    <!-- Staffing Card -->
+                    <div class="card-panel p-8">
+                        <div class="flex items-center mb-4">
+                            <span class="text-4xl mr-3">🏥</span>
+                            <div>
+                                <h3 class="text-xl font-bold">VettedMe Staffing</h3>
+                                <p class="text-sm" style="color: var(--muted);">Healthcare Marketplace</p>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted);" class="mb-4 text-sm">
+                            Connect healthcare providers with facilities. Real-time matching, compliance, and instant pay.
+                        </p>
+                        <a href="/portal/" class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium" style="background: var(--accent); color: var(--bg);">
+                            Provider Portal
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

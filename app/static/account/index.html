@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - VettedMe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #121a2b;
+            --panel-border: #243049;
+            --text: #e8eef8;
+            --muted: #93a4c3;
+            --accent: #2dd4bf;
+            --accent-dim: #0f766e;
+        }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #12203a, var(--bg) 45%);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .gradient-bg { 
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+        }
+        .card-panel {
+            background: rgba(18, 26, 43, 0.92);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+        nav {
+            background: rgba(18, 26, 43, 0.92);
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .nav-link { color: var(--muted); }
+        .nav-link:hover { color: var(--text); }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: #34e4cd;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 10px;
+            border: 1px solid var(--panel-border);
+            background: #0a101c;
+            color: var(--text);
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">VettedMe</h1>
+                    </a>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Home</a>
+                        <a href="/dashboard" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Dashboard</a>
+                        <a href="/api-docs" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">API Docs</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/help" class="nav-link text-sm font-medium">Help</a>
+                    <a href="/account" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); border: 1px solid var(--panel-border); color: var(--accent);">Account</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">⚙️ Account Settings</h1>
+            <p class="text-xl" style="color: var(--muted);">Manage your profile and preferences</p>
+        </div>
+
+        <!-- Account Info Card -->
+        <div class="card-panel p-8 mb-6">
+            <div class="flex items-center mb-6">
+                <div class="w-20 h-20 rounded-full gradient-bg flex items-center justify-center text-white font-bold text-2xl mr-4">
+                    DU
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">Demo User</h2>
+                    <p style="color: var(--muted);">demo@vettedme.ai</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label>Full Name</label>
+                    <input type="text" value="Demo User" />
+                </div>
+                <div>
+                    <label>Email</label>
+                    <input type="email" value="demo@vettedme.ai" />
+                </div>
+                <div>
+                    <label>Company</label>
+                    <input type="text" value="VettedMe Inc." />
+                </div>
+                <div>
+                    <label>Role</label>
+                    <select>
+                        <option>Platform Admin</option>
+                        <option>Developer</option>
+                        <option>Healthcare Provider</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-primary px-6 py-2 rounded-lg">
+                💾 Save Changes
+            </button>
+        </div>
+
+        <!-- API Keys Section -->
+        <div class="card-panel p-8 mb-6">
+            <h2 class="text-xl font-bold mb-4">🔑 API Keys</h2>
+            <p style="color: var(--muted);" class="mb-6">Manage your API keys for authentication</p>
+            
+            <div class="space-y-4 mb-6">
+                <div class="p-4 rounded-lg" style="background: rgba(45, 212, 191, 0.05); border: 1px solid var(--panel-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold">Production Key</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.35);">Active</span>
+                    </div>
+                    <code class="text-sm font-mono" style="color: var(--muted);">vm_live_sk_1a2b3c4d5e6f7g8h9i0j</code>
+                    <div class="text-xs mt-2" style="color: var(--muted);">Last used: 5 minutes ago</div>
+                </div>
+            </div>
+
+            <a href="/passport/dashboard" class="inline-block px-6 py-2 rounded-lg font-medium" style="background: rgba(45, 212, 191, 0.1); color: var(--accent); border: 1px solid var(--panel-border);">
+                ➕ Create New Key
+            </a>
+        </div>
+
+        <!-- Usage Stats -->
+        <div class="card-panel p-8 mb-6">
+            <h2 class="text-xl font-bold mb-4">📊 Usage Statistics</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                    <div class="text-3xl font-bold mb-1" style="color: var(--accent);">12,489</div>
+                    <div class="text-sm" style="color: var(--muted);">API Calls This Month</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold mb-1" style="color: var(--accent);">1,247</div>
+                    <div class="text-sm" style="color: var(--muted);">Active Passports</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold mb-1" style="color: var(--accent);">$12.49</div>
+                    <div class="text-sm" style="color: var(--muted);">Current Bill</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Section -->
+        <div class="card-panel p-8 mb-6">
+            <h2 class="text-xl font-bold mb-4">💳 Billing & Subscription</h2>
+            <div class="flex items-center justify-between p-4 rounded-lg mb-4" style="background: rgba(45, 212, 191, 0.05); border: 1px solid var(--panel-border);">
+                <div>
+                    <div class="font-semibold">Pay-As-You-Go</div>
+                    <div class="text-sm" style="color: var(--muted);">$0.10 per verification</div>
+                </div>
+                <span class="text-xs px-3 py-1 rounded font-medium" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.35);">ACTIVE</span>
+            </div>
+            <p class="text-sm mb-4" style="color: var(--muted);">
+                Next billing date: August 1, 2026 • Payment method: •••• 4242
+            </p>
+            <button class="px-6 py-2 rounded-lg font-medium" style="background: rgba(45, 212, 191, 0.1); color: var(--accent); border: 1px solid var(--panel-border);">
+                💳 Update Payment Method
+            </button>
+        </div>
+
+        <!-- Security -->
+        <div class="card-panel p-8">
+            <h2 class="text-xl font-bold mb-4">🔒 Security</h2>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 rounded-lg" style="border: 1px solid var(--panel-border);">
+                    <div>
+                        <div class="font-semibold">Two-Factor Authentication</div>
+                        <div class="text-sm" style="color: var(--muted);">Add an extra layer of security</div>
+                    </div>
+                    <button class="btn-primary px-4 py-2 rounded-lg text-sm">
+                        Enable
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-lg" style="border: 1px solid var(--panel-border);">
+                    <div>
+                        <div class="font-semibold">Password</div>
+                        <div class="text-sm" style="color: var(--muted);">Last changed 30 days ago</div>
+                    </div>
+                    <button class="px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); color: var(--accent); border: 1px solid var(--panel-border);">
+                        Change
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-lg" style="border: 1px solid var(--panel-border);">
+                    <div>
+                        <div class="font-semibold">Active Sessions</div>
+                        <div class="text-sm" style="color: var(--muted);">View and manage your active sessions</div>
+                    </div>
+                    <button class="px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); color: var(--accent); border: 1px solid var(--panel-border);">
+                        View
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

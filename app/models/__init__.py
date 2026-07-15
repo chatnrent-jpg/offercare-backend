@@ -46,6 +46,12 @@ if AIAuditLog is None:
 # Import healthcare credential (new model from submodule)
 from app.models.healthcare_credential import HealthcareCredential
 
+# Import VettedMe Passport infrastructure models
+from app.models.passport import Passport, CredentialBadge, VerificationLog, APIKey
+
+# Import Webhook system models
+from app.models.webhook import WebhookSubscription, WebhookDelivery, WebhookEvent
+
 # Define employment tier constants here to avoid double-registration
 # (These are also defined in caregiver_accounts.py but importing from there
 # would cause SQLAlchemy table registration conflicts)
@@ -83,4 +89,13 @@ __all__ = [
     "ExclusionScreening",
     "FacilityCrisisSignal",
     "OpsAuditLog",
+    # VettedMe Passport Infrastructure
+    "Passport",
+    "CredentialBadge",
+    "VerificationLog",
+    "APIKey",
+    # Webhook System
+    "WebhookSubscription",
+    "WebhookDelivery",
+    "WebhookEvent",
 ]

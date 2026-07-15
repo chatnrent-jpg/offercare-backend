@@ -2708,3 +2708,114 @@ class AIAuditLogEntry(BaseModel):
     status: str
     error_message: str | None = None
     created_at: datetime
+
+
+# ============================================================================
+# VettedMe Passport API Schemas (Phase 1 - Pure Passport Infrastructure)
+# ============================================================================
+
+class PassportCreate(BaseModel):
+    """Schema for creating a new VettedMe Passport"""
+    full_name: str = Field(min_length=2, max_length=255)
+    email: EmailStr
+    phone: str | None = Field(default=None, min_length=10, max_length=20)
+    date_of_birth: str | None = None
+    biometric_data: dict[str, Any] | None = None
+
+
+class BadgeResponse(BaseModel):
+    """Schema for Badge response"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    passport_id: UUID
+    type: str
+    credential_data: dict[str, Any]
+    status: str
+    issuer_signature: str
+    issued_at: datetime
+    expires_at: datetime | None = None
+    verification_count: int
+
+
+class PassportResponse(BaseModel):
+    """Schema for Passport response"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    user_id: UUID
+    full_name: str
+    email: str
+    phone: str | None = None
+    passport_number: str
+    trust_score: int
+    status: str
+    issuer_signature: str
+    issued_at: datetime
+    expires_at: datetime | None = None
+    badges: list[BadgeResponse] = Field(default_factory=list)
+    verification_count: int
+    last_verified_at: datetime | None = None
+
+
+class BadgeIssueRequest(BaseModel):
+    """Schema for issuing a new credential badge"""
+    type: str = Field(min_length=2, max_length=100)
+    credential_data: dict[str, Any]
+    expires_at: datetime | None = None
+
+
+class BadgeRevocationRequest(BaseModel):
+    """Schema for revoking a badge"""
+    reason: str = Field(min_length=5, max_length=500)
+
+
+class VerificationRequest(BaseModel):
+    """Schema for verifying a passport"""
+    passport_id: str = Field(min_length=5, max_length=100)
+    badge_type: str | None = None
+
+
+class VerificationResponse(BaseModel):
+    """Schema for verification result"""
+    valid: bool
+    passport_id: str
+    full_name: str
+    trust_score: int
+    badges: list[BadgeResponse]
+    verified_at: datetime
+    signature_valid: bool
+    warnings: list[str] = Field(default_factory=list)
+
+
+class APIKeyCreateRequest(BaseModel):
+    """Schema for creating API key"""
+    name: str = Field(min_length=2, max_length=255)
+    permissions: list[str] = Field(default_factory=lambda: ["verify"])
+
+
+class APIKeyResponse(BaseModel):
+    """Schema for API key response"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    name: str
+    key_prefix: str
+    permissions: list[str]
+    active: bool
+    created_at: datetime
+    last_used_at: datetime | None = None
+    # Only returned on creation:
+    api_key: str | None = None
+
+
+class VerificationLogResponse(BaseModel):
+    """Schema for verification log entry"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    passport_id: UUID
+    verifier_api_key_id: UUID
+    verified_at: datetime
+    ip_address: str | None = None
+    user_agent: str | None = None

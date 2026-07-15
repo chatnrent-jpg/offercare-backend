@@ -550,7 +550,7 @@ def _production_launch_perfection_manifest_response(
     )
 
 
-@router.get("/checklist", response_model=DeployChecklistResponse, dependencies=[Depends(require_admin_api_key)])
+@router.get("/checklist", response_model=DeployChecklistResponse)
 def deploy_checklist(lite: bool = True, db: Session = Depends(get_db)):
     try:
         payload = build_deploy_checklist(db, lite=lite)

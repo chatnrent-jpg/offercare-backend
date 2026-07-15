@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDKs - VettedMe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #121a2b;
+            --panel-border: #243049;
+            --text: #e8eef8;
+            --muted: #93a4c3;
+            --accent: #2dd4bf;
+            --accent-dim: #0f766e;
+        }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #12203a, var(--bg) 45%);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .gradient-bg { 
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+        }
+        .card-panel {
+            background: rgba(18, 26, 43, 0.92);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+        nav {
+            background: rgba(18, 26, 43, 0.92);
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .nav-link { color: var(--muted); }
+        .nav-link:hover { color: var(--text); }
+        .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: #34e4cd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">VettedMe</h1>
+                    </a>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Home</a>
+                        <a href="/dashboard" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Dashboard</a>
+                        <a href="/api-docs" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">API Docs</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/help" class="nav-link text-sm font-medium">Help</a>
+                    <a href="/account" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); border: 1px solid var(--panel-border);">
+                        Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 class="text-4xl font-bold mb-4">Official SDKs</h1>
+        <p class="text-xl mb-12" style="color: var(--muted);">Integrate VettedMe in minutes with our official SDKs</p>
+
+        <!-- Python SDK -->
+        <div class="card-panel p-8 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="text-4xl mr-4">🐍</span>
+                <div>
+                    <h2 class="text-2xl font-bold">Python SDK</h2>
+                    <p style="color: var(--muted);">For Python 3.8+</p>
+                </div>
+            </div>
+            
+            <div class="rounded-lg p-4 mb-4" style="background: #0a101c;">
+                <code style="color: #4ade80;">pip install vettedme</code>
+            </div>
+
+            <h3 class="font-semibold mb-2">Quick Start:</h3>
+            <pre class="p-4 rounded-lg overflow-x-auto mb-4" style="background: #0a101c;"><code>import vettedme
+
+client = vettedme.Client(api_key="vm_live_...")
+result = client.verify("PASS-ABC-123")
+
+if result.valid:
+    print(f"✅ {result.full_name} - {result.trust_score}% trust")</code></pre>
+
+            <div class="flex space-x-4">
+                <a href="/docs" class="btn-primary px-4 py-2 rounded-lg">View Docs</a>
+                <a href="https://github.com/vettedme/vettedme-python" class="px-4 py-2 rounded-lg" style="background: rgba(45, 212, 191, 0.1); color: var(--muted); border: 1px solid var(--panel-border);">GitHub</a>
+            </div>
+        </div>
+
+        <!-- JavaScript SDK -->
+        <div class="card-panel p-8 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="text-4xl mr-4">⚡</span>
+                <div>
+                    <h2 class="text-2xl font-bold">JavaScript/TypeScript SDK</h2>
+                    <p style="color: var(--muted);">For Node.js and browsers</p>
+                </div>
+            </div>
+            
+            <div class="rounded-lg p-4 mb-4" style="background: #0a101c;">
+                <code style="color: #4ade80;">npm install @vettedme/sdk</code>
+            </div>
+
+            <h3 class="font-semibold mb-2">Quick Start:</h3>
+            <pre class="p-4 rounded-lg overflow-x-auto mb-4" style="background: #0a101c;"><code>import { VettedMeClient } from '@vettedme/sdk';
+
+const client = new VettedMeClient({ apiKey: 'vm_live_...' });
+const result = await client.verify('PASS-ABC-123');
+
+if (result.valid) {
+    console.log(`✅ ${result.fullName} - ${result.trustScore}% trust`);
+}</code></pre>
+
+            <div class="flex space-x-4">
+                <a href="/docs" class="btn-primary px-4 py-2 rounded-lg">View Docs</a>
+                <a href="https://github.com/vettedme/vettedme-js" class="px-4 py-2 rounded-lg" style="background: rgba(45, 212, 191, 0.1); color: var(--muted); border: 1px solid var(--panel-border);">GitHub</a>
+            </div>
+        </div>
+
+        <!-- CLI Tool -->
+        <div class="card-panel p-8 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="text-4xl mr-4">💻</span>
+                <div>
+                    <h2 class="text-2xl font-bold">CLI Tool</h2>
+                    <p style="color: var(--muted);">Command-line interface for developers</p>
+                </div>
+            </div>
+            
+            <div class="rounded-lg p-4 mb-4" style="background: #0a101c;">
+                <code style="color: #4ade80;">pip install vettedme-cli</code>
+            </div>
+
+            <h3 class="font-semibold mb-2">Quick Start:</h3>
+            <pre class="p-4 rounded-lg overflow-x-auto mb-4" style="background: #0a101c;"><code># Initialize
+vettedme init
+
+# Verify a passport
+vettedme verify PASS-ABC-123
+
+# List passports
+vettedme passports list
+
+# Manage webhooks
+vettedme webhooks create --url https://example.com/webhook</code></pre>
+
+            <div class="flex space-x-4">
+                <a href="/docs" class="btn-primary px-4 py-2 rounded-lg">View Docs</a>
+                <a href="https://github.com/vettedme/vettedme-cli" class="px-4 py-2 rounded-lg" style="background: rgba(45, 212, 191, 0.1); color: var(--muted); border: 1px solid var(--panel-border);">GitHub</a>
+            </div>
+        </div>
+
+        <!-- Coming Soon -->
+        <div class="card-panel p-8" style="background: linear-gradient(135deg, rgba(45, 212, 191, 0.05) 0%, rgba(15, 118, 110, 0.05) 100%);">
+            <h2 class="text-2xl font-bold mb-4">Coming Soon</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="p-4 rounded-lg" style="background: rgba(18, 26, 43, 0.92); border: 1px solid var(--panel-border);">
+                    <span class="text-2xl mr-2">💎</span>
+                    <strong>Ruby SDK</strong>
+                    <p class="text-sm" style="color: var(--muted);">For Rails applications</p>
+                </div>
+                <div class="p-4 rounded-lg" style="background: rgba(18, 26, 43, 0.92); border: 1px solid var(--panel-border);">
+                    <span class="text-2xl mr-2">🚀</span>
+                    <strong>Go SDK</strong>
+                    <p class="text-sm" style="color: var(--muted);">For high-performance services</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

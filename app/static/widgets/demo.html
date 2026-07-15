@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VettedMe Badge Widget - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-section h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: #1F2937;
+        }
+
+        .demo-section p {
+            color: #6B7280;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .badge-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .badge-example {
+            background: #F9FAFB;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .badge-example h3 {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-block {
+            background: #1F2937;
+            color: #F9FAFB;
+            padding: 24px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-block code {
+            color: #10B981;
+        }
+
+        .integration-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #1F2937;
+        }
+
+        .step-content p {
+            color: #6B7280;
+            margin-bottom: 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .feature {
+            background: #F9FAFB;
+            padding: 24px;
+            border-radius: 12px;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .feature h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #1F2937;
+        }
+
+        .feature p {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 0;
+        }
+
+        .cta {
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 VettedMe Badge Widget</h1>
+            <p>Embeddable verification badges for LinkedIn, Upwork, and personal websites</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>Live Examples</h2>
+            <p>Click on any badge to see the verification modal with detailed credential information.</p>
+            
+            <div class="badge-examples">
+                <div class="badge-example">
+                    <h3>Healthcare Professional</h3>
+                    <div id="vettedme-badge-1" data-passport-id="demo-healthcare-123" data-badges="IDENTITY,HEALTHCARE"></div>
+                </div>
+
+                <div class="badge-example">
+                    <h3>Software Developer</h3>
+                    <div id="vettedme-badge-2" data-passport-id="demo-developer-456" data-badges="IDENTITY,DEVELOPER,EDUCATION"></div>
+                </div>
+
+                <div class="badge-example">
+                    <h3>Tax Professional</h3>
+                    <div id="vettedme-badge-3" data-passport-id="demo-cpa-789" data-badges="IDENTITY,PROFESSIONAL,COMPLIANCE"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>How to Integrate</h2>
+            <p>Add verified credentials to your profile in 2 simple steps:</p>
+
+            <div class="integration-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Add the HTML snippet</h3>
+                        <p>Place this wherever you want the badge to appear (LinkedIn About section, Upwork bio, website footer, etc.)</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Include the script</h3>
+                        <p>Add the VettedMe widget script once per page (at the bottom of your HTML)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Code Example</h2>
+            <div class="code-block">
+<pre>&lt;!-- Step 1: Add badge container --&gt;
+&lt;div id="vettedme-badge" 
+     data-passport-id="<code>YOUR_PASSPORT_ID</code>" 
+     data-badges="<code>IDENTITY,HEALTHCARE</code>"&gt;
+&lt;/div&gt;
+
+&lt;!-- Step 2: Include widget script --&gt;
+&lt;script src="<code>https://cdn.vettedme.ai/badge.js</code>"&gt;&lt;/script&gt;</pre>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Customization Options</h2>
+            <p>Control which credentials to display using the <code>data-badges</code> attribute:</p>
+
+            <div class="code-block">
+<pre>&lt;!-- Show single credential --&gt;
+data-badges="<code>IDENTITY</code>"
+
+&lt;!-- Show multiple credentials --&gt;
+data-badges="<code>IDENTITY,HEALTHCARE,COMPLIANCE</code>"
+
+&lt;!-- Available badge types: --&gt;
+<code>IDENTITY</code>      - Government ID verification
+<code>HEALTHCARE</code>    - State nursing licenses (RN/LPN/CNA)
+<code>EMPLOYMENT</code>    - Verified work history
+<code>EDUCATION</code>     - Verified degrees/certifications
+<code>COMPLIANCE</code>    - Background check + criminal record
+<code>DEVELOPER</code>     - GitHub + technical assessments
+<code>PROFESSIONAL</code>  - CPA, EA, Bar admission, etc.</pre>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Why Use VettedMe Badges?</h2>
+            
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Instant Credibility</h3>
+                    <p>Stand out with cryptographically verified credentials that clients can trust</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Privacy First</h3>
+                    <p>You control what credentials to share. No raw PII is ever exposed.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>One-Click Verification</h3>
+                    <p>Clients verify your credentials instantly without waiting days</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Universal Standard</h3>
+                    <p>Works everywhere: LinkedIn, Upwork, personal websites, email signatures</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">💼</div>
+                    <h3>Career Boost</h3>
+                    <p>Get hired faster with verified credentials that eliminate friction</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Always Current</h3>
+                    <p>Badge automatically updates when credentials are renewed or verified</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta">
+            <a href="https://vettedme.ai/create-passport" class="cta-button">
+                Create Your Passport →
+            </a>
+        </div>
+    </div>
+
+    <!-- VettedMe Widget Script -->
+    <script src="vettedme-badge.js"></script>
+</body>
+</html>

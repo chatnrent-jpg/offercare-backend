@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - VettedMe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #121a2b;
+            --panel-border: #243049;
+            --text: #e8eef8;
+            --muted: #93a4c3;
+            --accent: #2dd4bf;
+            --accent-dim: #0f766e;
+        }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #12203a, var(--bg) 45%);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .gradient-bg { 
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+        }
+        .card-panel {
+            background: rgba(18, 26, 43, 0.92);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+        nav {
+            background: rgba(18, 26, 43, 0.92);
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .nav-link { color: var(--muted); }
+        .nav-link:hover { color: var(--text); }
+        .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .method-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .method-get { background: rgba(45, 212, 191, 0.2); color: var(--accent); }
+        .method-post { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+        .method-put { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .method-delete { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">VettedMe</h1>
+                    </a>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Home</a>
+                        <a href="/dashboard" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Dashboard</a>
+                        <a href="/api-docs" class="nav-link active border-b-2 inline-flex items-center px-1 pt-1 text-sm font-medium">API Docs</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/help" class="nav-link text-sm font-medium">Help</a>
+                    <a href="/account" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); border: 1px solid var(--panel-border);">Account</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">📚 API Documentation</h1>
+            <p class="text-xl mb-4" style="color: var(--muted);">Complete reference for the VettedMe API</p>
+            <div class="flex space-x-4">
+                <a href="/docs" class="px-4 py-2 rounded-lg font-medium" style="background: var(--accent); color: var(--bg);">
+                    Swagger UI
+                </a>
+                <a href="/redoc" class="px-4 py-2 rounded-lg font-medium" style="background: rgba(45, 212, 191, 0.1); color: var(--accent); border: 1px solid var(--panel-border);">
+                    ReDoc
+                </a>
+            </div>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="card-panel p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-4">Getting Started</h2>
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="font-semibold mb-2">1. Get an API Key</h3>
+                    <p style="color: var(--muted);" class="text-sm mb-3">Create an API key from your <a href="/dashboard" style="color: var(--accent);">Dashboard</a></p>
+                    <div class="rounded p-3" style="background: #0a101c;">
+                        <code class="text-sm" style="color: var(--accent);">Authorization: Bearer vm_live_sk_...</code>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">2. Make Your First Request</h3>
+                    <p style="color: var(--muted);" class="text-sm mb-3">Base URL: <code style="background: #0a101c; padding: 0.25rem 0.5rem; border-radius: 0.25rem; color: var(--accent);">https://api.vettedme.ai</code></p>
+                    <pre class="rounded p-3 text-sm" style="background: #0a101c;"><code>curl https://api.vettedme.ai/v1/verify \
+  -H "Authorization: Bearer vm_live_sk_..." \
+  -d "passport_id=PASS-ABC-123"</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passport Endpoints -->
+        <div class="card-panel p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6">🔐 Passport Endpoints</h2>
+            
+            <!-- Issue Passport -->
+            <div class="mb-6 p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-post mr-3">POST</span>
+                    <code style="color: var(--accent);">/v1/passports</code>
+                </div>
+                <p style="color: var(--muted);" class="mb-3">Issue a new digital passport with verified credentials</p>
+                <details>
+                    <summary class="cursor-pointer font-semibold mb-2" style="color: var(--accent);">Request Body</summary>
+                    <pre class="rounded p-3 mt-2 text-sm" style="background: #0a101c;"><code>{
+  "user_id": "user_123",
+  "full_name": "Jane Doe",
+  "email": "jane@example.com",
+  "phone": "+1234567890",
+  "date_of_birth": "1990-01-01",
+  "license_number": "MD12345"
+}</code></pre>
+                </details>
+            </div>
+
+            <!-- Verify Passport -->
+            <div class="mb-6 p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-get mr-3">GET</span>
+                    <code style="color: var(--accent);">/v1/passports/{passport_id}/verify</code>
+                </div>
+                <p style="color: var(--muted);" class="mb-3">Verify the authenticity of a passport</p>
+                <details>
+                    <summary class="cursor-pointer font-semibold mb-2" style="color: var(--accent);">Response</summary>
+                    <pre class="rounded p-3 mt-2 text-sm" style="background: #0a101c;"><code>{
+  "valid": true,
+  "passport_id": "PASS-2026-JD-8B4C",
+  "full_name": "Jane Doe",
+  "trust_score": 99,
+  "verified_at": "2026-07-14T18:00:00Z",
+  "badges": ["medical_license", "education"]
+}</code></pre>
+                </details>
+            </div>
+
+            <!-- Get Passport -->
+            <div class="mb-6 p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-get mr-3">GET</span>
+                    <code style="color: var(--accent);">/v1/passports/{passport_id}</code>
+                </div>
+                <p style="color: var(--muted);">Retrieve full passport details</p>
+            </div>
+
+            <!-- List Passports -->
+            <div class="p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-get mr-3">GET</span>
+                    <code style="color: var(--accent);">/v1/passports</code>
+                </div>
+                <p style="color: var(--muted);">List all passports with pagination</p>
+            </div>
+        </div>
+
+        <!-- Badge Endpoints -->
+        <div class="card-panel p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6">🏅 Badge Endpoints</h2>
+            
+            <div class="mb-6 p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-post mr-3">POST</span>
+                    <code style="color: var(--accent);">/v1/passports/{passport_id}/badges</code>
+                </div>
+                <p style="color: var(--muted);">Issue a new credential badge to a passport</p>
+            </div>
+
+            <div class="p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-delete mr-3">DELETE</span>
+                    <code style="color: var(--accent);">/v1/badges/{badge_id}</code>
+                </div>
+                <p style="color: var(--muted);">Revoke a credential badge</p>
+            </div>
+        </div>
+
+        <!-- Webhook Endpoints -->
+        <div class="card-panel p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6">🔔 Webhook Endpoints</h2>
+            
+            <div class="mb-6 p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-post mr-3">POST</span>
+                    <code style="color: var(--accent);">/v1/webhooks</code>
+                </div>
+                <p style="color: var(--muted);">Create a new webhook endpoint</p>
+            </div>
+
+            <div class="p-4 rounded-lg" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                <div class="flex items-center mb-3">
+                    <span class="method-badge method-get mr-3">GET</span>
+                    <code style="color: var(--accent);">/v1/webhooks</code>
+                </div>
+                <p style="color: var(--muted);">List all webhook endpoints</p>
+            </div>
+        </div>
+
+        <!-- SDKs -->
+        <div class="card-panel p-8">
+            <h2 class="text-2xl font-bold mb-4">💻 Official SDKs</h2>
+            <p style="color: var(--muted);" class="mb-6">Skip the HTTP and use our official SDKs</p>
+            <div class="grid md:grid-cols-3 gap-4">
+                <a href="/sdks" class="p-4 rounded-lg" style="border: 1px solid var(--panel-border);">
+                    <div class="text-2xl mb-2">🐍</div>
+                    <div class="font-semibold">Python</div>
+                    <code class="text-xs" style="color: var(--muted);">pip install vettedme</code>
+                </a>
+                <a href="/sdks" class="p-4 rounded-lg" style="border: 1px solid var(--panel-border);">
+                    <div class="text-2xl mb-2">⚡</div>
+                    <div class="font-semibold">JavaScript</div>
+                    <code class="text-xs" style="color: var(--muted);">npm install @vettedme/sdk</code>
+                </a>
+                <a href="/sdks" class="p-4 rounded-lg" style="border: 1px solid var(--panel-border);">
+                    <div class="text-2xl mb-2">💻</div>
+                    <div class="font-semibold">CLI</div>
+                    <code class="text-xs" style="color: var(--muted);">pip install vettedme-cli</code>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

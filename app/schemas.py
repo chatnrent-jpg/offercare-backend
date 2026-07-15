@@ -2700,3 +2700,128 @@ class AIAuditLogEntry(BaseModel):
     status: str
     error_message: str | None = None
     created_at: datetime
+
+
+# ============================================================================
+# VettedMe Passport - W3C Verifiable Credentials API Schemas
+# ============================================================================
+
+class PassportCreate(BaseModel):
+    """Request schema for creating a new passport."""
+    user_id: UUID
+    biometric_data: str | None = Field(default=None, description="Base64-encoded facial biometric data")
+
+
+class PassportResponse(BaseModel):
+    """Response schema for passport details."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    user_id: UUID
+    status: str
+    issued_at: datetime
+    expires_at: datetime
+    trust_score: int
+    badge_count: int = Field(default=0, description="Number of active badges")
+
+
+class BadgeIssueRequest(BaseModel):
+    """Request schema for issuing a new credential badge."""
+    passport_id: UUID
+    badge_type: str = Field(description="Badge type: IDENTITY, HEALTHCARE, EMPLOYMENT, EDUCATION, COMPLIANCE, DEVELOPER, PROFESSIONAL, INSURANCE, SECURITY_CLEARANCE, FINANCIAL_ADVISOR, REAL_ESTATE, LAWYER")
+    credential_data: dict[str, Any] = Field(description="Credential-specific data payload")
+    verification_method: str = Field(description="Verification method: MBON_SCRAPER, MANUAL_REVIEW, OCR_AI, etc.")
+    expires_at: datetime | None = Field(default=None, description="Optional expiration date for the credential")
+
+
+class BadgeResponse(BaseModel):
+    """Response schema for credential badge details."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    passport_id: UUID
+    badge_type: str
+    credential_data: dict[str, Any]
+    verification_method: str
+    verified_at: datetime
+    expires_at: datetime | None
+    revoked: bool
+    issuer_signature: str = Field(description="Ed25519 cryptographic signature")
+
+
+class BadgeRevocationRequest(BaseModel):
+    """Request schema for revoking a credential badge."""
+    badge_id: UUID
+    reason: str = Field(min_length=10, max_length=500, description="Reason for revocation")
+
+
+class VerificationRequest(BaseModel):
+    """
+    API request schema for verifying a passport.
+    
+    External platforms use this endpoint to instantly verify credentials.
+    """
+    passport_id: UUID
+    required_badges: list[str] = Field(description="List of badge types to verify (e.g., ['IDENTITY', 'HEALTHCARE'])")
+    requesting_platform: str = Field(max_length=255, description="Domain or name of the requesting platform")
+
+
+class BadgeVerificationResult(BaseModel):
+    """Individual badge verification result."""
+    type: str
+    verified: bool
+    credential: dict[str, Any] | None = None
+    verified_at: str | None = None
+    expires_at: str | None = None
+    error: str | None = None
+
+
+class VerificationResponse(BaseModel):
+    """
+    API response schema for passport verification.
+    
+    This is returned to external platforms making verification requests.
+    """
+    verified: bool
+    passport_id: str
+    trust_score: int | None = None
+    badges: list[BadgeVerificationResult]
+    verification_token: str = Field(description="One-time verification token for audit trails")
+    error: str | None = None
+    status: str | None = None
+
+
+class APIKeyCreateRequest(BaseModel):
+    """Request schema for creating a new API key."""
+    organization_name: str = Field(min_length=2, max_length=255)
+    tier: str = Field(default="FREE", description="FREE, GROWTH, or ENTERPRISE")
+    rate_limit_per_hour: int = Field(default=100, ge=1, le=1000000)
+
+
+class APIKeyResponse(BaseModel):
+    """Response schema for API key details."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    organization_name: str
+    key_prefix: str = Field(description="First 8 characters of the API key (e.g., 'vettedme_')")
+    api_key: str | None = Field(default=None, description="Full API key (only returned on creation)")
+    tier: str
+    rate_limit_per_hour: int
+    status: str
+    created_at: datetime
+    expires_at: datetime | None
+    last_used_at: datetime | None
+
+
+class VerificationLogResponse(BaseModel):
+    """Response schema for verification audit log entries."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    passport_id: UUID
+    requesting_platform: str
+    requested_badges: list[str]
+    verification_result: dict[str, Any]
+    timestamp: datetime
+    ip_address: str | None = None

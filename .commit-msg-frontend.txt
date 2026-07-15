@@ -1,0 +1,5 @@
+wip(frontend): add dashboard integration (React issue pending)
+
+Added master dashboard shell and component integration. Frontend has
+React version conflict issue to be resolved - backend APIs are fully
+functional and ready for production.

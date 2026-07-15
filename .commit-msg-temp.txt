@@ -1,0 +1,11 @@
+feat(frontend): integrate all dashboard components into unified master shell
+
+Creates MasterDashboardShell with complete component orchestration:
+- ScraperControlHeader with manual sync trigger
+- ComplianceDashboard with real-time telemetry
+- DocUploadForm for PDF certification uploads
+- ShiftMatchPanel for candidate matching visualization
+
+Implements global refresh mechanism where manual scraper trigger and
+document uploads automatically refresh all dashboard data via key-based
+React re-rendering strategy.

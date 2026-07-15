@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passport Dashboard - VettedMe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #121a2b;
+            --panel-border: #243049;
+            --text: #e8eef8;
+            --muted: #93a4c3;
+            --accent: #2dd4bf;
+            --accent-dim: #0f766e;
+        }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #12203a, var(--bg) 45%);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .gradient-bg { 
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+        }
+        .card-panel {
+            background: rgba(18, 26, 43, 0.92);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s ease;
+        }
+        .card-panel:hover { 
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(45, 212, 191, 0.2); 
+        }
+        nav {
+            background: rgba(18, 26, 43, 0.92);
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .nav-link { color: var(--muted); }
+        .nav-link:hover { color: var(--text); }
+        .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-button { transition: all 0.2s; }
+        .tab-button:hover { color: var(--accent); border-bottom-color: var(--accent); }
+        .badge-verified { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.35); }
+        .badge-pending { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35); }
+        .badge-info { background: rgba(45, 212, 191, 0.12); color: var(--accent); border: 1px solid rgba(45, 212, 191, 0.35); }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">VettedMe</h1>
+                    </a>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Home</a>
+                        <a href="/dashboard" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">Dashboard</a>
+                        <a href="/passport/dashboard" class="nav-link active border-b-2 inline-flex items-center px-1 pt-1 text-sm font-medium">Passport</a>
+                        <a href="/api-docs" class="nav-link border-b-2 border-transparent inline-flex items-center px-1 pt-1 text-sm font-medium">API Docs</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/help" class="nav-link text-sm font-medium">Help</a>
+                    <a href="/account" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" style="background: rgba(45, 212, 191, 0.1); border: 1px solid var(--panel-border);">
+                        Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">🔐 Passport Dashboard</h1>
+            <p class="text-xl" style="color: var(--muted);">Manage digital identity credentials and verifications</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="card-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-3xl">👥</span>
+                    <span class="text-2xl font-bold">1,247</span>
+                </div>
+                <div class="text-sm font-medium" style="color: var(--muted);">Total Passports</div>
+            </div>
+            <div class="card-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-3xl">✅</span>
+                    <span class="text-2xl font-bold" style="color: #4ade80;">1,189</span>
+                </div>
+                <div class="text-sm font-medium" style="color: var(--muted);">Verified</div>
+            </div>
+            <div class="card-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-3xl">🔄</span>
+                    <span class="text-2xl font-bold" style="color: var(--accent);">34</span>
+                </div>
+                <div class="text-sm font-medium" style="color: var(--muted);">Pending</div>
+            </div>
+            <div class="card-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-3xl">🏆</span>
+                    <span class="text-2xl font-bold" style="color: var(--accent);">98.5%</span>
+                </div>
+                <div class="text-sm font-medium" style="color: var(--muted);">Trust Score</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="card-panel mb-8">
+            <div style="border-bottom: 1px solid var(--panel-border);">
+                <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                    <button onclick="switchTab('passports')" id="tab-passports" class="tab-button py-4 px-1 text-sm font-medium" style="border-bottom: 2px solid var(--accent); color: var(--accent);">
+                        Passports
+                    </button>
+                    <button onclick="switchTab('badges')" id="tab-badges" class="tab-button py-4 px-1 text-sm font-medium" style="border-bottom: 2px solid transparent; color: var(--muted);">
+                        Badges
+                    </button>
+                    <button onclick="switchTab('verifications')" id="tab-verifications" class="tab-button py-4 px-1 text-sm font-medium" style="border-bottom: 2px solid transparent; color: var(--muted);">
+                        Verifications
+                    </button>
+                    <button onclick="switchTab('api-keys')" id="tab-api-keys" class="tab-button py-4 px-1 text-sm font-medium" style="border-bottom: 2px solid transparent; color: var(--muted);">
+                        API Keys
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Passports Tab -->
+            <div id="content-passports" class="tab-content p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Recent Passports</h2>
+                    <button class="px-4 py-2 rounded-lg font-medium" style="background: var(--accent); color: var(--bg);">
+                        + Issue New Passport
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Sample Passport 1 -->
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg gradient-bg">
+                                    JD
+                                </div>
+                                <div>
+                                    <div class="font-semibold">Dr. Jane Doe</div>
+                                    <div class="text-sm" style="color: var(--muted);">PASS-2026-JD-8B4C</div>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="badge-verified text-xs px-2 py-1 rounded font-medium">✓ Verified</span>
+                                        <span class="badge-info text-xs px-2 py-1 rounded font-medium">4 Badges</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold">99%</div>
+                                <div class="text-xs" style="color: var(--muted);">Trust Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Passport 2 -->
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg" style="background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);">
+                                    MS
+                                </div>
+                                <div>
+                                    <div class="font-semibold">Michael Smith, RN</div>
+                                    <div class="text-sm" style="color: var(--muted);">PASS-2026-MS-7A2F</div>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="badge-verified text-xs px-2 py-1 rounded font-medium">✓ Verified</span>
+                                        <span class="badge-info text-xs px-2 py-1 rounded font-medium">3 Badges</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold">97%</div>
+                                <div class="text-xs" style="color: var(--muted);">Trust Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Passport 3 -->
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border); background: rgba(18, 26, 43, 0.5);">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
+                                    SK
+                                </div>
+                                <div>
+                                    <div class="font-semibold">Sarah Kim, PA-C</div>
+                                    <div class="text-sm" style="color: var(--muted);">PASS-2026-SK-3F9E</div>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="badge-pending text-xs px-2 py-1 rounded font-medium">⏳ Pending</span>
+                                        <span class="badge-info text-xs px-2 py-1 rounded font-medium">2 Badges</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold">95%</div>
+                                <div class="text-xs" style="color: var(--muted);">Trust Score</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other tabs (hidden by default) -->
+            <div id="content-badges" class="tab-content p-6 hidden">
+                <h2 class="text-xl font-semibold mb-4">Badge Types</h2>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border);">
+                        <div class="text-2xl mb-2">🏥</div>
+                        <div class="font-semibold">Medical License</div>
+                        <div class="text-sm" style="color: var(--muted);">423 issued</div>
+                    </div>
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border);">
+                        <div class="text-2xl mb-2">🎓</div>
+                        <div class="font-semibold">Education</div>
+                        <div class="text-sm" style="color: var(--muted);">381 issued</div>
+                    </div>
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border);">
+                        <div class="text-2xl mb-2">💼</div>
+                        <div class="font-semibold">Work Experience</div>
+                        <div class="text-sm" style="color: var(--muted);">542 issued</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-verifications" class="tab-content p-6 hidden">
+                <h2 class="text-xl font-semibold mb-4">Recent Verifications</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between p-3 rounded" style="border: 1px solid var(--panel-border);">
+                        <span class="text-sm">PASS-2026-JD-8B4C verified by Hospital XYZ</span>
+                        <span class="text-xs" style="color: var(--muted);">2 mins ago</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded" style="border: 1px solid var(--panel-border);">
+                        <span class="text-sm">PASS-2026-MS-7A2F verified by Clinic ABC</span>
+                        <span class="text-xs" style="color: var(--muted);">15 mins ago</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded" style="border: 1px solid var(--panel-border);">
+                        <span class="text-sm">PASS-2026-SK-3F9E verified by Pharmacy 123</span>
+                        <span class="text-xs" style="color: var(--muted);">1 hour ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-api-keys" class="tab-content p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">API Keys</h2>
+                    <button class="px-4 py-2 rounded-lg font-medium" style="background: var(--accent); color: var(--bg);">
+                        + Create API Key
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border);">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-semibold">Production Key</span>
+                            <span class="badge-verified text-xs px-2 py-1 rounded font-medium">Active</span>
+                        </div>
+                        <code class="text-sm px-2 py-1 rounded font-mono" style="background: #0a101c; color: var(--muted);">vm_live_sk_************************</code>
+                        <div class="text-xs mt-2" style="color: var(--muted);">Created: Jan 15, 2026 | Last used: 5 mins ago</div>
+                    </div>
+                    <div class="rounded-lg p-4" style="border: 1px solid var(--panel-border);">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-semibold">Development Key</span>
+                            <span class="badge-info text-xs px-2 py-1 rounded font-medium">Active</span>
+                        </div>
+                        <code class="text-sm px-2 py-1 rounded font-mono" style="background: #0a101c; color: var(--muted);">vm_test_sk_************************</code>
+                        <div class="text-xs mt-2" style="color: var(--muted);">Created: Jan 10, 2026 | Last used: 2 hours ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Guide -->
+        <div class="card-panel p-8" style="background: linear-gradient(135deg, rgba(45, 212, 191, 0.1) 0%, rgba(15, 118, 110, 0.1) 100%);">
+            <h2 class="text-2xl font-bold mb-4">Quick Start Integration</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold mb-2">1. Get your API Key</h3>
+                    <p class="text-sm mb-4" style="color: var(--muted);">Create an API key in the "API Keys" tab above</p>
+                    
+                    <h3 class="font-semibold mb-2">2. Install SDK</h3>
+                    <div class="rounded p-3 mb-4" style="background: #0a101c;">
+                        <code class="text-sm" style="color: #4ade80;">pip install vettedme</code>
+                    </div>
+
+                    <h3 class="font-semibold mb-2">3. Verify a Passport</h3>
+                    <pre class="p-3 rounded text-sm overflow-x-auto" style="background: #0a101c;"><code>import vettedme
+client = vettedme.Client(api_key="...")
+result = client.verify("PASS-ABC-123")</code></pre>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Resources</h3>
+                    <div class="space-y-2">
+                        <a href="/docs" class="card-panel block p-3">
+                            <div class="font-medium" style="color: var(--accent);">📚 API Documentation</div>
+                            <div class="text-sm" style="color: var(--muted);">Complete API reference</div>
+                        </a>
+                        <a href="/sdks" class="card-panel block p-3">
+                            <div class="font-medium" style="color: var(--accent);">💻 SDKs</div>
+                            <div class="text-sm" style="color: var(--muted);">Python, JavaScript, CLI tools</div>
+                        </a>
+                        <a href="/widgets/demo" class="card-panel block p-3">
+                            <div class="font-medium" style="color: var(--accent);">🎨 Embeddable Widgets</div>
+                            <div class="text-sm" style="color: var(--muted);">Add verification to your site</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Reset all tab buttons
+            document.querySelectorAll('.tab-button').forEach(el => {
+                el.style.borderBottomColor = 'transparent';
+                el.style.color = 'var(--muted)';
+            });
+            
+            // Show selected content
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            
+            // Highlight selected tab
+            const selectedTab = document.getElementById('tab-' + tabName);
+            selectedTab.style.borderBottomColor = 'var(--accent)';
+            selectedTab.style.color = 'var(--accent)';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My VettedMe Passport</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        #root {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .passport-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .passport-card::before {
+            content: '🔐';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 80px;
+            opacity: 0.2;
+        }
+
+        .passport-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .passport-id {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .passport-status {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .passport-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .section-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .section-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .badge-card {
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .badge-card.verified {
+            border-color: #10B981;
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+        }
+
+        .badge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .badge-icon {
+            font-size: 32px;
+        }
+
+        .badge-status {
+            font-size: 24px;
+        }
+
+        .badge-type {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .badge-verified-date {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+
+        .badge-expires-date {
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+
+        .share-section {
+            background: #F9FAFB;
+            padding: 24px;
+            border-radius: 12px;
+        }
+
+        .share-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 16px;
+        }
+
+        .share-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .share-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: white;
+        }
+
+        .share-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .share-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .share-platforms {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .platform-button {
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .platform-button:hover {
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+
+        .spinner {
+            border: 4px solid #F3F4F6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1F2937;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-size: 12px;
+            margin-bottom: 8px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Badge type configurations
+        const BADGE_CONFIG = {
+            IDENTITY: { icon: '🆔', label: 'Identity Verified', color: '#3B82F6' },
+            HEALTHCARE: { icon: '🏥', label: 'Healthcare Licensed', color: '#10B981' },
+            EMPLOYMENT: { icon: '💼', label: 'Employment Verified', color: '#8B5CF6' },
+            EDUCATION: { icon: '🎓', label: 'Education Verified', color: '#F59E0B' },
+            COMPLIANCE: { icon: '⚖️', label: 'Background Cleared', color: '#EF4444' },
+            DEVELOPER: { icon: '💻', label: 'Developer Verified', color: '#06B6D4' },
+            PROFESSIONAL: { icon: '🏢', label: 'Professional Certified', color: '#EC4899' }
+        };
+
+        function PassportDashboard() {
+            const [loading, setLoading] = useState(true);
+            const [passport, setPassport] = useState(null);
+            const [badges, setBadges] = useState([]);
+            const [shareCode, setShareCode] = useState('');
+
+            // Simulated data loading
+            useEffect(() => {
+                setTimeout(() => {
+                    const mockPassport = {
+                        id: 'demo-passport-123',
+                        user_id: 'user-456',
+                        status: 'ACTIVE',
+                        trust_score: 98,
+                        issued_at: '2026-01-15T10:30:00Z',
+                        expires_at: '2028-07-14T00:00:00Z'
+                    };
+
+                    const mockBadges = [
+                        {
+                            id: 'badge-1',
+                            badge_type: 'IDENTITY',
+                            verified_at: '2026-01-15T10:30:00Z',
+                            expires_at: '2028-07-14T00:00:00Z',
+                            revoked: false
+                        },
+                        {
+                            id: 'badge-2',
+                            badge_type: 'HEALTHCARE',
+                            verified_at: '2026-07-01T14:22:00Z',
+                            expires_at: '2027-10-31T00:00:00Z',
+                            revoked: false
+                        }
+                    ];
+
+                    setPassport(mockPassport);
+                    setBadges(mockBadges);
+                    setLoading(false);
+
+                    // Generate share code
+                    const badgeTypes = mockBadges.map(b => b.badge_type).join(',');
+                    setShareCode(`<div id="vettedme-badge" data-passport-id="${mockPassport.id}" data-badges="${badgeTypes}"></div>
+<script src="https://api.vettedme.ai/widgets/badge.js"></script>`);
+                }, 1000);
+            }, []);
+
+            const copyToClipboard = () => {
+                navigator.clipboard.writeText(shareCode);
+                alert('✅ Code copied to clipboard!');
+            };
+
+            const shareToLinkedIn = () => {
+                alert('🔗 Opening LinkedIn... Paste the code in your About section.');
+                window.open('https://www.linkedin.com/in/me/edit/forms/intro/new/', '_blank');
+            };
+
+            const shareToUpwork = () => {
+                alert('🔗 Opening Upwork... Paste the code in your profile bio.');
+                window.open('https://www.upwork.com/freelancers/settings/contactInfo', '_blank');
+            };
+
+            if (loading) {
+                return (
+                    <div>
+                        <div className="header">
+                            <h1>🔐 My VettedMe Passport</h1>
+                            <p>Your verified digital identity</p>
+                        </div>
+                        <div className="dashboard">
+                            <div className="loading">
+                                <div className="spinner"></div>
+                                <div>Loading your passport...</div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1>🔐 My VettedMe Passport</h1>
+                        <p>Your verified digital identity</p>
+                    </div>
+
+                    <div className="dashboard">
+                        {/* Passport Card */}
+                        <div className="passport-card">
+                            <div className="passport-header">
+                                <div>
+                                    <div className="passport-id">Passport ID: {passport.id}</div>
+                                </div>
+                                <div className="passport-status">{passport.status}</div>
+                            </div>
+                            <div className="passport-stats">
+                                <div className="stat">
+                                    <div className="stat-value">{passport.trust_score}</div>
+                                    <div className="stat-label">Trust Score</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-value">{badges.filter(b => !b.revoked).length}</div>
+                                    <div className="stat-label">Active Badges</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-value">{new Date(passport.expires_at).getFullYear()}</div>
+                                    <div className="stat-label">Valid Until</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Badges Section */}
+                        <div className="section">
+                            <div className="section-header">
+                                <div className="section-title">My Credentials</div>
+                                <button className="section-action">+ Add New Badge</button>
+                            </div>
+                            
+                            {badges.length > 0 ? (
+                                <div className="badges-grid">
+                                    {badges.map(badge => {
+                                        const config = BADGE_CONFIG[badge.badge_type];
+                                        return (
+                                            <div key={badge.id} className={`badge-card ${!badge.revoked ? 'verified' : ''}`}>
+                                                <div className="badge-header">
+                                                    <div className="badge-icon">{config.icon}</div>
+                                                    <div className="badge-status">{!badge.revoked ? '✅' : '❌'}</div>
+                                                </div>
+                                                <div className="badge-type">{config.label}</div>
+                                                <div className="badge-verified-date">
+                                                    Verified {new Date(badge.verified_at).toLocaleDateString()}
+                                                </div>
+                                                {badge.expires_at && (
+                                                    <div className="badge-expires-date">
+                                                        Expires {new Date(badge.expires_at).toLocaleDateString()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon">📋</div>
+                                    <div className="empty-state-title">No credentials yet</div>
+                                    <div className="empty-state-text">Add your first verified credential to get started</div>
+                                    <button className="section-action">Add First Badge</button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Share Section */}
+                        <div className="section">
+                            <div className="section-title" style={{marginBottom: '16px'}}>Share Your Credentials</div>
+                            <div className="share-section">
+                                <div className="share-title">Embed Code</div>
+                                <div className="share-input-group">
+                                    <input 
+                                        type="text" 
+                                        className="share-input" 
+                                        value={shareCode}
+                                        readOnly
+                                    />
+                                    <button className="share-button" onClick={copyToClipboard}>
+                                        📋 Copy
+                                    </button>
+                                </div>
+                                
+                                <div className="share-title">Quick Share</div>
+                                <div className="share-platforms">
+                                    <button className="platform-button" onClick={shareToLinkedIn}>
+                                        <span>💼</span> LinkedIn
+                                    </button>
+                                    <button className="platform-button" onClick={shareToUpwork}>
+                                        <span>🌐</span> Upwork
+                                    </button>
+                                    <button className="platform-button">
+                                        <span>📧</span> Email Signature
+                                    </button>
+                                    <button className="platform-button">
+                                        <span>🌍</span> Personal Website
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PassportDashboard />);
+    </script>
+</body>
+</html>
