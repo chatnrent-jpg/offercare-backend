@@ -66,6 +66,9 @@ from app.routers.webhooks import router as webhooks_router
 from app.routers.analytics import router as analytics_router_v2
 from app.api.v1.ai_resume import router as ai_resume_router
 from app.routers.marketing import router as marketing_router
+from app.routers.industries import router as industries_router
+from app.routers.logistics import router as logistics_router
+from app.routers.government import router as government_router
 from api.intake_webhooks import register_intake_webhooks
 from api.vector_match_engine import register_vector_match_engine
 from api.instant_pay_retention import (
@@ -183,6 +186,9 @@ app.include_router(webhooks_router)
 app.include_router(analytics_router_v2)
 app.include_router(ai_resume_router)
 app.include_router(marketing_router)
+app.include_router(industries_router)
+app.include_router(logistics_router)
+app.include_router(government_router)
 register_intake_webhooks(app)
 register_vector_match_engine(app)
 register_instant_pay_retention(app)
@@ -328,6 +334,23 @@ register_asgi_app(app)
 def read_root():
     """Unified VettedMe homepage"""
     return Path("app/static/index.html")
+
+
+@app.get("/demo/healthcare", response_class=FileResponse)
+def healthcare_demo():
+    """
+    Healthcare verification demo page.
+    
+    Interactive demo showing:
+    - Traditional process (7-15 days) vs VettedMe (< 1 second)
+    - Live verification simulation
+    - Real cost comparison ($50-$150 vs $0.07)
+    - Call-to-action for pilot signup
+    
+    Perfect for email campaigns to DONs and HR Directors in PG County.
+    Converts prospects by showing the product in action.
+    """
+    return Path("app/static/demo/healthcare.html")
 
 
 @app.get("/api/status")
@@ -489,6 +512,12 @@ def help_page():
 def account_page():
     """Account settings page"""
     return Path("app/static/account/index.html")
+
+
+@app.get("/roadmap", response_class=FileResponse)
+def roadmap_page():
+    """Product roadmap - Phase 1, 2, 3 vision"""
+    return Path("app/static/roadmap.html")
 
 
 @app.get("/api-docs", response_class=FileResponse)

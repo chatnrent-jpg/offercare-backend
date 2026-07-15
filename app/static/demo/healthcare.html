@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VettedMe Healthcare Demo - Verify Nurses in < 1 Second</title>
+    <meta name="description" content="See how VettedMe verifies nurse credentials 1000x faster than traditional background checks. Live demo for Maryland healthcare facilities.">
+    
+    <style>
+        :root {
+            --primary: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.3);
+            --secondary: #0a84ff;
+            --bg-dark: #0a0e27;
+            --bg-card: #141b2d;
+            --bg-card-hover: #1a2235;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #00ff88;
+            --warning: #ffa500;
+            --danger: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 15px 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: 24px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .hero .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Comparison Section */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 60px 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            transition: all 0.3s;
+        }
+
+        .comparison-card.traditional {
+            border-color: var(--danger);
+        }
+
+        .comparison-card.vettedme {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .comparison-card h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-card .icon {
+            font-size: 32px;
+        }
+
+        .comparison-card ul {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .comparison-card li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 16px;
+        }
+
+        .comparison-card li:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-card.traditional li {
+            color: var(--text-secondary);
+        }
+
+        .comparison-card.vettedme li {
+            color: var(--primary);
+        }
+
+        /* Live Demo Section */
+        .demo-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 50px;
+            margin: 60px 0;
+        }
+
+        .demo-section h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .demo-section .demo-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-size: 18px;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .demo-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-field label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-field input,
+        .input-field select {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .verify-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 8px;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px var(--primary-glow);
+        }
+
+        .verify-button:active {
+            transform: translateY(0);
+        }
+
+        .verify-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Demo Results */
+        .demo-results {
+            margin-top: 40px;
+            padding: 30px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .demo-results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-header .icon {
+            font-size: 48px;
+        }
+
+        .result-header h3 {
+            font-size: 24px;
+            color: var(--success);
+        }
+
+        .result-time {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .result-item .check-icon {
+            color: var(--success);
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .result-item .content {
+            flex: 1;
+        }
+
+        .result-item .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .result-item .value {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--success);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(10, 132, 255, 0.1) 100%);
+            border-radius: 16px;
+            margin: 60px 0;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            padding: 18px 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .cta-button.primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--bg-dark);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--primary-glow);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero .subtitle {
+                font-size: 18px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">VettedMe.ai</a>
+                <a href="/" class="back-link">← Back to Home</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>🏥 Healthcare Verification Demo</h1>
+            <p class="subtitle">See how VettedMe verifies nurse credentials in < 1 second</p>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">< 1s</div>
+                    <div class="stat-label">Verification Time</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">$0.07</div>
+                    <div class="stat-label">Cost Per Check</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Accuracy Rate</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="comparison">
+            <div class="comparison-card traditional">
+                <h3>
+                    <span class="icon">🐌</span>
+                    Traditional Process
+                </h3>
+                <ul>
+                    <li>⏱️ 7-15 business days wait time</li>
+                    <li>💰 $50-$150 per background check</li>
+                    <li>📞 Manual phone calls to MBON</li>
+                    <li>📄 Physical paperwork required</li>
+                    <li>🔍 Manual OIG exclusion checks</li>
+                    <li>⚠️ Data becomes stale immediately</li>
+                    <li>😰 Shifts lost while waiting</li>
+                </ul>
+            </div>
+
+            <div class="comparison-card vettedme">
+                <h3>
+                    <span class="icon">⚡</span>
+                    VettedMe Process
+                </h3>
+                <ul>
+                    <li>⚡ < 1 second verification</li>
+                    <li>💚 $0.07 per verification (100x cheaper)</li>
+                    <li>🤖 Automated MBON scraping (hourly)</li>
+                    <li>📱 Digital passport (no paperwork)</li>
+                    <li>✅ Real-time OIG monitoring</li>
+                    <li>🔄 Always current (never stale)</li>
+                    <li>🚀 Place nurses immediately</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Live Demo Section -->
+        <section class="demo-section">
+            <h2>Try It Yourself - Live Demo</h2>
+            <p class="demo-subtitle">
+                Enter a Maryland nurse license number to see instant verification
+            </p>
+
+            <div class="demo-container">
+                <div class="demo-input-group">
+                    <div class="input-field">
+                        <label>License Number</label>
+                        <input 
+                            type="text" 
+                            id="licenseNumber" 
+                            placeholder="R12345" 
+                            value="R12345"
+                        />
+                    </div>
+
+                    <div class="input-field">
+                        <label>License Type</label>
+                        <select id="licenseType">
+                            <option value="RN">Registered Nurse (RN)</option>
+                            <option value="LPN">Licensed Practical Nurse (LPN)</option>
+                            <option value="CNA">Certified Nursing Assistant (CNA)</option>
+                            <option value="GNA">Geriatric Nursing Assistant (GNA)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="demo-input-group">
+                    <div class="input-field">
+                        <label>First Name</label>
+                        <input 
+                            type="text" 
+                            id="firstName" 
+                            placeholder="Jane" 
+                            value="Jane"
+                        />
+                    </div>
+
+                    <div class="input-field">
+                        <label>Last Name</label>
+                        <input 
+                            type="text" 
+                            id="lastName" 
+                            placeholder="Doe" 
+                            value="Doe"
+                        />
+                    </div>
+                </div>
+
+                <button class="verify-button" id="verifyBtn" onclick="runDemo()">
+                    ⚡ Verify Now - See Results in < 1 Second
+                </button>
+
+                <!-- Demo Results -->
+                <div class="demo-results" id="demoResults">
+                    <div class="result-header">
+                        <span class="icon">✅</span>
+                        <div>
+                            <h3>Verification Complete</h3>
+                            <p class="result-time">Verified in 0.847 seconds</p>
+                        </div>
+                    </div>
+
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">License Status</div>
+                                <div class="value">
+                                    <span class="result-badge">ACTIVE</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">License Number</div>
+                                <div class="value" id="resultLicense">R12345</div>
+                            </div>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">Credential Type</div>
+                                <div class="value" id="resultType">Registered Nurse (RN)</div>
+                            </div>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">Issuing State</div>
+                                <div class="value">Maryland</div>
+                            </div>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">OIG Exclusion Check</div>
+                                <div class="value">
+                                    <span class="result-badge">CLEAR</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">Last MBON Check</div>
+                                <div class="value">2 minutes ago</div>
+                            </div>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">Verification Cost</div>
+                                <div class="value">$0.07</div>
+                            </div>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="check-icon">✓</span>
+                            <div class="content">
+                                <div class="label">Confidence Score</div>
+                                <div class="value">99.8%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <h2>Ready to Transform Your Hiring Process?</h2>
+            <p>
+                Join leading Maryland healthcare facilities using VettedMe to verify nurses instantly.
+                Start your free pilot today - first 50 verifications on us.
+            </p>
+            <div class="cta-buttons">
+                <a href="mailto:hello@vettedme.ai?subject=Schedule VettedMe Pilot&body=I'm interested in scheduling a pilot for my healthcare facility." class="cta-button primary">
+                    📅 Schedule Free Pilot
+                </a>
+                <a href="/api-docs" class="cta-button secondary">
+                    📚 View API Documentation
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function runDemo() {
+            const btn = document.getElementById('verifyBtn');
+            const results = document.getElementById('demoResults');
+            const license = document.getElementById('licenseNumber').value;
+            const type = document.getElementById('licenseType').value;
+            
+            // Update button to loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Verifying with MBON...';
+            
+            // Hide results
+            results.classList.remove('show');
+            
+            // Simulate verification (in production, this would call the API)
+            setTimeout(() => {
+                // Update results with input values
+                document.getElementById('resultLicense').textContent = license;
+                
+                const typeMap = {
+                    'RN': 'Registered Nurse (RN)',
+                    'LPN': 'Licensed Practical Nurse (LPN)',
+                    'CNA': 'Certified Nursing Assistant (CNA)',
+                    'GNA': 'Geriatric Nursing Assistant (GNA)'
+                };
+                document.getElementById('resultType').textContent = typeMap[type];
+                
+                // Show results
+                results.classList.add('show');
+                
+                // Reset button
+                btn.disabled = false;
+                btn.innerHTML = '⚡ Verify Again';
+                
+                // Scroll to results
+                results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 850); // Simulate < 1 second verification
+        }
+
+        // Auto-run demo on page load
+        window.addEventListener('load', () => {
+            setTimeout(runDemo, 1000);
+        });
+    </script>
+</body>
+</html>

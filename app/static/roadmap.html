@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VettedMe Roadmap - The Universal Trust Layer</title>
+    <style>
+        :root {
+            --bg: #0a1628;
+            --surface: #0f1d35;
+            --panel: rgba(18, 26, 43, 0.95);
+            --panel-border: rgba(45, 212, 191, 0.2);
+            --accent: #2dd4bf;
+            --text: #e8eef8;
+            --muted: #8b95a9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            max-width: 1400px;
+            margin: 0 auto 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--accent) 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            margin-bottom: 30px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .phase-card {
+            background: var(--panel);
+            border: 2px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .phase-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(45, 212, 191, 0.2);
+            border-color: var(--accent);
+        }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .badge-live {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .badge-coming-soon {
+            background: rgba(251, 146, 60, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .badge-planned {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--info);
+            border: 1px solid var(--info);
+        }
+
+        .phase-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .phase-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .phase-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .phase-description {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .value-prop {
+            background: rgba(45, 212, 191, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .credentials-list {
+            margin: 20px 0;
+        }
+
+        .credentials-list h4 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .credential-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .credential-tag {
+            background: rgba(45, 212, 191, 0.15);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: 1px solid rgba(45, 212, 191, 0.3);
+        }
+
+        .target-client {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .target-client strong {
+            color: var(--info);
+        }
+
+        .states {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .state-badge {
+            background: rgba(45, 212, 191, 0.2);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--panel);
+            border: 2px solid var(--panel-border);
+            border-radius: 16px;
+            margin-top: 40px;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .cta-section p {
+            font-size: 18px;
+            color: var(--muted);
+            margin-bottom: 30px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #10b981 100%);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(45, 212, 191, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(45, 212, 191, 0.1);
+        }
+
+        nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        nav a {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            border-color: var(--accent);
+            background: rgba(45, 212, 191, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .phase-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 36px;
+            }
+            
+            nav {
+                position: static;
+                justify-content: center;
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/api-docs">API Docs</a>
+    </nav>
+
+    <header>
+        <h1>VettedMe Product Roadmap</h1>
+        <p class="subtitle">Building the Universal Trust Layer for the Modern Economy</p>
+    </header>
+
+    <div class="container">
+        <div class="phase-grid">
+            <!-- Phase 1: Healthcare -->
+            <div class="phase-card">
+                <span class="phase-badge badge-live">LIVE - PHASE 1</span>
+                <h2 class="phase-title">🏥 Healthcare & Clinical Staffing</h2>
+                
+                <div class="phase-meta">
+                    <div class="phase-meta-item">
+                        <span>📅</span>
+                        <span>MVP: Sept 2026</span>
+                    </div>
+                    <div class="phase-meta-item">
+                        <span>💰</span>
+                        <span>$0.07/verification</span>
+                    </div>
+                </div>
+
+                <p class="phase-description">
+                    Dominate Maryland healthcare staffing by replacing slow, manual credential verification 
+                    with instant, automated checks. Legal mandate under OHCQ/MBON creates built-in demand.
+                </p>
+
+                <div class="value-prop">
+                    <strong>Value Proposition:</strong> Cut onboarding from 2 weeks to 2 minutes. 
+                    Hospital verifies RN license instantly instead of waiting 7-15 days.
+                </div>
+
+                <div class="credentials-list">
+                    <h4>Supported Credentials:</h4>
+                    <div class="credential-tags">
+                        <span class="credential-tag">RN</span>
+                        <span class="credential-tag">LPN</span>
+                        <span class="credential-tag">CNA</span>
+                        <span class="credential-tag">GNA</span>
+                        <span class="credential-tag">NP</span>
+                        <span class="credential-tag">RT</span>
+                    </div>
+                </div>
+
+                <div class="credentials-list">
+                    <h4>Target States:</h4>
+                    <div class="states">
+                        <span class="state-badge">MD</span>
+                        <span class="state-badge">VA</span>
+                        <span class="state-badge">DC</span>
+                        <span class="state-badge">PA</span>
+                        <span class="state-badge">DE</span>
+                    </div>
+                </div>
+
+                <div class="target-client">
+                    <strong>First Client Goal:</strong> PG County staffing agency or hospital network. 
+                    Use marketing engine to scrape DON/HR contacts and launch pilot.
+                </div>
+            </div>
+
+            <!-- Phase 2: Logistics -->
+            <div class="phase-card">
+                <span class="phase-badge badge-coming-soon">COMING SOON - PHASE 2</span>
+                <h2 class="phase-title">🚚 Commercial Transportation & Logistics</h2>
+                
+                <div class="phase-meta">
+                    <div class="phase-meta-item">
+                        <span>📅</span>
+                        <span>Launch: Dec 2026</span>
+                    </div>
+                    <div class="phase-meta-item">
+                        <span>💰</span>
+                        <span>$0.07/verification</span>
+                    </div>
+                </div>
+
+                <p class="phase-description">
+                    Expand to logistics by adding CDL, HazMat, and DOT medical certificate verification. 
+                    Transport hubs must continuously verify driver compliance - we make it instant.
+                </p>
+
+                <div class="value-prop">
+                    <strong>Value Proposition:</strong> Stop running slow MVA background checks. 
+                    Require a 1-click VettedMe Passport for instant DOT compliance verification.
+                </div>
+
+                <div class="credentials-list">
+                    <h4>Supported Credentials:</h4>
+                    <div class="credential-tags">
+                        <span class="credential-tag">CDL Class A</span>
+                        <span class="credential-tag">CDL Class B</span>
+                        <span class="credential-tag">HazMat</span>
+                        <span class="credential-tag">Tanker</span>
+                        <span class="credential-tag">DOT Medical</span>
+                        <span class="credential-tag">TWIC</span>
+                    </div>
+                </div>
+
+                <div class="credentials-list">
+                    <h4>Target States:</h4>
+                    <div class="states">
+                        <span class="state-badge">MD</span>
+                        <span class="state-badge">VA</span>
+                        <span class="state-badge">DC</span>
+                        <span class="state-badge">PA</span>
+                        <span class="state-badge">DE</span>
+                        <span class="state-badge">NJ</span>
+                    </div>
+                </div>
+
+                <div class="target-client">
+                    <strong>First Client Goal:</strong> Regional logistics network or transport hub. 
+                    Use Phase 1 healthcare testimonials for credibility.
+                </div>
+            </div>
+
+            <!-- Phase 3: Enterprise -->
+            <div class="phase-card">
+                <span class="phase-badge badge-planned">PLANNED - PHASE 3</span>
+                <h2 class="phase-title">🔒 Government Contracting & Enterprise APIs</h2>
+                
+                <div class="phase-meta">
+                    <div class="phase-meta-item">
+                        <span>📅</span>
+                        <span>Launch: Q1 2027</span>
+                    </div>
+                    <div class="phase-meta-item">
+                        <span>💰</span>
+                        <span>$0.15/verification</span>
+                    </div>
+                </div>
+
+                <p class="phase-description">
+                    Become the "Plaid of Identity" - B2B API integrations with Upwork, Deel, ADP, and 
+                    defense contractors. Zero-knowledge proofs remove data liability.
+                </p>
+
+                <div class="value-prop">
+                    <strong>Value Proposition:</strong> Contractor doesn't store sensitive clearance data. 
+                    Worker carries VettedMe Passport with cryptographic proof. Instant verification, zero liability.
+                </div>
+
+                <div class="credentials-list">
+                    <h4>Supported Credentials:</h4>
+                    <div class="credential-tags">
+                        <span class="credential-tag">Secret Clearance</span>
+                        <span class="credential-tag">Top Secret</span>
+                        <span class="credential-tag">TS/SCI</span>
+                        <span class="credential-tag">CISSP</span>
+                        <span class="credential-tag">Security+</span>
+                        <span class="credential-tag">PIV/CAC</span>
+                    </div>
+                </div>
+
+                <div class="credentials-list">
+                    <h4>Target Markets:</h4>
+                    <div class="states">
+                        <span class="state-badge">Federal</span>
+                        <span class="state-badge">State Gov</span>
+                        <span class="state-badge">Defense</span>
+                        <span class="state-badge">Cybersecurity</span>
+                    </div>
+                </div>
+
+                <div class="target-client">
+                    <strong>First Client Goal:</strong> Win Upwork or Deel integration. Unlock network effects 
+                    by becoming infrastructure layer for platform economy.
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2>Ready to Scale with VettedMe?</h2>
+            <p>Join the verified workforce revolution. Replace slow, manual credential checks with instant, cryptographic verification.</p>
+            <div class="cta-buttons">
+                <a href="/passport/dashboard" class="btn btn-primary">Get Your Passport</a>
+                <a href="/api-docs" class="btn btn-secondary">View API Docs</a>
+                <a href="/dashboard" class="btn btn-secondary">Enterprise Demo</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
