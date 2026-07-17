@@ -5,6 +5,7 @@ Provider-agnostic payment abstraction layer with:
 - Compliance packet generation (ZK-proof + encrypted PII)
 - Multiple financial rails (Airwallex, Nium, Wise, Stablecoin)
 - Automatic failover and routing
+- Transaction orchestration with ZK-proof verification
 - Zero platform lock-in
 """
 
@@ -31,7 +32,12 @@ from .compliance_packet import (
     MissingPublicKeyError,
 )
 
+from .transaction_manager import VettedPayTransactionEngine
+
 __all__ = [
+    # Transaction Orchestration
+    "VettedPayTransactionEngine",
+    
     # Adapter Pattern
     "PayoutProviderAdapter",
     "PayoutRail",
