@@ -1,14 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  async rewrites() {
-    return [
-      {
-        source: '/api/v1/:path*',
-        destination: 'http://localhost:8000/api/v1/:path*', // Hooks to FastAPI worker port
-      },
-    ];
+  env: {
+    FASTAPI_BASE_URL: process.env.FASTAPI_BASE_URL || 'http://localhost:8000',
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

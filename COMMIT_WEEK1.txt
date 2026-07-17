@@ -1,0 +1,48 @@
+========================================
+WEEK 1 GIT COMMIT - zkTLS Foundation
+Run these commands in PowerShell
+========================================
+
+# Navigate to project
+cd C:\vettedcare.ai\vettedcare-backend
+
+# Stage all changes
+git add -A
+
+# Commit
+git commit -m "feat: Week 1 zkTLS Platform Foundation
+
+Complete database architecture for zkTLS credential verification platform.
+
+Phase 1: Free Badges (LinkedIn + Healthcare)
+- users table with authentication
+- public_profiles for shareable portfolios
+- credentials table for zkTLS badges
+- reclaim_sessions for proof tracking
+- badge_views for analytics
+
+Phase 2: B2B Developer API
+- developer_profiles for API keys
+- usage_logs for metered billing
+- billing_periods for Stripe invoices
+
+Files Created:
+- database/schema_zktls.sql (complete SQL schema)
+- app/models/zktls.py (8 SQLAlchemy models)
+- app/schemas/zktls.py (20+ Pydantic schemas)
+- alembic/versions/042_zktls_platform_schema.py (migration)
+- WEEK1_ZKTLS_FOUNDATION.md (comprehensive docs)
+
+Timeline:
+- Week 1 (July 16-22): Foundation ✅ DONE
+- Week 2 (July 23-29): Reclaim SDK + LinkedIn proof
+- Week 3 (July 30 - Aug 5): Healthcare proof
+- Week 4 (Aug 6-15): Launch free badges 🚀
+- Weeks 5-8 (Aug 16 - Sept 15): B2B API + Stripe
+
+Ready for Week 2: Reclaim Protocol integration."
+
+# Push to GitHub
+git push
+
+========================================

@@ -1,0 +1,72 @@
+# VettedMe zkTLS Platform - Production Dependencies
+# Phase 1: Free Badges (LinkedIn + Healthcare)
+# Phase 2: B2B API with Stripe Billing
+
+# ============================================================================
+# Core FastAPI Stack
+# ============================================================================
+
+fastapi==0.110.0              # Web framework
+uvicorn[standard]==0.29.0     # ASGI server (with WebSocket support)
+python-multipart==0.0.9       # For form data and file uploads
+
+# ============================================================================
+# Database & ORM
+# ============================================================================
+
+sqlalchemy==2.0.28            # ORM (Object-Relational Mapping)
+alembic==1.13.1               # Database migrations (CRITICAL for production)
+psycopg2-binary==2.9.9        # PostgreSQL driver
+
+# ============================================================================
+# Authentication & Security
+# ============================================================================
+
+python-jose[cryptography]==3.3.0   # JWT tokens
+passlib[bcrypt]==1.7.4             # Password hashing
+bcrypt==4.0.1                       # Bcrypt algorithm
+cryptography==42.0.5                # For JWT signing
+
+# ============================================================================
+# Data Validation
+# ============================================================================
+
+pydantic[email]==2.6.3        # Data validation (with email support)
+pydantic-settings==2.2.1      # For environment variables
+email-validator==2.1.1        # Email validation
+
+# ============================================================================
+# HTTP Client (for Reclaim Protocol API)
+# ============================================================================
+
+httpx==0.27.0                 # Modern HTTP client (async support)
+requests==2.31.0              # Traditional HTTP client (for compatibility)
+
+# ============================================================================
+# Utilities
+# ============================================================================
+
+python-dotenv==1.0.1          # Load environment variables from .env
+typing-extensions==4.10.0     # Type hints for older Python versions
+
+# ============================================================================
+# Optional: Stripe Integration (Phase 2)
+# ============================================================================
+
+# stripe==8.5.0               # Uncomment when ready for Phase 2 billing
+
+# ============================================================================
+# Optional: Production Monitoring
+# ============================================================================
+
+# sentry-sdk[fastapi]==1.40.0  # Error tracking
+# prometheus-fastapi-instrumentator==6.1.0  # Metrics
+
+# ============================================================================
+# Development Dependencies (Optional)
+# ============================================================================
+
+# pytest==8.1.1               # Testing framework
+# pytest-asyncio==0.23.5      # Async test support
+# black==24.3.0               # Code formatter
+# ruff==0.3.3                 # Fast linter

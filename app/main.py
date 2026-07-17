@@ -69,6 +69,9 @@ from app.routers.marketing import router as marketing_router
 from app.routers.industries import router as industries_router
 from app.routers.logistics import router as logistics_router
 from app.routers.government import router as government_router
+from app.routers.reclaim import router as reclaim_router
+from app.routers.auth import router as auth_router
+from app.routers.credentials import router as credentials_router
 from api.intake_webhooks import register_intake_webhooks
 from api.vector_match_engine import register_vector_match_engine
 from api.instant_pay_retention import (
@@ -185,10 +188,13 @@ app.include_router(biometric_router)
 app.include_router(webhooks_router)
 app.include_router(analytics_router_v2)
 app.include_router(ai_resume_router)
+app.include_router(auth_router)
+app.include_router(credentials_router)
 app.include_router(marketing_router)
 app.include_router(industries_router)
 app.include_router(logistics_router)
 app.include_router(government_router)
+app.include_router(reclaim_router)
 register_intake_webhooks(app)
 register_vector_match_engine(app)
 register_instant_pay_retention(app)
