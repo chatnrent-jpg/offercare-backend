@@ -7,6 +7,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import FileResponse, RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -72,6 +73,7 @@ from app.routers.government import router as government_router
 from app.routers.reclaim import router as reclaim_router
 from app.routers.auth import router as auth_router
 from app.routers.credentials import router as credentials_router
+from app.routers.vettedpay import router as vettedpay_router
 from api.intake_webhooks import register_intake_webhooks
 from api.vector_match_engine import register_vector_match_engine
 from api.instant_pay_retention import (
@@ -149,6 +151,21 @@ Get your API key from the [Dashboard](http://localhost:8000/dashboard) and start
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
+# CORS configuration for VettedPay frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js dev server
+        "http://localhost:3001",  # Alternative dev port
+        "https://vettedpay.ai",   # Production domain
+        "https://*.vettedpay.ai", # Production subdomains
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
 
 @app.middleware("http")
 async def portal_static_no_cache(request: Request, call_next):
@@ -190,6 +207,7 @@ app.include_router(analytics_router_v2)
 app.include_router(ai_resume_router)
 app.include_router(auth_router)
 app.include_router(credentials_router)
+app.include_router(vettedpay_router)
 app.include_router(marketing_router)
 app.include_router(industries_router)
 app.include_router(logistics_router)
