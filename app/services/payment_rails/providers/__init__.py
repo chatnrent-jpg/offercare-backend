@@ -3,8 +3,8 @@ Payment Provider Adapters
 Concrete implementations for each financial rail.
 """
 
-from .airwallex_adapter import AirwallexAdapter
+from .airwallex_rail import AirwallexRail
 
 __all__ = [
-    "AirwallexAdapter",
+    "AirwallexRail",
 ]

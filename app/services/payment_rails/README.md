@@ -82,10 +82,10 @@ class PayoutProviderAdapter(ABC):
 ```
 
 **Current Implementations:**
-- ✅ Airwallex (`providers/airwallex_adapter.py`)
-- 🚧 Nium (coming soon)
-- 🚧 Wise (coming soon)
-- 🚧 Stablecoin/On-chain (coming soon)
+- ✅ Airwallex (`providers/airwallex_rail.py`)
+- 🚧 Nium (coming soon - `providers/nium_rail.py`)
+- 🚧 Wise (coming soon - `providers/wise_rail.py`)
+- 🚧 Stablecoin/On-chain (coming soon - `providers/stablecoin_rail.py`)
 
 ### 3. Payout Router (`payout_router.py`)
 
@@ -228,23 +228,35 @@ CHASE_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----...
 
 ## Adding a New Provider
 
-1. **Implement Adapter:**
+1. **Implement Rail:**
 ```python
-# providers/nium_adapter.py
-class NiumAdapter(PayoutProviderAdapter):
+# providers/nium_rail.py
+class NiumRail(PayoutProviderAdapter):
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)
+        self.api_url = config.get("api_url", "https://nium.com")
+        self.api_token = config.get("api_token")
+    
     def _get_rail_type(self) -> PayoutRail:
         return PayoutRail.NIUM
     
     async def execute_payout(...) -> PayoutResult:
         # Nium-specific API calls
+        headers = {
+            "Authorization": f"Bearer {self.api_token}",
+            "X-Idempotency-Key": idempotency_key
+        }
+        # ... rest of implementation
         pass
 ```
 
 2. **Register in Config:**
 ```python
+from .providers.nium_rail import NiumRail
+
 adapters = {
-    PayoutRail.AIRWALLEX: AirwallexAdapter(airwallex_config),
-    PayoutRail.NIUM: NiumAdapter(nium_config),  # ← Add here
+    PayoutRail.AIRWALLEX: AirwallexRail(airwallex_config),
+    PayoutRail.NIUM: NiumRail(nium_config),  # ← Add here
 }
 ```
 

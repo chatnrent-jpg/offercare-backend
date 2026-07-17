@@ -9,7 +9,7 @@ from typing import Dict, Any
 from .payout_adapter import PayoutRail
 from .payout_router import PayoutRouter, RoutingStrategy
 from .compliance_packet import CompliancePacketGenerator
-from .providers.airwallex_adapter import AirwallexAdapter
+from .providers.airwallex_rail import AirwallexRail
 
 
 # ============================================================================
@@ -36,9 +36,8 @@ def create_vettedpay_router(
     
     airwallex_config = {
         "environment": environment,
-        "api_key": "YOUR_AIRWALLEX_API_KEY",
-        "api_secret": "YOUR_AIRWALLEX_SECRET",
-        "client_id": "YOUR_CLIENT_ID",
+        "api_url": "https://api.airwallex.com",
+        "api_token": "YOUR_AIRWALLEX_API_TOKEN",
     }
     
     # nium_config = {
@@ -78,9 +77,9 @@ YOUR_HSBC_PUBLIC_KEY_HERE
     # ========================================================================
     
     adapters = {
-        PayoutRail.AIRWALLEX: AirwallexAdapter(airwallex_config),
-        # PayoutRail.NIUM: NiumAdapter(nium_config),
-        # PayoutRail.WISE: WiseAdapter(wise_config),
+        PayoutRail.AIRWALLEX: AirwallexRail(airwallex_config),
+        # PayoutRail.NIUM: NiumRail(nium_config),
+        # PayoutRail.WISE: WiseRail(wise_config),
     }
     
     # ========================================================================
@@ -208,9 +207,8 @@ def create_production_router() -> PayoutRouter:
     # Airwallex config from env
     airwallex_config = {
         "environment": os.getenv("VETTEDPAY_ENVIRONMENT", "production"),
-        "api_key": os.getenv("AIRWALLEX_API_KEY"),
-        "api_secret": os.getenv("AIRWALLEX_SECRET"),
-        "client_id": os.getenv("AIRWALLEX_CLIENT_ID"),
+        "api_url": os.getenv("AIRWALLEX_API_URL", "https://api.airwallex.com"),
+        "api_token": os.getenv("AIRWALLEX_API_TOKEN"),
     }
     
     # Bank keys from secure storage
@@ -226,7 +224,7 @@ def create_production_router() -> PayoutRouter:
     )
     
     adapters = {
-        PayoutRail.AIRWALLEX: AirwallexAdapter(airwallex_config),
+        PayoutRail.AIRWALLEX: AirwallexRail(airwallex_config),
     }
     
     router_config = {

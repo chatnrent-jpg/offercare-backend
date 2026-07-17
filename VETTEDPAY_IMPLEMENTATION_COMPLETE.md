@@ -58,11 +58,11 @@ A complete provider-agnostic payment infrastructure with zero-knowledge complian
 - Unified error handling
 - Provider-agnostic business logic
 
-**Implemented Adapters:**
-- ✅ Airwallex (`providers/airwallex_adapter.py`)
-- 🚧 Nium (template ready)
-- 🚧 Wise (template ready)
-- 🚧 Stablecoin (template ready)
+**Implemented Rails:**
+- ✅ Airwallex (`providers/airwallex_rail.py`)
+- 🚧 Nium (template ready - `providers/nium_rail.py`)
+- 🚧 Wise (template ready - `providers/wise_rail.py`)
+- 🚧 Stablecoin (template ready - `providers/stablecoin_rail.py`)
 
 **Key Insight:** Adding a new provider = implementing 5 methods. No changes to your core application code.
 
@@ -123,9 +123,9 @@ from payment_rails import PayoutRouter, PayoutRail
 from payment_rails.config_example import create_vettedpay_router
 from payment_rails.compliance_packet import CompliancePayload
 
-# Initialize router
+# Initialize router (flip primary_rail to switch providers)
 router = create_vettedpay_router(
-    primary_rail=PayoutRail.AIRWALLEX
+    primary_rail=PayoutRail.AIRWALLEX  # ← Change to NIUM, WISE, etc.
 )
 
 # Create compliance payload
@@ -341,7 +341,7 @@ app/services/payment_rails/
 ├── README.md                     # Full documentation
 └── providers/
     ├── __init__.py
-    └── airwallex_adapter.py      # Airwallex implementation
+    └── airwallex_rail.py         # Airwallex implementation
 
 app/models/
 └── vettedpay.py                  # Database models
