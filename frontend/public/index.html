@@ -43,14 +43,28 @@
 
         <!-- Dynamic Waitlist Box -->
         <div class="mt-12 max-w-md mx-auto bg-slate-900/60 border border-slate-800/80 p-2.5 rounded-xl shadow-2xl backdrop-blur-md">
-            <form id="waitlistForm" class="flex flex-col sm:flex-row gap-2">
+            <!-- Formspree-Powered Form (Zero Backend Required) -->
+            <form 
+                id="waitlistForm"
+                action="https://formspree.io/f/YOUR_FORM_ID" 
+                method="POST" 
+                class="flex flex-col sm:flex-row gap-2">
+                
                 <input 
                     type="email" 
+                    name="email"
                     id="emailInput"
                     required 
                     placeholder="Enter your business email" 
                     class="w-full bg-slate-950 border border-slate-800/80 rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
                 />
+                
+                <!-- Hidden fields for extra context -->
+                <input type="hidden" name="_subject" value="New VettedPay Waitlist Signup!">
+                <input type="hidden" name="page" value="landing">
+                <input type="hidden" name="timestamp" id="timestampInput">
+                <input type="hidden" name="referral" id="referralInput">
+                
                 <button 
                     type="submit" 
                     id="submitBtn"
@@ -65,13 +79,13 @@
 
         <!-- Success Display -->
         <div id="successDisplay" class="hidden mt-8 max-w-md mx-auto">
-            <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4 animate-pulse">
+            <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4">
                 <div class="text-sm font-semibold text-indigo-400">✓ Welcome to the inner circle!</div>
                 <div class="text-xs text-slate-400 mt-2">
                     Your corporate email has been queued for stealth alpha activation.
                 </div>
                 <div class="text-xs text-slate-500 mt-2">
-                    You're <span id="queuePosition" class="text-white font-bold">#--</span> on the priority waitlist
+                    Check your inbox for confirmation and next steps.
                 </div>
             </div>
         </div>
@@ -131,79 +145,91 @@
         </div>
     </footer>
 
-    <!-- JavaScript for API Integration -->
+    <!-- JavaScript for Enhanced Form Experience -->
     <script>
-        const API_URL = 'https://your-backend-url.com'; // Change to your backend URL
-        
         const form = document.getElementById('waitlistForm');
         const emailInput = document.getElementById('emailInput');
         const submitBtn = document.getElementById('submitBtn');
         const statusMessage = document.getElementById('statusMessage');
         const successDisplay = document.getElementById('successDisplay');
-        const queuePosition = document.getElementById('queuePosition');
+        const timestampInput = document.getElementById('timestampInput');
+        const referralInput = document.getElementById('referralInput');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = emailInput.value.trim();
-            
-            // Disable button during submission
+        // Capture referral source from URL
+        const refSource = new URLSearchParams(window.location.search).get('ref') || 'organic';
+        referralInput.value = refSource;
+        
+        // Store referral in localStorage for future visits
+        if (refSource !== 'organic') {
+            localStorage.setItem('vettedpay_ref', refSource);
+        }
+
+        // Set timestamp on page load
+        timestampInput.value = new Date().toISOString();
+
+        // Enhanced form submission with visual feedback
+        form.addEventListener('submit', function(e) {
+            // Disable button to prevent double submission
             submitBtn.disabled = true;
             submitBtn.textContent = 'Joining...';
-
-            try {
-                const response = await fetch(`${API_URL}/api/v1/vettedpay/waitlist`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        referral_source: new URLSearchParams(window.location.search).get('ref') || 'organic',
-                    }),
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    // Show success display
-                    successDisplay.classList.remove('hidden');
-                    queuePosition.textContent = `#${data.position}`;
-                    
-                    // Hide form
-                    form.classList.add('hidden');
-                    
-                    showMessage(data.message, 'success');
-                } else {
-                    showMessage(data.message || 'Failed to join waitlist. Please try again.', 'error');
-                }
-            } catch (error) {
-                console.error('Waitlist error:', error);
-                
-                // Fallback: Show success message even if API fails (for demo purposes)
+            
+            // Show processing message
+            showMessage('Submitting your request...', 'processing');
+            
+            // Update timestamp
+            timestampInput.value = new Date().toISOString();
+            
+            // Form will submit naturally to Formspree
+            // Success is handled by Formspree's redirect or we show our success display
+            setTimeout(() => {
+                // Show success display after brief delay
                 successDisplay.classList.remove('hidden');
-                queuePosition.textContent = '#--';
-                form.classList.add('hidden');
-                showMessage('Welcome! Your email has been recorded.', 'success');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Request Priority Access';
+                form.style.display = 'none';
+                showMessage('✓ Successfully joined the waitlist!', 'success');
+            }, 1500);
+        });
+
+        // Email validation enhancement
+        emailInput.addEventListener('input', function() {
+            const email = this.value.trim();
+            if (email && !isValidEmail(email)) {
+                this.setCustomValidity('Please enter a valid business email');
+            } else {
+                this.setCustomValidity('');
             }
         });
 
+        // Utility functions
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
         function showMessage(message, type) {
+            const colors = {
+                'success': 'bg-green-500/10 border border-green-500/30 text-green-400',
+                'error': 'bg-red-500/10 border border-red-500/30 text-red-400',
+                'processing': 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-400'
+            };
+            
             statusMessage.textContent = message;
-            statusMessage.className = `mt-3 p-3 rounded-lg text-xs ${
-                type === 'success' 
-                    ? 'bg-green-500/10 border border-green-500/30 text-green-400' 
-                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
-            }`;
+            statusMessage.className = `mt-3 p-3 rounded-lg text-xs ${colors[type] || colors.processing}`;
             statusMessage.classList.remove('hidden');
             
-            setTimeout(() => {
-                statusMessage.classList.add('hidden');
-            }, 5000);
+            if (type !== 'processing') {
+                setTimeout(() => {
+                    statusMessage.classList.add('hidden');
+                }, 5000);
+            }
         }
+
+        // Track page performance (optional analytics hook)
+        window.addEventListener('load', function() {
+            console.log('VettedPay landing page loaded successfully');
+            if (window.performance) {
+                const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+                console.log(`Page load time: ${loadTime}ms`);
+            }
+        });
     </script>
 
 </body>
