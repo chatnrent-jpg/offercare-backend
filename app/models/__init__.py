@@ -52,6 +52,18 @@ from app.models.passport import Passport, CredentialBadge, VerificationLog, APIK
 # Import Webhook system models
 from app.models.webhook import WebhookSubscription, WebhookDelivery, WebhookEvent
 
+# Import VettedPay models and enums
+from app.models.vettedpay import (
+    PaymentRail,
+    TransactionStatus,
+    VettedPayPayout,
+    VettedPayCompliancePacket,
+    VettedPayRailHealth,
+    VettedPayTransaction,
+    VettedPayZKVerification,
+    VettedPayWaitlist,
+)
+
 # Define employment tier constants here to avoid double-registration
 # (These are also defined in caregiver_accounts.py but importing from there
 # would cause SQLAlchemy table registration conflicts)
@@ -98,4 +110,13 @@ __all__ = [
     "WebhookSubscription",
     "WebhookDelivery",
     "WebhookEvent",
+    # VettedPay Payment Infrastructure
+    "PaymentRail",
+    "TransactionStatus",
+    "VettedPayPayout",
+    "VettedPayCompliancePacket",
+    "VettedPayRailHealth",
+    "VettedPayTransaction",
+    "VettedPayZKVerification",
+    "VettedPayWaitlist",
 ]

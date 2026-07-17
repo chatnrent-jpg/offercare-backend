@@ -9,10 +9,18 @@ import time
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
+from decimal import Decimal
+from sqlalchemy.orm import Session
 
 from .airwallex_rail import AirwallexRail
-from .payout_adapter import PayoutProviderAdapter, PayoutResult
+from .payout_adapter import PayoutProviderAdapter, PayoutResult, PayoutRail, PayoutStatus
 from .compliance_packet import CompliancePacketGenerator, CompliancePayload
+from app.models.vettedpay import (
+    VettedPayTransaction,
+    VettedPayZKVerification,
+    PaymentRail as DBPaymentRail,
+    TransactionStatus as DBTransactionStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +43,7 @@ class VettedPayTransactionEngine:
         self,
         active_provider: str,
         provider_config: Dict[str, Any],
+        db_session: Optional[Session] = None,
         compliance_generator: Optional[CompliancePacketGenerator] = None
     ):
         """
@@ -43,10 +52,12 @@ class VettedPayTransactionEngine:
         Args:
             active_provider: Provider name ("airwallex", "nium", "wise", etc.)
             provider_config: Provider-specific configuration
+            db_session: Optional SQLAlchemy database session for persistence
             compliance_generator: Optional compliance packet generator
         """
         self.active_provider = active_provider
         self.compliance_generator = compliance_generator
+        self.db = db_session
         
         # Dynamic Provider Factory
         if active_provider == "airwallex":
@@ -67,6 +78,27 @@ class VettedPayTransactionEngine:
             raise ValueError(f"Unknown financial provider: {active_provider}")
         
         logger.info(f"VettedPayTransactionEngine initialized with provider: {active_provider}")
+    
+    def _map_rail_to_db_enum(self, rail: PayoutRail) -> DBPaymentRail:
+        """Map PayoutRail enum to DBPaymentRail enum."""
+        mapping = {
+            PayoutRail.AIRWALLEX: DBPaymentRail.AIRWALLEX,
+            PayoutRail.NIUM: DBPaymentRail.NIUM,
+            PayoutRail.WISE: DBPaymentRail.WISE,
+            PayoutRail.STABLECOIN_USDC: DBPaymentRail.STABLECOIN_USDC,
+        }
+        return mapping.get(rail, DBPaymentRail.FALLBACK_MOCK)
+    
+    def _map_status_to_db_enum(self, status: PayoutStatus) -> DBTransactionStatus:
+        """Map PayoutStatus enum to DBTransactionStatus enum."""
+        mapping = {
+            PayoutStatus.PENDING: DBTransactionStatus.INITIATED,
+            PayoutStatus.PROCESSING: DBTransactionStatus.DISPATCHED_TO_RAIL,
+            PayoutStatus.COMPLETED: DBTransactionStatus.SETTLED,
+            PayoutStatus.FAILED: DBTransactionStatus.FAILED,
+            PayoutStatus.CANCELLED: DBTransactionStatus.CANCELLED,
+        }
+        return mapping.get(status, DBTransactionStatus.INITIATED)
     
     async def process_transfer(
         self,
@@ -112,6 +144,40 @@ class VettedPayTransactionEngine:
         unique_str = f"{sender_did}-{recipient_did}-{amount}-{currency}-{time.time()}"
         idempotency_key = hashlib.sha256(unique_str.encode()).hexdigest()
         
+        # 2.5. Create database transaction record (if DB session provided)
+        db_transaction = None
+        if self.db:
+            try:
+                db_transaction = VettedPayTransaction(
+                    idempotency_key=idempotency_key,
+                    sender_did=sender_did,
+                    recipient_did=recipient_did,
+                    amount=Decimal(str(amount)),
+                    currency=currency,
+                    active_rail=self._map_rail_to_db_enum(self.rail._get_rail_type()),
+                    status=DBTransactionStatus.INITIATED,
+                    zk_proof_verified=True,
+                    metadata=metadata,
+                )
+                self.db.add(db_transaction)
+                self.db.flush()  # Get the transaction ID without committing
+                
+                # Log ZK verification
+                zk_verification = VettedPayZKVerification(
+                    transaction_id=db_transaction.id,
+                    sender_did=sender_did,
+                    proof_type="sanction_check",
+                    verification_result=True,
+                    verification_method=zk_proof.get("verification_method", "OFAC_API_v1"),
+                    proof_timestamp=datetime.fromisoformat(zk_proof.get("timestamp", datetime.now(timezone.utc).isoformat())),
+                )
+                self.db.add(zk_verification)
+                
+                logger.info(f"Created transaction record: {db_transaction.id}")
+            except Exception as e:
+                logger.error(f"Failed to create transaction record: {e}")
+                # Continue anyway - database persistence is not critical for processing
+        
         logger.info(
             f"Processing transfer: {amount} {currency} from {sender_did} "
             f"via {self.active_provider} (idempotency: {idempotency_key[:16]}...)"
@@ -156,10 +222,37 @@ class VettedPayTransactionEngine:
                 f"{payment_result.transaction_id}"
             )
             
+            # Update database transaction status
+            if self.db and db_transaction:
+                try:
+                    db_transaction.status = self._map_status_to_db_enum(payment_result.status)
+                    db_transaction.rail_transaction_id = payment_result.transaction_id
+                    db_transaction.compliance_packet_id = payment_result.compliance_packet_id
+                    
+                    if not payment_result.success:
+                        db_transaction.error_log = payment_result.error_message
+                    
+                    self.db.commit()
+                    logger.info(f"Updated transaction {db_transaction.id} status to {db_transaction.status.value}")
+                except Exception as e:
+                    logger.error(f"Failed to update transaction status: {e}")
+                    self.db.rollback()
+            
             return result_dict
             
         except Exception as exc:
             logger.error(f"Transfer processing failed: {exc}", exc_info=True)
+            
+            # Update database transaction status to failed
+            if self.db and db_transaction:
+                try:
+                    db_transaction.status = DBTransactionStatus.FAILED
+                    db_transaction.error_log = str(exc)
+                    self.db.commit()
+                except Exception as db_error:
+                    logger.error(f"Failed to update transaction status after error: {db_error}")
+                    self.db.rollback()
+            
             return {
                 "success": False,
                 "error": f"Transfer processing error: {str(exc)}",
