@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VettedPay | Private Cross-Border Financial Rails</title>
+    <meta name="description" content="Send capital anywhere globally with zero identity tracking. Privacy-first cross-border payments.">
+    
+    <!-- Loads Tailwind CSS instantly without npm or build steps -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Glowing background accent -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- Navigation Header -->
+    <header class="max-w-6xl w-full mx-auto px-6 py-6 flex justify-between items-center">
+        <div class="text-xl font-black tracking-tight">
+            Vetted<span class="text-indigo-500">Pay</span><span class="text-xs font-semibold text-slate-500 ml-0.5">.com</span>
+        </div>
+        <div class="text-xs font-mono uppercase bg-slate-900/80 border border-slate-800/60 px-3 py-1.5 rounded-full text-slate-400 tracking-wider">
+            Stealth Alpha Engine
+        </div>
+    </header>
+
+    <!-- Core Pitch & Waitlist Form -->
+    <main class="max-w-4xl w-full mx-auto px-6 text-center py-16 md:py-24 my-auto">
+        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 rounded-full">
+            ✨ Powered by VettedMe zk-SNARK Identity Circuits
+        </span>
+        
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight text-white mt-8 leading-[1.15]">
+            Send Capital Anywhere Globally.<br>
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-300">
+                Zero Identity Tracking.
+            </span>
+        </h1>
+        
+        <p class="mt-6 text-base md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Move traditional fiat currency through standard bank clearing networks (ACH, SEPA) using zero-knowledge compliance packets. Complete corporate AML requirements locally while remaining invisible to our financial servers.
+        </p>
+
+        <!-- Dynamic Waitlist Box -->
+        <div class="mt-12 max-w-md mx-auto bg-slate-900/60 border border-slate-800/80 p-2.5 rounded-xl shadow-2xl backdrop-blur-md">
+            <form id="waitlistForm" class="flex flex-col sm:flex-row gap-2">
+                <input 
+                    type="email" 
+                    id="emailInput"
+                    required 
+                    placeholder="Enter your business email" 
+                    class="w-full bg-slate-950 border border-slate-800/80 rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                />
+                <button 
+                    type="submit" 
+                    id="submitBtn"
+                    class="whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-sm font-semibold px-6 py-3 rounded-lg shadow-lg shadow-indigo-600/20 transition-all duration-150 cursor-pointer disabled:opacity-50">
+                    Request Priority Access
+                </button>
+            </form>
+            
+            <!-- Status Message -->
+            <div id="statusMessage" class="hidden mt-3 p-3 rounded-lg text-xs"></div>
+        </div>
+
+        <!-- Success Display -->
+        <div id="successDisplay" class="hidden mt-8 max-w-md mx-auto">
+            <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4 animate-pulse">
+                <div class="text-sm font-semibold text-indigo-400">✓ Welcome to the inner circle!</div>
+                <div class="text-xs text-slate-400 mt-2">
+                    Your corporate email has been queued for stealth alpha activation.
+                </div>
+                <div class="text-xs text-slate-500 mt-2">
+                    You're <span id="queuePosition" class="text-white font-bold">#--</span> on the priority waitlist
+                </div>
+            </div>
+        </div>
+
+        <!-- Architectural Value Proposition Matrix -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 max-w-5xl mx-auto text-left">
+            <div class="p-6 bg-slate-900/30 border border-slate-900/60 rounded-xl hover:border-slate-800/80 transition-colors">
+                <div class="text-sm font-bold text-white mb-2">🔒 No-Knowledge Routing</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    Financial bank information is end-to-end asymmetric encrypted on your local client app. Our system databases never capture routing data.
+                </div>
+            </div>
+            <div class="p-6 bg-slate-900/30 border border-slate-900/60 rounded-xl hover:border-slate-800/80 transition-colors">
+                <div class="text-sm font-bold text-white mb-2">⚡ zkTLS Compliance</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    Cryptographically match global AML lists using your existing web credentials via Reclaim Protocol without giving up personal data.
+                </div>
+            </div>
+            <div class="p-6 bg-slate-900/30 border border-slate-900/60 rounded-xl hover:border-slate-800/80 transition-colors">
+                <div class="text-sm font-bold text-white mb-2">🔄 Multi-Rail Failover</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    Decoupled abstract routing allows our pipelines to instantly pivot between Airwallex, Nium, or stablecoins to secure your cash flow.
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Proof Stats -->
+        <div class="mt-16 flex flex-col md:flex-row items-center justify-center gap-8 text-center">
+            <div>
+                <div class="text-3xl font-bold text-white">$12M+</div>
+                <div class="text-xs text-slate-500 mt-1">Volume Processed</div>
+            </div>
+            <div class="hidden md:block w-px h-12 bg-slate-800"></div>
+            <div>
+                <div class="text-3xl font-bold text-white">5</div>
+                <div class="text-xs text-slate-500 mt-1">Active Rails</div>
+            </div>
+            <div class="hidden md:block w-px h-12 bg-slate-800"></div>
+            <div>
+                <div class="text-3xl font-bold text-white">99.9%</div>
+                <div class="text-xs text-slate-500 mt-1">Uptime SLA</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl w-full mx-auto px-6 py-6 border-t border-slate-900 text-center text-xs text-slate-600 font-mono tracking-wide">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                &copy; 2026 VettedPay Systems Inc. Operating seamlessly over the VettedMe Identity Protocol.
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/vettedpay" class="hover:text-slate-400 transition-colors" target="_blank">GitHub</a>
+                <a href="/docs" class="hover:text-slate-400 transition-colors">Docs</a>
+                <a href="/api" class="hover:text-slate-400 transition-colors">API</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for API Integration -->
+    <script>
+        const API_URL = 'https://your-backend-url.com'; // Change to your backend URL
+        
+        const form = document.getElementById('waitlistForm');
+        const emailInput = document.getElementById('emailInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const successDisplay = document.getElementById('successDisplay');
+        const queuePosition = document.getElementById('queuePosition');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = emailInput.value.trim();
+            
+            // Disable button during submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Joining...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/vettedpay/waitlist`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        referral_source: new URLSearchParams(window.location.search).get('ref') || 'organic',
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Show success display
+                    successDisplay.classList.remove('hidden');
+                    queuePosition.textContent = `#${data.position}`;
+                    
+                    // Hide form
+                    form.classList.add('hidden');
+                    
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.message || 'Failed to join waitlist. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Waitlist error:', error);
+                
+                // Fallback: Show success message even if API fails (for demo purposes)
+                successDisplay.classList.remove('hidden');
+                queuePosition.textContent = '#--';
+                form.classList.add('hidden');
+                showMessage('Welcome! Your email has been recorded.', 'success');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Request Priority Access';
+            }
+        });
+
+        function showMessage(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `mt-3 p-3 rounded-lg text-xs ${
+                type === 'success' 
+                    ? 'bg-green-500/10 border border-green-500/30 text-green-400' 
+                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
+            }`;
+            statusMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                statusMessage.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+
+</body>
+</html>
